@@ -91,24 +91,30 @@
     update_cache: true
     cache_valid_time: 3600
 
-- name: Import rvm keys
-  become: yes
-  become_user: "{{ analytics_user }}"
-  #shell: gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
-  shell: apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 34893610CEAA9512 && command curl -sSL https://rvm.io/mpapis.asc | gpg2 --import - && command curl -sSL https://rvm.io/pkuczynski.asc | gpg2 --import -
+- name: Install software-properties-common
+  apt:
+    name: software-properties-common
+    state: present
 
-- name: Install rvm
-  become: yes
-  become_user: "{{ analytics_user }}"
-  shell: curl -sSL https://get.rvm.io | bash -s stable
+- name: Add RVM repository
+  apt_repository:
+    repo: ppa:rael-gc/rvm
+    state: present
 
-- name: source ruby script
-  become: yes
-  become_user: "{{ analytics_user }}"
-  lineinfile:
-    path: "{{ analytics.base_path }}/.bashrc"
-    line: source /home/analytics/.rvm/scripts/rvm
-    create: yes
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install RVM
+  apt:
+    name: rvm
+    state: present
+
+- name: Add user to rvm group
+  user:
+    name: "{{ analytics_user }}"
+    groups: rvm
+    append: yes
 
 - name: Change ownership
   file:
@@ -121,7 +127,7 @@
 - name: Install latest ruby
   become: yes
   become_user: "{{ analytics_user }}"
-  shell: "export PATH=$PATH:/home/analytics/.rvm/bin && rvm install ruby-2.7.6"
+  shell: "export PATH=$PATH:/home/analytics/.rvm/bin && yes | rvm install ruby-2.6"
 
 - name: Add ruby repository
   become: yes
