@@ -97,20 +97,24 @@
     state: present
 
 - name: Add RVM repository
+  become: yes
   apt_repository:
     repo: ppa:rael-gc/rvm
     state: present
 
 - name: Update apt cache
+  become: yes
   apt:
     update_cache: yes
 
 - name: Install RVM
+  become: yes
   apt:
     name: rvm
     state: present
 
 - name: Add user to rvm group
+  become: yes
   user:
     name: "{{ analytics_user }}"
     groups: rvm
