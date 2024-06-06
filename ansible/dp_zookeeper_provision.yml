@@ -1,14 +1,14 @@
 ---
 - hosts: "{{remote}}"
-  pre_tasks:
-    - service: name=monit state=stopped
-      become: yes
-      ignore_errors: true
+  # pre_tasks:
+  #   - service: name=monit state=stopped
+  #     become: yes
+  #     ignore_errors: true
   become: yes
   roles:
     - jdk-1.8.0_121
     - zookeeper-upgrade
-  post_tasks:
-    - service: name=monit state=started
-      become: yes
-      ignore_errors: true
+  # post_tasks:
+  #   - service: name=monit state=started
+  #     become: yes
+  #     ignore_errors: true
