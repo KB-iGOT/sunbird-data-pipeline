@@ -157,10 +157,10 @@
   apt_repository:
     repo: ppa:deadsnakes/ppa
 
-- name: Install python 3.6
+- name: Install python 3.7
   become: yes
   apt:
-    name: python3.6
+    name: python3.7
     state: present
     update_cache: true
     cache_valid_time: 3600
