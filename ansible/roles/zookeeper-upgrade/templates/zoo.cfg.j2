@@ -6,6 +6,7 @@ initLimit={{ init_limit }}
 syncLimit={{ sync_limit }}
 maxClientCnxns={{ maxclinetconnection_limit }}
 admin.enableServer={{ admin_enableserver | default('false') }}
+admin.serverPort=8081
 {% if zookeeper_group | length > 1 %}
 {% for host in zookeeper_group %}
 server.{{hostvars[host]['server_id']}}={{ host }}:2888:3888
