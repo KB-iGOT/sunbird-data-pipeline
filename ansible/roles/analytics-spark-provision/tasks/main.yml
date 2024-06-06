@@ -133,19 +133,6 @@
   become_user: "{{ analytics_user }}"
   shell: "export PATH=$PATH:/home/analytics/.rvm/bin && yes | rvm install ruby-2.6"
 
-- name: Add ruby repository
-  become: yes
-  apt_repository:
-    repo: ppa:brightbox/ruby-ng
-
-- name: Install latest ruby-dev
-  become: yes
-  apt:
-    name: "ruby2.6-dev"
-    state: present
-    update_cache: true
-    cache_valid_time: 3600
-
 - name: Install ruby-kafka
   become: yes
   become_user: "{{ analytics_user }}"
