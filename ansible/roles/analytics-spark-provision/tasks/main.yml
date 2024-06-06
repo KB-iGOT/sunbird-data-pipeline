@@ -95,8 +95,8 @@
   become: yes
   become_user: "{{ analytics_user }}"
   #shell: gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
-  shell: apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 34893610CEAA9512
-   
+  shell: apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 34893610CEAA9512 && command curl -sSL https://rvm.io/mpapis.asc | gpg2 --import - && command curl -sSL https://rvm.io/pkuczynski.asc | gpg2 --import -
+
 - name: Install rvm
   become: yes
   become_user: "{{ analytics_user }}"
@@ -148,7 +148,7 @@
   tags:
     - kafka-provision
 
-- name: Unarchive Kafka  
+- name: Unarchive Kafka
   become: yes
   become_user: "{{ analytics_user }}"
   unarchive: src={{ analytics.soft_path }}/kafka_2.11-0.10.1.0.tgz dest={{ analytics.home }}/ copy=no owner={{ analytics_user }} group={{ analytics_group }} creates={{ analytics.home }}/kafka_2.11-0.10.1.0
