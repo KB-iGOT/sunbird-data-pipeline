@@ -6,7 +6,7 @@
     content: "{{ druid_gcs_service_account }}"
 - name: Adding gcs env var to bashrc
   lineinfile:
-    path: "{{ druid_user_home }}"
+    path: "{{ druid_user_home }}/.bashrc"
     line: '{{item.var}}={{item.value}}'
     regexp: "{{ item.var }}.*"
   with_items:
