@@ -67,6 +67,8 @@ postgresql_databases:
 postgresql_users:
   - name: analytics
     password: "{{dp_vault_pgdb_password}}"
+  - name: druid
+    password: "{{dp_vault_druid_postgress_pass}}"
 
 postgres:
   db_url: "{{ groups['postgres'][0] }}"
