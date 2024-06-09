@@ -27,14 +27,14 @@ druid_gc_logdir: "/var/log/druid/crash_logs"
 druid_crash_logdir: "/var/log/druid/crash_logs"
 druid_log_dir: "/var/log/druid/"
 
-#Writing request query logs to file 
+#Writing request query logs to file
 druid_request_logging_type: "file"
 
 #Druid Extensions
 
-druid_storage_type: "s3"
+druid_storage_type: "google"
 
-druid_extensions_list : '"druid-s3-extensions", "graphite-emitter", "postgresql-metadata-storage", "druid-kafka-indexing-service", "druid-datasketches"'
+druid_extensions_list : '"druid-google-extensions", "graphite-emitter", "postgresql-metadata-storage", "druid-kafka-indexing-service", "druid-datasketches"'
 
 druid_community_extensions:
   - graphite-emitter
@@ -138,16 +138,9 @@ default_druid_configs:
   druid_log_azure_folder: "druidlogs"
   #Druid S3 Details
   druid_storage_type: "{{ druid_storage_type }}"
-  s3_access_key: "{{ s3_storage_key }}"
-  s3_secret_key: "{{ s3_storage_secret }}"
-  s3_bucket: "{{ s3_dp_storage_container }}"
-  s3_endpoint: "{{ s3_storage_endpoint }}"
-  s3_segment_dir: "druid/raw/segments"
-  s3_path_like_access: "{{ s3_path_style_access }}"
-  s3_v4_sign_region: "{{ s3_default_bucket_location }}"
-  #Logging the indexing logs to s3
-  s3_logging_bucket: "{{ s3_dp_storage_container }}"
-  s3_indexer_logs_dir: "druid/raw/stage/indexing_logs"
+  druid_gcloud_bucket: "{{ druid_gcloud_bucket }}"
+  druid_gcloud_prefix: ""
+  druid_gcloud_max_list_length: 1024
   #Druid coordinator node configuration
   druid_coordinator_min_heap_size: 2048m
   druid_coordinator_max_heap_size: 5120m
