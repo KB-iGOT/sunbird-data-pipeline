@@ -140,6 +140,8 @@ default_druid_configs:
   druid_storage_type: "{{ druid_storage_type }}"
   druid_gcloud_bucket: "{{ druid_gcloud_bucket }}"
   druid_gcloud_prefix: ""
+  druid_gcloud_indexer_logs_bucket: "{{ druid_gcloud_bucket }}"
+  druid_gcloud_indexer_logs_prefix: "druid/raw/logs/indexer"
   druid_gcloud_max_list_length: 1024
   #Druid coordinator node configuration
   druid_coordinator_min_heap_size: 2048m
