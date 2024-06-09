@@ -1,4 +1,15 @@
 # include install and test for druid role
 - include_vars: "{{inventory_dir}}/secrets.yml"
+- name: create the service account file
+  copy:
+    dest: "{{ gcs_service_account_file }}"
+    content: "{{ druid_gcs_service_account }}"
+- name: Adding gcs env var to bashrc
+  lineinfile:
+    path: "{{ druid_user_home }}"
+    line: '{{item.var}}={{item.value}}'
+    regexp: "{{ item.var }}.*"
+  with_items:
+    - {var: 'GOOGLE_APPLICATION_CREDENTIALS', value: '{{ gcs_service_account_file }}'}
 - include: install.yml
 - include: test.yml
