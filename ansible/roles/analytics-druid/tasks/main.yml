@@ -4,11 +4,6 @@
   copy:
     dest: "{{ gcs_service_account_file }}"
     content: "{{ druid_gcs_service_account }}"
-- name: Adding gcs env var to bashrc
-  lineinfile:
-    path: "{{ druid_user_home }}/.bashrc"
-    line: '{{item.var}}={{item.value}}'
-    regexp: "{{ item.var }}.*"
   with_items:
     - {var: 'GOOGLE_APPLICATION_CREDENTIALS', value: '{{ gcs_service_account_file }}'}
 - include: install.yml

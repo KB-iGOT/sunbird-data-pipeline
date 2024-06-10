@@ -3,6 +3,7 @@ Description=druid_{{druid_role}}_service
 After=network.target
 
 [Service]
+Environment="GOOGLE_APPLICATION_CREDENTIALS={{ gcs_service_account_file }}"
 WorkingDirectory={{ druid_path }}
 ExecStart=/bin/sh -c "/usr/bin/java $(/bin/cat {{ druid_path }}conf/druid/{{ service }}/jvm.config | /usr/bin/xargs) -cp {{ druid_path }}conf/druid/{{ service }}:{{ druid_path }}conf/druid/_common:{{ druid_path }}lib/* org.apache.druid.cli.Main server {{ service }}"
 LimitNOFILE={{ druid_open_file_limit }}

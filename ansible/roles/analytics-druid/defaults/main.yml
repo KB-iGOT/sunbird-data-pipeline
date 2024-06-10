@@ -282,5 +282,4 @@ default_druid_configs:
   druid_router_managementProxy_enabled: true
 
 enable_druid_sql: true
-druid_user_home: "/home/druid"
-gcs_service_account_file: "{{ druid_user_home }}/.gcs_service_acount.json"
+gcs_service_account_file: "/root/.gcs_service_acount.json"
