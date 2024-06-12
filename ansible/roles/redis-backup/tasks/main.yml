@@ -30,5 +30,3 @@
   register: restoreinfo
   args:
     chdir: "{{ redis_dir }}"
-
-- debug: var=restoreinfo.stdout_lines
