@@ -96,7 +96,7 @@ druid_historical_heap_dump_file: "{{ druid_crash_logdir }}/historical.hprof"
 
 druid_historical_monitoring_monitors: '"org.apache.druid.server.metrics.HistoricalMetricsMonitor","com.metamx.metrics.JvmMonitor"'
 
-druid_historical_segmentcache_path: "/var/segmentstore"
+druid_historical_segmentcache_path: "/var/druid/segments/segmentstore"
 druid_historical_cache_size: 3221225472
 druid_historical_cache_expiry: 3600000
 
@@ -109,7 +109,7 @@ druid_middlemanager_tmp_dir: "{{ druid_default_tmp_dir }}"
 druid_middlemanager_gc_logfile: "{{ druid_crash_logdir }}/gc.middlemanager.log"
 druid_mm_heap_dump_file : "{{ druid_crash_logdir }}/middlemanager.hprof"
 
-druid_middlemanager_peon_segmentcache_path: "/var/segment_cache"
+druid_middlemanager_peon_segmentcache_path: "/var/druid/segments/segment_cache"
 druid_azure_container_name: "telemetry-data-store"
 
 # Router Configuration
@@ -176,7 +176,7 @@ default_druid_configs:
   druid_historical_segmentcache_size: 40000000000
   druid_historical_segmentcache_locations__count: 10  # deliberate double underscore to indicate that this does not map to a druid config
   druid_historical_segmentcache_numloadingthreads: 4
-  druid_historical_segmentcache_path: "/var/segmentstore"
+  druid_historical_segmentcache_path: "/var/druid/segments/segmentstore"
   druid_historical_server_maxsize: 420000000000  # > 10 * 40000000000
   druid_query_ondiskstorage_enabled: true
   druid_historical_maxOnDiskStorage: 21474836480
@@ -259,7 +259,7 @@ default_druid_configs:
   druid_historical_processing_num_merge_buffers: 2
   druid_query_ondiskstorage_enabled: false
   druid_historical_segmentcache_numloadingthreads: 4
-  druid_historical_segmentcache_path: "/var/segmentstore"
+  druid_historical_segmentcache_path: "/var/druid/segments/segmentstore"
   druid_historical_cache_size: 3221225472
   druid_historical_cache_expiry: 3600000
   #Druid middlemanager configuration
