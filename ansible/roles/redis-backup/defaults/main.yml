@@ -1,2 +1,7 @@
 redis_backup_dir: /tmp/redis-backup
-redis_backup_azure_container_name: dp-redis-backup
+redis_user: analytics
+redis_data_dir: /data
+redis_version: 6.2.5
+redis_dir: "/home/{{ redis_user }}/redis-{{ redis_version }}"
+backup_bucket: backup-bucket
+redis_backup_folder: redis-backup-{{ ansible_host }}
