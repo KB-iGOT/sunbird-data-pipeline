@@ -177,7 +177,7 @@ dialcode_host: "http://{{private_ingressgateway_ip}}/dial"
 dialcode_endpoint: "dialcode/v3/read/"
 
 # s3 storage config
-report_storage_type: "s3"
+report_storage_type: "gs"
 s3_storage_key: "{{ sunbird_private_s3_storage_key }}"
 s3_storage_secret: "{{ sunbird_private_s3_storage_secret }}"
 s3_storage_endpoint: ""
