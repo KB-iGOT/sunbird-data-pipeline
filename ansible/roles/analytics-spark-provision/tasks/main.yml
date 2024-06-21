@@ -110,7 +110,9 @@
 - name: Install RVM
   become: true
   apt:
-    name: rvm
+    name:
+    - rvm
+    - libssl1.1
     state: present
 
 - name: Add user to rvm group
