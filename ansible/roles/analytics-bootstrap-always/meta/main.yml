@@ -1,6 +1,3 @@
 ---
 dependencies:
-  - { role: jdk-1.8.0_121 , become: yes }
-#  - { role: azure-cli  , become: yes }
-    
-  
+  - { role: jdk-1.8.0_121 , become: true }
