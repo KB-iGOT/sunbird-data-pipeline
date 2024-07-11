@@ -38,7 +38,7 @@ node() {
                         raw_task_names.add(it);
                 }
                 ansiblePlaybook = "${currentWs}/ansible/druid-ingestion.yml"
-                ansibleExtraArgs = "--extra-vars \"rollup_ingestion_task_names=${rollup_task_names.join(",")} raw_ingestion_task_names=${raw_task_names.join(",")}\" --tags populate_var,${params.action} --tags ml-druid --vault-password-file /var/lib/jenkins/secrets/vault-pass -vv"
+                ansibleExtraArgs = "--extra-vars \"rollup_ingestion_task_names=${rollup_task_names.join(",")} raw_ingestion_task_names=${raw_task_names.join(",")}\" --tags populate_var,${params.action} --tags ml-druid --skip-tags druid --vault-password-file /var/lib/jenkins/secrets/vault-pass -vv"
                 values.put('currentWs', currentWs)
                 values.put('env', envDir)
                 values.put('module', module)
