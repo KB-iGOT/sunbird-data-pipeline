@@ -102,6 +102,7 @@ single_node_es_host: "{{ groups['core-es'][0] }}"
 
 ### Druid related vars
 raw_overlord_host: "{{ groups['raw-overlord'][0] }}"
+ml_raw_overlord_host: "{{ groups['ml-raw-overlord'][0] }}"
 rollup_overlord_host: "{{ groups['rollup-overlord'][0] }}"
 
 ### Datapipeline Custom monitoring related vars ###
