@@ -34,6 +34,8 @@
         ingestion_task_names: "{{ raw_ingestion_task_names }}"
         overlord_host: "{{ raw_overlord_host }}"
       when: hostvars['localhost']['single_cluster']
+  tags:
+     - druid
 
 - hosts: ml-raw-overlord
   become: yes
@@ -48,3 +50,5 @@
         ingestion_task_names: "{{ raw_ingestion_task_names }}"
         overlord_host: "{{ ml_raw_overlord_host }}"
       when: hostvars['localhost']['single_cluster']
+  tags:
+     - ml-druid
