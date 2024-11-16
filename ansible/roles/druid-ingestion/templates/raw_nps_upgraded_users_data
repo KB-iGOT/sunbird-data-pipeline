@@ -333,7 +333,5 @@
     "stream": "prod.nps_upgraded_submission",
     "useEarliestSequenceNumber": true,
     "autoscalerConfig": null
-  },
-  "context": null,
-  "suspended": true
+  }
 }
