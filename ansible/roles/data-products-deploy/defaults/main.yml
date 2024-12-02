@@ -182,21 +182,21 @@ spark:
     cores: 6
     memory: 18g
   driver:
-    memory: 12g
+    memory: 16g
     cores: 2
-    memoryOverhead: 2g
+    memoryOverhead: 4g
   executor:
     instances: 1
     cores: 6
-    memory: 14g
-    memoryOverhead: 2g
+    memory: 16g
+    memoryOverhead: 4g
   driver_memory: 55g
   executor_extraJavaOptions: -Dconfig.file=/mount/data/analytics/models-{{ model_version }}/{{ env }}.conf -Dlog4j.configurationFile=file:////mount/data/analytics/models-{{ model_version }}/log4j2.xml
   driver_extraJavaOptions: -Dconfig.file=/mount/data/analytics/models-{{ model_version }}/{{ env }}.conf -Dlog4j.configurationFile=file:////mount/data/analytics/models-{{ model_version }}/log4j2.xml
-  memory_fraction: 0.3
+  memory_fraction: 0.5
   storage_fraction: 0.5
   executor_memory: 14g
-  heap_conf_str: '"-XX:+UseG1GC -XX:MaxGCPauseMillis=100 -Xms250m {{ heap_memory }} -XX:+UseStringDeduplication"'
+  heap_conf_str: '"-XX:+UseG1GC -XX:MaxGCPauseMillis=100 -Xms250m {{ heap_memory }} -XX:+UseStringDeduplication -XX:+ParallelRefProcEnabled -XX:+AlwaysPreTouch"'
 
 submit_jobs:
   submit-all-jobs:
@@ -461,12 +461,12 @@ analytics_cluster:
 
 analytics_ed_dataporducts_jar_artifact: "data-products-{{ analytics_ed_dataporducts_artifact_ver }}.jar"
 
-spark_enable_dynamic_allocation: false
+spark_enable_dynamic_allocation: true
 # Spark Cassandra config-vars
 spark_cassandra_connection_timeout_millis: 30000
 spark_cassandra_query_timeout_millis: 180000
 spark_cassandra_query_max_rows_fetch_count: 1000
-spark_sql_shuffle_partitions: 200
+spark_sql_shuffle_partitions: 400
 
 druid_report_postgres_db_name: druid
 druid_report_postgres_db_username: druid
