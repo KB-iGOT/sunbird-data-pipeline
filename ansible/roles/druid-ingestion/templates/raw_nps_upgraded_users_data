@@ -125,7 +125,7 @@
       "maxRowsInMemory": 1000000,
       "maxBytesInMemory": 0,
       "skipBytesInMemoryOverheadCheck": false,
-      "maxRowsPerSegment": 2000000,
+      "maxRowsPerSegment": 1000000,
       "maxTotalRows": null,
       "intermediatePersistPeriod": "PT10M",
       "basePersistDirectory": "/var/tmp/druid-realtime-persist6027210174357931843",
