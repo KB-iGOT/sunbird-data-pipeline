@@ -231,30 +231,30 @@ run_acbp_report_job:
   acbp-report:
     hour: 01
     minute: 30
-run_user_report_job:
-  user-report:
-    hour: 02
-    minute: 20
 run_user_enrolment_report_job:
   user-enrolment-report:
     hour: 02
-    minute: 35
+    minute: 20
+run_user_report_job:
+  user-report:
+    hour: 03
+    minute: 05
 run_cba_report_job:
   course-based-assessment-report:
     hour: 03
-    minute: 20
+    minute: 30
 run_blended_program_report_job:
   blended-program-report:
-    hour: 03
-    minute: 55
+    hour: 04
+    minute: 05
 run_kcm_report_job:
   kcm-report:
     hour: 04
-    minute: 45
+    minute: 55
 run_wfs_job:
   wfs:
-    hour: 04
-    minute: 55
+    hour: 05
+    minute: 00
 run_data_warehouse_job:
   data-warehouse-sync:
     hour: 05
