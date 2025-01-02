@@ -7,7 +7,7 @@
 
     - name: User Count API call
       uri:
-        url: "{{ es_host }}/user_v2/_search"
+        url: "{{ es_host }}/user_v3/_search"
         method: POST
         headers:
           Content-Type: "application/json"
