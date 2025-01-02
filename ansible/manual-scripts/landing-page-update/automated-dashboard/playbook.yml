@@ -230,7 +230,7 @@
         monthly_active_user_count: "{{ redis_monthly_active_users_out.stdout }}"
 
     - name: Redis Get Course Program Completion
-      command: "redis-cli -h {{ redis_host }} -p {{ redis_port }} -n {{ redis_db }} GET {{ redis_key_lp_completed_count }}"
+      command: "redis-cli -h {{ redis_host }} -p {{ redis_port }} -n {{ redis_db }} GET {{ redis_key_dashboard_completed_count }}"
       register: redis_course_program_completed_out
 
     - name: Course Program Completion Count
