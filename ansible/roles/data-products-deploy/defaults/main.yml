@@ -47,6 +47,7 @@ dashboards_cassandra_user_roles_table: "user_roles"
 dashboards_cassandra_org_table: "organisation"
 dashboards_cassandra_user_enrolments_table: "user_enrolments"
 dashboards_cassandra_content_hierarchy_table: "content_hierarchy"
+dashboards_cassandra_framework_hierarchy_table: "framework_hierarchy"
 dashboards_cassandra_rating_summary_table: "ratings_summary"
 dashboards_cassandra_ratings_table: "ratings"
 dashboards_cassandra_user_assessment_table: "user_assessment_data"
@@ -68,6 +69,8 @@ dashboards_cassandra_nlw_mdo_table: "nlw_mdo_leaderboard"
 dashboards_cassandra_nlw_user_table: "nlw_user_leaderboard"
 dashboards_cassandra_public_userassessmenttable: "public_user_assessment_data"
 dashboards_cassandra_user_entity_enrolment_table: "user_entity_enrolments"
+dashboards_cassandra_framework_hierarchy_table: "framework_hierarchy"
+dashboards_cassandra_group_designation_table: "kb_group_designation_content_data"
 
 app_postgres_host: "{{groups['app-postgres'][0]}}:5432"
 dw_postgres_host: "{{groups['dw-postgres'][0]}}:5432"
@@ -218,7 +221,7 @@ run_data_exhaust_job:
 run_dashboard_sync_job:
   dashboard-sync:
     hour: 00
-    minute: 30
+    minute: 25
 run_assessment_metrics_job:
   assessment-metrics:
     hour: 01
@@ -266,6 +269,22 @@ run_survey_nps_job:
 run_ministry_metrics_job:
   ministry-metrics:
     hour : 07
+    minute: 05
+run_summary_redis_sync_job:
+  summary-redis-sync:
+    hour: 07
+    minute: 20
+run_weekly_claps_job:
+  weekly-claps:
+    hour: 07
+    minute: 30
+run_data_warehouse_job:
+  data-warehouse-sync:
+    hour: 07
+    minute: 40
+run_bq_data_job:
+  bq-data-push:
+    hour: 09
     minute: 10
 run_summary_redis_sync_job:
   summary-redis-sync:
@@ -312,6 +331,10 @@ run_learner_leaderboard_job:
   learner-leaderboard:
     day: 01
     hour: 11
+    minute: 30
+run_odcs_recomendation_job:
+  odcs-recomendation:
+    hour: 12
     minute: 30
 run_user_activity_job:
   user-activity:
