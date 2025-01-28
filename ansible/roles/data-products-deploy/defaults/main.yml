@@ -306,10 +306,6 @@ run_zip_upload_job:
   zip-upload:
     hour: 09
     minute: 20
-run_comms_console_job:
-  comms-console:
-    hour: 10
-    minute: 05
 run_survey_question_report_job:
   survey-question-report:
     hour: 10
