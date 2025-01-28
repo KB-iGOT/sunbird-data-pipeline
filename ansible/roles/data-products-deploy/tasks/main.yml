@@ -290,13 +290,6 @@
     - spark1-jobs
     - default-jobs
 
-- name: Create daily cron jobs for comms-console
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh comms-console"
-  with_dict: "{{ run_comms_console_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
-
 - name: Create daily cron jobs for survey-nps
   cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh survey-nps"
   with_dict: "{{ run_survey_nps_job }}"
