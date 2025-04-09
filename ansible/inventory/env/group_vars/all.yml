@@ -141,6 +141,9 @@ job_names:
       job_file_name: 'content-cache-updater'
   ShareEventsFlattener_1:
       job_file_name: 'share-events-flattener'
+  EventUpdater_1:
+      job_file_name: 'event-updater'
+
 
 druid_ingestion_specs:
   telemetry-events:
