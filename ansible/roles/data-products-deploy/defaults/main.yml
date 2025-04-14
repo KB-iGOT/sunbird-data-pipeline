@@ -47,7 +47,6 @@ dashboards_cassandra_user_roles_table: "user_roles"
 dashboards_cassandra_org_table: "organisation"
 dashboards_cassandra_user_enrolments_table: "user_enrolments"
 dashboards_cassandra_content_hierarchy_table: "content_hierarchy"
-dashboards_cassandra_framework_hierarchy_table: "framework_hierarchy"
 dashboards_cassandra_rating_summary_table: "ratings_summary"
 dashboards_cassandra_ratings_table: "ratings"
 dashboards_cassandra_user_assessment_table: "user_assessment_data"
@@ -72,6 +71,7 @@ dashboards_cassandra_user_entity_enrolment_table: "user_entity_enrolments"
 dashboards_cassandra_group_designation_table: "kb_group_designation_content_data"
 dashboards_cassandra_slw_mdo_leaderboard_table: "slw_mdo_leaderboard"
 dashboards_cassandra_slw_mdo_top_learners_table: "slw_mdo_top_learners"
+dashboards_cassandra_framework_hierarchy_table: "framework_hierarchy"
 
 app_postgres_host: "{{groups['app-postgres'][0]}}:5432"
 dw_postgres_host: "{{groups['dw-postgres'][0]}}:5432"
@@ -153,6 +153,10 @@ zip_reports_password: "123456"
 directories_to_select: "blended-program-report-mdo,cbp-report-mdo-summary,course-report,cba-report,cbp-report-mdo-enrolment,user-report,user-enrollment-report"
 
 bq_script_path: "/mount/data/analytics/bq-scripts.sh"
+
+es_form_data_ids: "{{ es_form_data_ids }}"
+es_form_data_index: "fs-forms-data"
+single_node_es_port: 9200
 
 analytics_job_list: '"wfs", "dashboard-sync", "assessment-metrics", "monitor-job-summ", "user-report-job", "survey-nps"'
 analytics_jobs_count: 6
@@ -289,22 +293,6 @@ run_bq_data_job:
   bq-data-push:
     hour: 09
     minute: 10
-run_summary_redis_sync_job:
-  summary-redis-sync:
-    hour: 07
-    minute: 20
-run_weekly_claps_job:
-  weekly-claps:
-    hour: 07
-    minute: 30
-run_data_warehouse_job:
-  data-warehouse-sync:
-    hour: 07
-    minute: 40
-run_bq_data_job:
-  bq-data-push:
-    hour: 09
-    minute: 10
 run_zip_upload_job:
   zip-upload:
     hour: 09
@@ -361,6 +349,11 @@ run_admin_geo_reports_job:
   admin-geo-reports-3PMIST:
     hour: 9
     minute: 30
+run_es_form_data_job:
+  es-form-data:
+    hour: 10
+    minute: 50
+    weekday: 1
 
 run_assessment_aggregator_report_job:
   assessment-aggregator-report:

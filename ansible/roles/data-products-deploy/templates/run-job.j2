@@ -14,10 +14,47 @@ if [ ! -z "$1" ]; then job_id=$1; fi
 
 if [ ! -z "$1" ]; then job_config=$(config $1 $2); else job_config="$2"; fi
 
-echo "Starting the job - $1" >> "$DP_LOGS/$today-job-execution.log"
+log_file="$DP_LOGS/$today-job-execution.log"
+temp_log_file="$DP_LOGS/$today-job-$job_id.log"
 
-echo "Job modelName - $job_id" >> "$DP_LOGS/$today-job-execution.log"
+echo "Starting the job - $1" | tee -a "$log_file"
+echo "Job modelName - $job_id" | tee -a "$log_file"
 
-nohup $SPARK_HOME/bin/spark-submit --master local[*] --conf spark.sql.caseSensitive=true --conf spark.mongodb.input.uri=mongodb://$mongo_host/Nodebb.Objects --jars $MODELS_HOME/analytics-framework-2.0.jar,$MODELS_HOME/scruid_2.11-2.4.0.jar,$MODELS_HOME/batch-models-2.0.jar --class org.ekstep.analytics.job.JobExecutor $MODELS_HOME/batch-models-2.0.jar --model "$job_id" --config "$job_config" >> "$DP_LOGS/$today-job-execution.log" 2>&1
+# Run the Spark job and capture logs separately for this execution
+$SPARK_HOME/bin/spark-submit \
+  --master local[*] \
+  --conf spark.sql.caseSensitive=true \
+  --conf spark.mongodb.input.uri=mongodb://$mongo_host/Nodebb.Objects \
+  --jars $MODELS_HOME/analytics-framework-2.0.jar,$MODELS_HOME/scruid_2.11-2.4.0.jar,$MODELS_HOME/batch-models-2.0.jar \
+  --class org.ekstep.analytics.job.JobExecutor \
+  $MODELS_HOME/batch-models-2.0.jar \
+  --model "$job_id" \
+  --config "$job_config" 2>&1 | tee -a "$temp_log_file"
 
-echo "Job execution completed - $1" >> "$DP_LOGS/$today-job-execution.log"
+# Capture the exit status of the last command
+exit_status=$?
+
+# Append temp log to the main log
+cat "$temp_log_file" >> "$log_file"
+
+# Check for OutOfMemoryError in the temp log only (not the full log file)
+if grep -q "OutOfMemoryError" "$temp_log_file"; then
+  echo "Job failed due to OutOfMemoryError" | tee -a "$log_file"
+  exit 1
+fi
+
+# Log the completion status
+if [ $exit_status -eq 0 ]; then
+  echo "Job execution completed successfully - $1" | tee -a "$log_file"
+else
+  echo "Job execution failed with status $exit_status - $1" | tee -a "$log_file"
+fi
+
+chown analytics:analytics "$log_file"
+chown analytics:analytics {{ analytics.home }}/scripts/logs/joblog.log
+
+# Cleanup temp log file
+rm "$temp_log_file"
+
+# Exit the script with the same status as the Spark job
+exit $exit_status
