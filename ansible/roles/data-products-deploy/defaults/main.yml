@@ -69,8 +69,9 @@ dashboards_cassandra_nlw_mdo_table: "nlw_mdo_leaderboard"
 dashboards_cassandra_nlw_user_table: "nlw_user_leaderboard"
 dashboards_cassandra_public_userassessmenttable: "public_user_assessment_data"
 dashboards_cassandra_user_entity_enrolment_table: "user_entity_enrolments"
-dashboards_cassandra_framework_hierarchy_table: "framework_hierarchy"
 dashboards_cassandra_group_designation_table: "kb_group_designation_content_data"
+dashboards_cassandra_slw_mdo_leaderboard_table: "slw_mdo_leaderboard"
+dashboards_cassandra_slw_mdo_top_learners_table: "slw_mdo_top_learners"
 
 app_postgres_host: "{{groups['app-postgres'][0]}}:5432"
 dw_postgres_host: "{{groups['dw-postgres'][0]}}:5432"
@@ -165,6 +166,8 @@ observation_status_report_batch_size: 15000
 
 national_learning_week_start: "2024-10-19 00:00:00"
 national_learning_week_end: "2024-10-25 23:59:59"
+state_learning_week_start: "2025-03-18 00:00:00"
+state_learning_week_end: "2025-03-23 23:59:59"
 
 cassandra_keyspace_prefix: '{{ env }}_'
 report_cassandra_cluster_host: "{{ report_cassandra_host | default(core_cassandra_host) }}"
@@ -314,6 +317,10 @@ run_survey_status_report_job:
   survey-status-report:
     hour: 10
     minute: 25
+run_national_learning_week_job:
+  national-learning-week:
+    hour: 10
+    minute: 35
 run_ministry_learner_leaderboard_job:
   ministry-learner-leaderboard:
     day: 01

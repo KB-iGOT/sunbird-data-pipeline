@@ -180,6 +180,8 @@ spec:
           requests:
             cpu: "{{ .Values.taskmanager.cpu_requests }}"
             memory: "{{ .Values.taskmanager.mem_requests }}"
+          limits:
+            cpu: "{{ .Values.taskmanager.cpu_limits }}"  
         workingDir: {{ .Values.taskmanager.flink_work_dir }}
         command: ["/opt/flink/bin/taskmanager.sh"]
         args: ["start-foreground",

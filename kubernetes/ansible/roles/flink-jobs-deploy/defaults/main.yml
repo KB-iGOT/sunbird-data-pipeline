@@ -181,6 +181,7 @@ flink_job_names:
     jobmanager_process_memory: 1600m
     taskslots: 2
     cpu_requests: 1
+    cpu_limits: 2
     mem_requests: 2Gi
     scale_enabled: true
     scale_target_value: 500000
@@ -195,6 +196,7 @@ flink_job_names:
     jobmanager_process_memory: 1600m
     taskslots: 2
     cpu_requests: 1
+    cpu_limits: 2
     mem_requests: 2Gi
     scale_enabled: true
     scale_target_value: 1000000
@@ -209,6 +211,7 @@ flink_job_names:
     jobmanager_process_memory: 1600m
     taskslots: 1
     cpu_requests: 1
+    cpu_limits: 2
     mem_requests: 2Gi
     scale_enabled: true
     scale_target_value: 500000
@@ -223,6 +226,7 @@ flink_job_names:
     jobmanager_process_memory: 1600m
     taskslots: 1
     cpu_requests: 1
+    cpu_limits: 2
     mem_requests: 2Gi
     scale_enabled: true
     scale_target_value: 500000
@@ -259,6 +263,7 @@ flink_job_names:
     jobmanager_process_memory: 1600m
     taskslots: 2
     cpu_requests: 1
+    cpu_limits: 2
     mem_requests: 2Gi
     scale_enabled: true
     scale_target_value: 1000000
@@ -273,6 +278,7 @@ flink_job_names:
     jobmanager_process_memory: 1600m
     taskslots: 2
     cpu_requests: 1
+    cpu_limits: 2
     mem_requests: 2Gi
     scale_enabled: true
     scale_target_value: 1000000
@@ -287,6 +293,7 @@ flink_job_names:
     jobmanager_process_memory: 1600m
     taskslots: 2
     cpu_requests: 1
+    cpu_limits: 2
     mem_requests: 2Gi
     scale_enabled: true
     scale_target_value: 1000000
@@ -301,6 +308,7 @@ flink_job_names:
     jobmanager_process_memory: 1600m
     taskslots: 1
     cpu_requests: 1
+    cpu_limits: 2
     mem_requests: 2Gi
     scale_enabled: false
   content-cache-updater:
@@ -312,6 +320,7 @@ flink_job_names:
     jobmanager_process_memory: 1600m
     taskslots: 1
     cpu_requests: 1
+    cpu_limits: 2
     mem_requests: 2Gi
     scale_enabled: false
   user-cache-updater:
@@ -323,6 +332,7 @@ flink_job_names:
     jobmanager_process_memory: 1600m
     taskslots: 1
     cpu_requests: 1
+    cpu_limits: 2
     mem_requests: 2Gi
     scale_enabled: false
   user-cache-updater-v2:
@@ -334,6 +344,7 @@ flink_job_names:
     jobmanager_process_memory: 1600m
     taskslots: 1
     cpu_requests: 1
+    cpu_limits: 2
     mem_requests: 2Gi
     scale_enabled: false
   summary-denormalization:
@@ -345,6 +356,7 @@ flink_job_names:
     jobmanager_process_memory: 1600m
     taskslots: 1
     cpu_requests: 1
+    cpu_limits: 2
     mem_requests: 2Gi
     scale_enabled: true
     scale_target_value: 100
@@ -359,6 +371,7 @@ flink_job_names:
     jobmanager_process_memory: 1600m
     taskslots: 1
     cpu_requests: 1
+    cpu_limits: 2
     mem_requests: 2Gi
     scale_enabled: false
   ingest-router:
@@ -370,6 +383,7 @@ flink_job_names:
     jobmanager_process_memory: 1600m
     taskslots: 2
     cpu_requests: 1
+    cpu_limits: 2
     mem_requests: 2Gi
     scale_enabled: true
     scale_target_value: 500000
@@ -384,6 +398,7 @@ flink_job_names:
     jobmanager_process_memory: 1600m
     taskslots: 1
     cpu_requests: 1
+    cpu_limits: 2
     mem_requests: 2Gi
     scale_enabled: false 
 

@@ -100,6 +100,7 @@ taskmanager:
   replicas: {{taskmanager_replicacount|default(1)}}
   cpu_requests: {{ cpu_requests|default(1)}}
   mem_requests: {{ mem_requests|default(2)}}
+  cpu_limits: {{ cpu_limits|default(2)}}
 
 job_classname: {{ job_classname }}
 {{ taskmanager_liveness | to_nice_yaml }}

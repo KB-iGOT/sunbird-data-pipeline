@@ -234,6 +234,13 @@
     - spark1-jobs
     - default-jobs
 
+- name: Create daily cron jobs for national-learning-week
+  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh national-learning-week"
+  with_dict: "{{ run_national_learning_week_job }}"
+  tags:
+    - spark1-jobs
+    - default-jobs
+
 - name: Create daily cron jobs for ministry-learner-leaderboard
   cron: name="{{env}}-{{ item.key }}" day={{ item.value.day }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh ministry-learner-leaderboard"
   with_dict: "{{ run_ministry_learner_leaderboard_job }}"
