@@ -246,6 +246,13 @@
     - spark1-jobs
     - default-jobs
 
+- name: Create daily cron jobs for dsr-computation
+  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh dsr-computation"
+  with_dict: "{{ run_dsr_computation_job }}"
+  tags:
+    - spark1-jobs
+    - default-jobs
+
 - name: Create weekly cron job for es-form-data
   cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }} weekday={{ item.value.weekday }}  job="{{ analytics.home }}/scripts/run-job.sh es-form-data"
   with_dict: "{{ run_es_form_data_job }}"

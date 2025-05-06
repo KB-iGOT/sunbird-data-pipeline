@@ -77,7 +77,6 @@ app_postgres_host: "{{groups['app-postgres'][0]}}:5432"
 dw_postgres_host: "{{groups['dw-postgres'][0]}}:5432"
 dw_postgres_credential: "{{dp_vault_pgdb_password}}"
 
-
 mongo_node_bb_host: "{{groups['mongodb-nodebb'][0]}}"
 ml_mongo_host: "{{groups['ml-mongodb-host'][0]}}"
 dashboards_mongo_discussions_db: "nodebb"
@@ -98,6 +97,7 @@ dashboards_redis_org_name_key: "mdo_name_by_org"
 dashboards_redis_total_registered_officer_count_key: "mdo_total_registered_officer_count"
 dashboards_redis_total_org_count_key: "mdo_total_org_count"
 
+es_host_audit_logs: "10.175.5.10"
 user_report_path: "standalone-reports/user-report"
 user_enrolment_report_path: "standalone-reports/user-enrollment-report"
 course_report_path: "standalone-reports/course-report"
@@ -172,7 +172,7 @@ national_learning_week_start: "2024-10-19 00:00:00"
 national_learning_week_end: "2024-10-25 23:59:59"
 state_learning_week_start: "2025-03-18 00:00:00"
 state_learning_week_end: "2025-03-23 23:59:59"
-state_learning_week_bucket_size: "1-100-XS,101-500-S,501-1000-M,1001-10000-L,10001-25000-X,above 25000-XXL"
+state_learning_week_bucket_size: "1-100-XS,101-500-S,501-1000-M,1001-10000-L,10001-25000-XL,above 25000-XXL"
 
 cassandra_keyspace_prefix: '{{ env }}_'
 report_cassandra_cluster_host: "{{ report_cassandra_host | default(core_cassandra_host) }}"
@@ -274,8 +274,8 @@ run_survey_nps_job:
   survey-nps:
     hour: 07
     minute: 00
-run_ministry_metrics_job:
-  ministry-metrics:
+run_dsr_computation_job:
+  dsr-computation:
     hour : 07
     minute: 05
 run_summary_redis_sync_job:
@@ -331,6 +331,10 @@ run_odcs_recomendation_job:
 run_user_activity_job:
   user-activity:
     hour: 12
+    minute: 00
+run_ministry_metrics_job:
+  ministry-metrics:
+    hour : 13
     minute: 00
 run_monitor_job:
   monitor-job-summ:
