@@ -183,198 +183,205 @@
     - spark1-jobs
     - clean-cronjobs
 
-- name: Create daily cron jobs for data-exhaust
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh data-exhaust"
-  with_dict: "{{ run_data_exhaust_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create daily cron jobs for data-exhaust
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh data-exhaust"
+#  with_dict: "{{ run_data_exhaust_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create daily cron jobs for dashboard-sync
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh dashboard-sync"
-  with_dict: "{{ run_dashboard_sync_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create daily cron jobs for dashboard-sync
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh dashboard-sync"
+#  with_dict: "{{ run_dashboard_sync_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create daily cron jobs for assessment-metrics
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh assessment-metrics"
-  with_dict: "{{ run_assessment_metrics_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create daily cron jobs for assessment-metrics
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh assessment-metrics"
+#  with_dict: "{{ run_assessment_metrics_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create daily cron jobs for course-report
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh course-report"
-  with_dict: "{{ run_course_report_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create daily cron jobs for course-report
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh course-report"
+#  with_dict: "{{ run_course_report_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create daily cron jobs for user-enrolment-report
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh user-enrolment-report"
-  with_dict: "{{ run_user_enrolment_report_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create daily cron jobs for user-enrolment-report
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh user-enrolment-report"
+#  with_dict: "{{ run_user_enrolment_report_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create daily cron jobs for user-report
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh user-report"
-  with_dict: "{{ run_user_report_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create daily cron jobs for user-report
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh user-report"
+#  with_dict: "{{ run_user_report_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create daily cron jobs for ministry-metrics
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh ministry-metrics"
-  with_dict: "{{ run_ministry_metrics_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create daily cron jobs for ministry-metrics
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh ministry-metrics"
+#  with_dict: "{{ run_ministry_metrics_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create daily cron jobs for odcs-recomendation
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh odcs-recomendation"
-  with_dict: "{{ run_odcs_recomendation_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create daily cron jobs for odcs-recomendation
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh odcs-recomendation"
+#  with_dict: "{{ run_odcs_recomendation_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create daily cron jobs for national-learning-week
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh national-learning-week"
-  with_dict: "{{ run_national_learning_week_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create daily cron jobs for national-learning-week
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh national-learning-week"
+#  with_dict: "{{ run_national_learning_week_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create weekly cron job for es-form-data
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }} weekday={{ item.value.weekday }}  job="{{ analytics.home }}/scripts/run-job.sh es-form-data"
-  with_dict: "{{ run_es_form_data_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create weekly cron job for es-form-data
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }} weekday={{ item.value.weekday }}  job="{{ analytics.home }}/scripts/run-job.sh es-form-data"
+#  with_dict: "{{ run_es_form_data_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create daily cron jobs for ministry-learner-leaderboard
-  cron: name="{{env}}-{{ item.key }}" day={{ item.value.day }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh ministry-learner-leaderboard"
-  with_dict: "{{ run_ministry_learner_leaderboard_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create daily cron jobs for ministry-learner-leaderboard
+#  cron: name="{{env}}-{{ item.key }}" day={{ item.value.day }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh ministry-learner-leaderboard"
+#  with_dict: "{{ run_ministry_learner_leaderboard_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create daily cron jobs for wfs
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh wfs"
-  with_dict: "{{ run_wfs_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create daily cron jobs for wfs
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh wfs"
+#  with_dict: "{{ run_wfs_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create daily cron jobs for course-based-assessment-report
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh course-based-assessment-report"
-  with_dict: "{{ run_cba_report_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create daily cron jobs for course-based-assessment-report
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh course-based-assessment-report"
+#  with_dict: "{{ run_cba_report_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create daily cron jobs for blended-program-report
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh blended-program-report"
-  with_dict: "{{ run_blended_program_report_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create daily cron jobs for blended-program-report
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh blended-program-report"
+#  with_dict: "{{ run_blended_program_report_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create daily cron jobs for summary-redis-sync
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh summary-redis-sync"
-  with_dict: "{{ run_summary_redis_sync_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create daily cron jobs for summary-redis-sync
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh summary-redis-sync"
+#  with_dict: "{{ run_summary_redis_sync_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create daily cron jobs for data-warehouse-sync
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh data-warehouse-sync"
-  with_dict: "{{ run_data_warehouse_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create daily cron jobs for data-warehouse-sync
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh data-warehouse-sync"
+#  with_dict: "{{ run_data_warehouse_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create daily cron jobs for weekly-claps
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh weekly-claps"
-  with_dict: "{{ run_weekly_claps_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create daily cron jobs for weekly-claps
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh weekly-claps"
+#  with_dict: "{{ run_weekly_claps_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create daily cron jobs for acbp-report
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh acbp-report"
-  with_dict: "{{ run_acbp_report_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create daily cron jobs for acbp-report
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh acbp-report"
+#  with_dict: "{{ run_acbp_report_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create daily cron jobs for survey-nps
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh survey-nps"
-  with_dict: "{{ run_survey_nps_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create daily cron jobs for survey-nps
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh survey-nps"
+#  with_dict: "{{ run_survey_nps_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create daily cron jobs for user-activity
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh user-activity"
-  with_dict: "{{ run_user_activity_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create daily cron jobs for user-activity
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh user-activity"
+#  with_dict: "{{ run_user_activity_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create daily cron jobs for monthly-requests
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh monthly-requests"
-  with_dict: "{{ run_monthly_requests_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
+#- name: Create daily cron jobs for monthly-requests
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh monthly-requests"
+#  with_dict: "{{ run_monthly_requests_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
 
-- name: Create daily cron jobs for bq-data-push
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh bq-data-push"
+#- name: Create daily cron jobs for bq-data-push
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh bq-data-push"
+#  with_dict: "{{ run_bq_data_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
+
+#- name: Create daily cron jobs for kcm-report
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh kcm-report"
+#  with_dict: "{{ run_kcm_report_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
+
+#- name: Create daily cron jobs for zip-upload
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh zip-upload"
+#  with_dict: "{{ run_zip_upload_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
+
+#- name: Create daily cron jobs for in-app-review-feed
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh in-app-review-feed"
+#  with_dict: "{{ run_in_app_review_feed_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
+
+#- name: Create daily cron jobs for survey-question-report
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh survey-question-report"
+#  with_dict: "{{ run_survey_question_report_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
+
+#- name: Create daily cron jobs for survey-status-report
+#  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh survey-status-report"
+#  with_dict: "{{ run_survey_status_report_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
+
+#- name: Create monthly cron jobs for learner-leaderboard
+#  cron: name="{{env}}-{{ item.key }}" day={{ item.value.day }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh learner-leaderboard"
+#  with_dict: "{{ run_learner_leaderboard_job }}"
+#  tags:
+#    - spark1-jobs
+#    - default-jobs
+
+- name: Create monthly cron jobs for bq-data-push
+  cron: name="{{env}}-{{ item.key }}" day={{ item.value.day }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="bash {{ analytics.home }}/bq-scripts.sh >> {{ analytics.home }}/logs/data-products/bq-job.log 2>&1"
   with_dict: "{{ run_bq_data_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
-
-- name: Create daily cron jobs for kcm-report
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh kcm-report"
-  with_dict: "{{ run_kcm_report_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
-
-- name: Create daily cron jobs for zip-upload
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh zip-upload"
-  with_dict: "{{ run_zip_upload_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
-
-- name: Create daily cron jobs for in-app-review-feed
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh in-app-review-feed"
-  with_dict: "{{ run_in_app_review_feed_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
-
-- name: Create daily cron jobs for survey-question-report
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh survey-question-report"
-  with_dict: "{{ run_survey_question_report_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
-
-- name: Create daily cron jobs for survey-status-report
-  cron: name="{{env}}-{{ item.key }}" minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh survey-status-report"
-  with_dict: "{{ run_survey_status_report_job }}"
-  tags:
-    - spark1-jobs
-    - default-jobs
-
-- name: Create monthly cron jobs for learner-leaderboard
-  cron: name="{{env}}-{{ item.key }}" day={{ item.value.day }} minute={{ item.value.minute }} hour={{ item.value.hour }}  job="{{ analytics.home }}/scripts/run-job.sh learner-leaderboard"
-  with_dict: "{{ run_learner_leaderboard_job }}"
   tags:
     - spark1-jobs
     - default-jobs
