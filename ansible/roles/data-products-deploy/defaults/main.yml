@@ -293,7 +293,7 @@ run_data_warehouse_job:
 run_bq_data_job:
   bq-data-push:
     hour: 09
-    minute: 10
+    minute: 00
 run_zip_upload_job:
   zip-upload:
     hour: 09
