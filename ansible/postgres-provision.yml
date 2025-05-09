@@ -1,10 +1,19 @@
 ---
 - hosts: postgres
-  vars_files:
-    - "{{inventory_dir}}/secrets.yml"
   become: yes
+  vars:
+    # Ref: https://github.com/geerlingguy/ansible-role-postgresql/issues/136
+    postgresql_global_config_options:
+    - option: listen_addresses
+      value: "{{ ansible_default_ipv4.address }}"
+    - option: max_connections
+      value: 99999
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/{{env}}.yml']
+  pre_tasks:
+    - name: install setfacl support
+      become: yes
+      apt:
+        name: ['acl', 'python3-psycopg2']
   roles:
     - postgres-provision
-  # become_user: postgres
-  # roles:
-  #   - postgres

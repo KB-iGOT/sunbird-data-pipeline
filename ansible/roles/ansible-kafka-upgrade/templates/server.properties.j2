@@ -5,6 +5,8 @@
   {%- set url_host = url.split(':')[0] -%}
   {%- if url_host == ansible_fqdn or url_host in ansible_all_ipv4_addresses -%}
 broker.id={{loop.index0 + 1}}
+listeners=PLAINTEXT://0.0.0.0:9092
+advertised.listeners=PLAINTEXT://{{ansible_host}}:9092
 
 ############################# Socket Server Settings #############################
 
@@ -123,13 +125,13 @@ log.cleaner.enable=false
 # server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002".
 # You can also append an optional chroot string to the urls to specify the
 # root directory for all kafka znodes.
-zookeeper.connect={% for host in groups['zookeeper'] %}{{ hostvars[host].ansible_default_ipv4.address }}:{{zookeeper_port}}{% if not loop.last %},{% endif %}{% endfor %}
+zookeeper.connect={% for host in groups['zookeeper'] %}{{ hostvars[host].inventory_hostname }}:{{zookeeper_port}}{% if not loop.last %},{% endif %}{% endfor %}
 
 # Timeout in ms for connecting to zookeeper
 zookeeper.connection.timeout.ms={{zookeeper_connection_timeout_ms}}
 
-inter.broker.protocol.version={{kafka_version_old}}
-log.message.format.version={{kafka_version_old}}
+#inter.broker.protocol.version={{kafka_version}}
+#log.message.format.version={{kafka_version}}
 
 ############################# Group Coordinator Settings #############################
 

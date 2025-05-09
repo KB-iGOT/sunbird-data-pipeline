@@ -1,0 +1,101 @@
+
+# Choose what to fill according to the service you are using
+# in the choice option you can fill S3, GS, Swift or Azure
+cloud.service=S3
+
+# AWS authentication credentials.
+# Leave empty if using IAM role-based authentication with s3a filesystem.
+aws.access.key={{ s3_access_key }}
+aws.secret.key={{ s3_secret_key }}
+aws.role=
+
+# Optional Proxy Setting. Set to true to enable proxy
+# Only applicable to S3UploadManager
+aws.proxy.isEnabled=false
+aws.proxy.http.host=
+aws.proxy.http.port=
+
+# AWS region or endpoint. region should be a known region name (eg.
+# us-east-1). endpoint should be a known S3 endpoint url. If neither
+# are specified, then the default region (us-east-1) is used. If both
+# are specified then endpoint is used.
+#
+# Only apply if the the S3UploadManager is used - see
+# secor.upload.manager.class.
+#
+# http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
+aws.region={{ s3_region }}
+aws.endpoint={{ s3_endpoint }}
+
+# Toggle the AWS S3 client between virtual host style access and path style
+# access. See http://docs.aws.amazon.com/AmazonS3/latest/dev/VirtualHosting.html
+aws.client.pathstyleaccess={{ s3_path_style_access }}
+
+###########################
+# START AWS S3 ENCRYPTION #
+###########################
+
+# AWS specify type of server-side encryption, if any
+# set to S3 to enable S3-managed encryption
+# set to KMS to enable AWS KMS-managed encryption (see aws.sse.kms.key)
+# set to customer to enable customer-managed encryption (see aws.sse.customer.key)
+# set empty to disable encryption
+aws.sse.type=
+
+# Key to use for S3 server-side encryption, base64-encoded
+# Note: requires aws.sse.type to be set to customer to be used
+aws.sse.customer.key=
+
+# KMS Key to use for S3 server-side encryption, base64-encoded
+# Leave empty to use default generated key
+# Note: requires aws.sse.type to be set to  KMS to be used
+aws.sse.kms.key=
+
+#########################
+# END AWS S3 ENCRYPTION #
+#########################
+
+# Hadoop filesystem to use. Choices are s3n or s3a.
+# See https://wiki.apache.org/hadoop/AmazonS3 for details.
+secor.s3.filesystem=s3n
+
+# Class that will manage uploads. Default is to use the hadoop
+# interface to S3.
+secor.upload.manager.class=com.pinterest.secor.uploader.S3UploadManager
+
+
+# Set below property to true if you want to have the md5hash appended to your s3 path.
+# This helps for better partitioning of the data on s3. Which gives better performance while reading and writing on s3
+secor.s3.prefix.md5hash=false
+
+# After the given date, secor will upload files to the supplied s3 alternative path
+secor.s3.alter.path.date=
+
+# An alternative S3 path for secor to upload files to
+secor.s3.alternative.path=
+
+
+###############
+#  Using S3   #
+###############
+
+# Name of the s3 bucket where log files are stored.
+secor.s3.bucket={{ s3_container_name }}
+
+# S3 path where sequence files are stored.
+secor.s3.path={{ s3_base_path }}/{{ secor_service_name[item[0]].base_path }}
+
+# Output file pattern excluding prefix. Defaults to topic/partition/generation_kafkaPartition_fmOffset.gz.
+# Available placeholders are
+# topic - The topic name the data is being fetched
+# partition - The partition name
+# generation - Generation
+# kafkaPartition - The kafka partition
+# fmOffset - First Message offset in the file.
+# randomHex - A 4 character random hex to append to the file name
+# currentTimestamp - Time of upload in epoch format
+# currentTime - Time of upload in HH-mm format
+# currentDate - Time of upload in YYYYMMDD format
+# folder - Folder to use based on message id map lookup
+secor.s3.output_file_pattern={{ secor_service_name[item[0]].output_file_pattern }}
+

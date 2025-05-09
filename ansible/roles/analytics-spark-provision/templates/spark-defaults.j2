@@ -2,8 +2,20 @@
 # This is useful for setting default environmental settings.
 
 spark.master                     {{ spark.master.url }}
-spark.driver.memory              {{ spark.driver_memory }}
 spark.executor.extraJavaOptions  {{ spark.executor_extraJavaOptions }}
 spark.driver.extraJavaOptions    {{ spark.driver_extraJavaOptions }}
-spark.executor.memory            {{ spark.executor_memory }}
 spark.local.dir                  {{ analytics.home }}/tmp
+
+# spark.worker.instances          {{ spark.worker.instances }}
+# spark.worker.cores              {{ spark.worker.cores }}
+# spark.worker.memory             {{ spark.worker.memory }}
+
+# these settings are not applicable in mode=local
+# spark.executor.instances        {{ spark.executor.instances }}
+# spark.executor.cores            {{ spark.executor.cores }}
+# spark.executor.memory           {{ spark.executor.memory }}
+# spark.executor.memoryOverhead   {{ spark.executor.memoryOverhead }}
+
+spark.driver.cores              {{ spark.driver.cores }}
+spark.driver.memory             {{ spark.driver.memory }}
+# spark.driver.memoryOverhead     {{ spark.driver.memoryOverhead }}

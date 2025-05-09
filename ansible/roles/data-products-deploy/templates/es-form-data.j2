@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+
+# Get the form ID from the argument
+FORM_ID=$1
+OUTPUT_FILE="/mount/data/analytics/es-form-data/es_${FORM_ID}.json"
+LOG_FILE="/mount/data/analytics/es-form-data/es_${FORM_ID}_log.txt"
+
+source model-config.sh
+
+ES_HOST="{{ single_node_es_host }}"
+ES_PORT="{{ single_node_es_port }}"
+INDEX_NAME="{{ es_form_data_index }}"
+
+# Elasticsearch URL and index name
+ES_URL="http://$ES_HOST:$ES_PORT"
+
+SCROLL_TIME="1m"  # Keep the search context alive
+
+# Function to log messages
+log_message() {
+  echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOG_FILE"
+}
+
+log_message "Fetching data for form ID: $FORM_ID using Scroll API"
+
+# Initial scroll request
+INITIAL_RESPONSE=$(curl -s -X POST "$ES_URL/$INDEX_NAME/_search?scroll=$SCROLL_TIME" -H 'Content-Type: application/json' -d '{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "formId": '"$FORM_ID"'
+          }
+        }
+      ]
+    }
+  },
+  "size": 10000
+}')
+
+# Extract the initial scroll_id from the response
+SCROLL_ID=$(echo "$INITIAL_RESPONSE" | jq -r '._scroll_id')
+
+# Initialize the output file with the hits from the first scroll batch
+HITS=$(echo "$INITIAL_RESPONSE" | jq -r '.hits.hits')
+echo "$HITS" > "$OUTPUT_FILE"
+log_message "Initial batch of hits saved to $OUTPUT_FILE"
+
+# Check the number of hits in the initial response
+NUM_HITS=$(echo "$INITIAL_RESPONSE" | jq '.hits.hits | length')
+log_message "Number of hits in initial response: $NUM_HITS"
+
+# If there are no hits, exit early
+if [[ "$NUM_HITS" -eq 0 ]]; then
+  log_message "No hits found. Exiting."
+  echo "No hits found. Exiting."
+  exit 0
+fi
+
+# Process the remaining scroll responses
+while true; do
+  # Fetch the next batch of data using the scroll ID
+  NEXT_RESPONSE=$(curl -s -X POST "http://$ES_HOST:$ES_PORT/_search/scroll" -H 'Content-Type: application/json' -d '{
+  "scroll": "'"$SCROLL_TIME"'",
+  "scroll_id": "'"$SCROLL_ID"'"
+  }')
+
+  # Extract the scroll ID and hits from the response
+  SCROLL_ID=$(echo "$NEXT_RESPONSE" | jq -r '._scroll_id')
+  HITS=$(echo "$NEXT_RESPONSE" | jq -r '.hits.hits')
+
+  # Check the number of hits in the current response
+  NUM_HITS=$(echo "$NEXT_RESPONSE" | jq '.hits.hits | length')
+  log_message "Number of hits in this response: $NUM_HITS"
+
+  # If no more hits are returned, break the loop
+  if [[ "$NUM_HITS" -eq 0 ]]; then
+    log_message "No more hits. Exiting."
+    echo "No more hits. Exiting."
+    break
+  fi
+
+  # Append the hits to the output file
+  echo "$HITS" >> "$OUTPUT_FILE"
+  log_message "Appended batch of hits to $OUTPUT_FILE"
+done
+
+# Print the results
+log_message "Data has been saved to $OUTPUT_FILE"
+echo "Data has been saved to $OUTPUT_FILE"

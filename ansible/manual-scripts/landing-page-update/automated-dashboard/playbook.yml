@@ -1,0 +1,300 @@
+---
+- hosts: localhost
+  connection: local
+  vars_files:
+    - variable.yml
+  tasks:
+
+    - name: User Count API call
+      uri:
+        url: "{{ es_host }}/user_v2/_search"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body: "{{ usercount_body }}"
+        status_code: 200
+      register: user_out
+      until: user_out is not failed
+      retries: 10
+      delay: 2
+
+    - name: Count Output
+      set_fact:
+        user_count: "{{ user_out.json.hits.total }}"
+      failed_when:
+        -  user_count == "0"
+
+    - debug:
+        var: user_count
+
+    - name: Total no. of Organizations API call
+      uri:
+        url: "{{ es_host }}/org_v2/_search"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body: "{{ orgcount_body }}"
+        status_code: [201,200,302,308]
+      register: org_out
+      until: org_out is not failed
+      retries: 10
+      delay: 2
+
+    - name: Organization Count
+      set_fact:
+        organization_count: "{{ org_out.json.hits.total }}"
+      failed_when:
+        -  organization_count == "0"
+
+    - debug:
+        var: organization_count
+
+    - name: Total no. of Draft Courses API call
+      uri:
+        url: "{{ es_host }}/compositesearch/_search"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body: "{{ draft_course_count_api_body }}"
+        status_code: [201,200,302,308]
+      register: draft_course_count_out
+      until: draft_course_count_out is not failed
+      retries: 10
+      delay: 2
+
+    - name: Draft Course Count
+      set_fact:
+        draft_course_count: "{{ draft_course_count_out.json.hits.total }}"
+
+    - debug:
+        var: draft_course_count
+
+    - name: Total no. of Review Courses API call
+      uri:
+        url: "{{ es_host }}/compositesearch/_search"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body: "{{ review_course_count_api_body }}"
+        status_code: [201,200,302,308]
+      register: review_course_count_out
+      until: review_course_count_out is not failed
+      retries: 10
+      delay: 2
+
+    - name: Review Course Count
+      set_fact:
+        review_course_count: "{{ review_course_count_out.json.hits.total }}"
+
+    - debug:
+        var: review_course_count
+
+    - name: Total no. of Retired Courses API call
+      uri:
+        url: "{{ es_host }}/compositesearch/_search"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body: "{{ retired_course_count_api_body }}"
+        status_code: [ 201,200,302,308 ]
+      register: retired_course_count_out
+      until: retired_course_count_out is not failed
+      retries: 10
+      delay: 2
+
+    - name: Retired Course Count
+      set_fact:
+        retired_course_count: "{{ retired_course_count_out.json.hits.total }}"
+
+    - debug:
+        var: retired_course_count
+
+    - name: Total no. of Pending Publish Courses API call
+      uri:
+        url: "{{ es_host }}/compositesearch/_search"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body: "{{ pending_publish_course_count_api_body }}"
+        status_code: [ 201,200,302,308 ]
+      register: pending_publish_course_count_out
+      until: pending_publish_course_count_out is not failed
+      retries: 10
+      delay: 2
+
+    - name: Pending Publish Course Count
+      set_fact:
+        pending_publish_course_count: "{{ pending_publish_course_count_out.json.hits.total }}"
+
+    - debug:
+        var: pending_publish_course_count
+
+    - name: Live Course Query Elasticsearch and Process Response
+      uri:
+        url: "{{ es_host }}/compositesearch/_search"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+        body_format: json
+        body: "{{ live_course_api_body }}"
+        status_code: [201,200,302,308]
+      register: live_course_output
+      until: live_course_output is not failed
+      retries: 10
+      delay: 2
+
+    - name: Extract Document Count and Aggregate Duration
+      set_fact:
+        live_course_count: "{{ live_course_output.json.hits.total }}"
+      failed_when:
+        -  live_course_count == "0"
+
+    - name: course duration list
+      set_fact:
+        course_duration_list: "{{ live_course_output.json.hits.hits | map(attribute='_source.duration') | list }}"
+
+    - name: unique course publisher id list
+      set_fact:
+        unique_course_publisher_id_list: "{{ live_course_output.json.hits.hits | map(attribute='_source.createdFor') | select() | sum(start=[]) | unique | select() | list }}"
+
+    - debug:
+        var: unique_course_publisher_id_list
+
+    - name: unique course publisher count
+      set_fact:
+        unique_course_publisher_count: "{{ unique_course_publisher_id_list | length }}"
+
+    - debug:
+        var: unique_course_publisher_count
+
+    - name: course id list
+      set_fact:
+        course_id_list: "{{ live_course_output.json.hits.hits | map(attribute='_source.identifier') | list | join(',') }}"
+
+    - debug:
+        var: course_duration_list
+
+    - debug:
+        var: course_id_list
+
+    - name: Total Sum of Duration
+      set_fact:
+        aggregated_course_duration_float: "{{ course_duration_list | map('int') | sum / 3600 | float  }}"
+
+    - name: Total Sum of Round Off value
+      set_fact:
+        aggregated_course_duration: "{{ aggregated_course_duration_float | float | round | int }}"
+      failed_when:
+        - aggregated_course_duration == "0"
+
+    - debug:
+        var: aggregated_course_duration
+
+    - name: Display Results
+      debug:
+        msg:
+          - "Total Live Course Count: {{ live_course_count }}"
+          - "Aggregated Duration: {{ aggregated_course_duration }}"
+
+    - debug:
+        msg: "{{ user_count }}, {{ organization_count }}, {{ aggregated_course_duration }}, {{ live_course_count }}"
+
+    - name: Get IST Date
+      command: "date '+%Y-%m-%d %H:%M:%S'"
+      register: date_ist
+
+    - name: Get IST Date ISO format
+      command: "date '+%Y-%m-%dT%H:%M:%SZ'"
+      register: date_ist_iso
+
+    - name: Processing Time
+      set_fact:
+        processing_time: "{{ date_ist_iso.stdout }}"
+
+    - name: Processing Time Human Format
+      set_fact:
+        processing_time_human: "{{ date_ist.stdout }}"
+
+    - name: Redis Get Monthly Active User Count
+      command: "redis-cli -h {{ redis_host }} -p {{ redis_port }} -n {{ redis_db }} GET {{ redis_key_lp_monthly_active_users }}"
+      register: redis_monthly_active_users_out
+
+    - name: Monthly Active User Count
+      set_fact:
+        monthly_active_user_count: "{{ redis_monthly_active_users_out.stdout }}"
+
+    - name: Redis Get Course Program Completion
+      command: "redis-cli -h {{ redis_host }} -p {{ redis_port }} -n {{ redis_db }} GET {{ redis_key_dashboard_completed_count }}"
+      register: redis_course_program_completed_out
+
+    - name: Course Program Completion Count
+      set_fact:
+        course_program_completion_count: "{{ redis_course_program_completed_out.stdout }}"
+
+    - name: Redis Get Course Program Completion In Last 24 Hrs Count
+      command: "redis-cli -h {{ redis_host }} -p {{ redis_port }} -n {{ redis_db }} GET {{ redis_key_lp_completed_yesterday_count }}"
+      register: redis_course_program_completed_yesterday_out
+
+    - name: Course Program Completion In Last 24 Hrs Count
+      set_fact:
+        course_program_completion_in_last_24_hrs_count: "{{ redis_course_program_completed_yesterday_out.stdout }}"
+
+    - name: copy file
+      copy:
+        dest: "{{ root_path }}/automated-dashboard/dashbord_history/configurations.json_{{ ansible_date_time.date }}"
+        src: "{{ root_path }}/html/configurations.json"
+        backup: yes
+      register: copy_file
+
+    - name: Apply Page Template
+      template:
+        src: configurations.json.j2
+        dest: "{{ root_path }}/html/configurations.json"
+
+    - name: Redis Update Processing time
+      command: "redis-cli -h {{ redis_host }} -p {{ redis_port }} -n {{ redis_db }} SET {{ redis_key_lp_update_time }} {{ processing_time }}"
+
+    - name: Redis Update User Count
+      command: "redis-cli -h {{ redis_host }} -p {{ redis_port }} -n {{ redis_db }} SET {{ redis_key_lp_es_user_count }} {{ user_count }}"
+
+    - name: Redis Update Org Count
+      command: "redis-cli -h {{ redis_host }} -p {{ redis_port }} -n {{ redis_db }} SET {{ redis_key_lp_es_org_count }} {{ organization_count }}"
+
+    - name: Redis Update Live Course Count
+      command: "redis-cli -h {{ redis_host }} -p {{ redis_port }} -n {{ redis_db }} SET {{ redis_key_lp_es_live_course_count }} {{ live_course_count }}"
+
+    - name: Redis Update Live Course Duration
+      command: "redis-cli -h {{ redis_host }} -p {{ redis_port }} -n {{ redis_db }} SET {{ redis_key_lp_es_agg_course_duration }} {{ aggregated_course_duration }}"
+
+    - name: Redis Update Live Course ID List
+      command: "redis-cli -h {{ redis_host }} -p {{ redis_port }} -n {{ redis_db }} SET {{ redis_key_lp_es_live_course_id_list }} {{ course_id_list }}"
+
+    - name: Redis Update Live Course Publisher Count
+      command: "redis-cli -h {{ redis_host }} -p {{ redis_port }} -n {{ redis_db }} SET {{ redis_key_lp_es_live_course_publisher_count }} {{ unique_course_publisher_count }}"
+
+    - name: Redis Update Draft Course Count
+      command: "redis-cli -h {{ redis_host }} -p {{ redis_port }} -n {{ redis_db }} SET {{ redis_key_lp_es_draft_course_count }} {{ draft_course_count }}"
+
+    - name: Redis Update Review Course Count
+      command: "redis-cli -h {{ redis_host }} -p {{ redis_port }} -n {{ redis_db }} SET {{ redis_key_lp_es_review_course_count }} {{ review_course_count }}"
+
+    - name: Redis Update Retired Course Count
+      command: "redis-cli -h {{ redis_host }} -p {{ redis_port }} -n {{ redis_db }} SET {{ redis_key_lp_es_retired_course_count }} {{ retired_course_count }}"
+
+    - name: Redis Update Pending Publish Course Count
+      command: "redis-cli -h {{ redis_host }} -p {{ redis_port }} -n {{ redis_db }} SET {{ redis_key_lp_es_pending_publish_course_count }} {{ pending_publish_course_count }}"
+
+    - mail:
+        host: relay.nic.in
+        port: 25
+        from: mission.karmayogi@gov.in
+        to: "{{ mail_to }}"
+        subject: "Dashboard data status Production dated {{ ansible_date_time.date }}"
+        body: "{{ lookup('template','dashboard.html.j2') }}"
+        subtype: html

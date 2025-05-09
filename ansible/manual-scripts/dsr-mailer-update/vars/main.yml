@@ -1,0 +1,97 @@
+state_domain: "https://portal.igotkarmayogi.gov.in/api/user/v1/search"
+Org_domain: "https://portal.igotkarmayogi.gov.in/api/org/v1/search"
+live_domain: "https://igotkarmayogi.gov.in/api/composite/v1/search"
+publish_domain: "https://igotkarmayogi.gov.in/api/content/v1/search"
+token: "Bearer  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI5a04xTW1TcGVuVTAyam8zVHg1U2p0amhTOFVXeGVSUiJ9.LWAgFust4e0wntxqY8_MQjf5WQ9RSD6Hg45jX_NoCXY"
+druid_sql_url: http://192.168.3.21:8888/druid/v2/sql
+
+generate_token: "https://portal.igotkarmayogi.gov.in/auth/realms/sunbird/protocol/openid-connect/token"
+usercount_domain: "https://portal.igotkarmayogi.gov.in/api/user/v1/search?mode=edit"
+total_user_count_domain: "https://portal.igotkarmayogi.gov.in/api/user/v1/search"
+username: nalini@nic.in
+password: Nautiyal@123
+user_output: "/roles/automate_data/files/userscount.txt"
+mdo_output: "/roles/automate_data/files/mdocount.txt"
+replaced: []
+org_publish_course_domain: "https://portal.igotkarmayogi.gov.in/api/composite/v1/search"
+token_file_path: "/var/lib/jenkins/ansible_play/aman-inventory/PMU_Report_Playbook/automate_data/files/token.txt"
+
+#########################################Bugzila Variable########################################################
+bug_token: "http://bugzilla.keenable.in/bugzilla/rest/login?"
+bug_domain: "https://bugzilla.keenable.in/bugzilla/rest/bug?"
+userid: reema.pal@fosteringlinux.com
+password1: abc@123
+classy: iGoT
+listid: "4515"
+queryformate: advanced
+limit: "0"
+bug_status: resolved
+
+
+##########################Cassandra Variable#######################################################################
+group: users
+owner: jenkins
+lchost: 127.0.0.1
+
+
+yesterday_time: "{{ lookup('pipe', 'date -d \"1 day ago\" +\"%Y-%m-%d\"') }}"
+
+query1: "SELECT userid FROM sunbird_courses.user_content_consumption where last_access_time >= '{{ yesterday_time }} 00:00:00+0200' AND last_access_time <= '{{ yesterday_time }} 23:59:00+0200' ALLOW FILTERING ;"
+#query2: "select * from sunbird_courses.user_content_consumption limit 1;"
+query2: "select distinct userid from sunbird_courses.user_enrolments ;"
+query3: "select count(*) from sunbird_courses.user_content_consumption where last_access_time >= '2022-03-08' and last_access_time <= '2022-10-05' group by userid, courseid, batchid ALLOW FILTERING;"
+query4: "SELECT userid FROM sunbird.user where createddate >= '{{ yesterday_time }} 00:00:00+0200' AND createddate <= '{{ yesterday_time }} 23:59:00+0200' ALLOW FILTERING ;"
+#query4: "SELECT userid FROM sunbird.user where createddate >= '2022-08-19 00:00:00+0200' AND createddate <= '2022-08-19 23:59:00+0200' ALLOW FILTERING ;"
+#query5: "select count(*) from sunbird_courses.user_enrolments where active=true and status=0 ALLOW FILTERING;"
+query5: "select userid from sunbird_courses.user_enrolments where active=true and courseid='{{ item.identifier }}' and status=0 ALLOW FILTERING;"
+#query6: "select count(*) from sunbird_courses.user_enrolments where active=true and status=1 ALLOW FILTERING;"
+query6: "select userid from sunbird_courses.user_enrolments where active=true and courseid='{{ item.identifier }}' and status=1 ALLOW FILTERING;"
+#query7: "select count(*) from sunbird_courses.user_enrolments where active=true and status=2 ALLOW FILTERING;"
+#query7: "select count(*) from sunbird_courses.user_enrolments where active=true and courseid='{{ item.identifier }}' and status=2 ALLOW FILTERING;"
+query7: "select userid from sunbird_courses.user_enrolments where active=true and courseid='{{ item.identifier }}' and status=2 ALLOW FILTERING;"
+
+
+
+
+################################MYSQL Variable#########################################################################
+mysql_db: frac_tool
+mysql_user: root
+mysql_pass: Nicigot@1234
+
+competency_query: "SELECT count(*) FROM data_node where type = 'COMPETENCY' AND status = 'VERIFIED' AND is_active=1;"
+role_query: "SELECT COUNT(*) FROM data_node where type = 'ROLE' AND status = 'VERIFIED' AND is_active=1;"
+activity_query: "SELECT COUNT(*) FROM data_node where type = 'ACTIVITY' AND status = 'VERIFIED' AND is_active=1;"
+position_query: "SELECT COUNT(*) FROM data_node where type = 'POSITION' AND status = 'VERIFIED' AND is_active=1;"
+
+##########################################################################################################################
+postgres_db: igot_reports4
+postgres_user: postgres
+#host: localhost
+host: 192.168.3.204
+postgres_port: 5433
+#postgres_query: "select count(distinct(user_course_enrolment.user_id)) from user_course_enrolment where completion_status='Completed' or completion_status='In-Progress' or completion_status='Not Started' ;"
+postgres_query: select count(distinct(user_course_enrolment.user_id)) from user_course_enrolment where completion_status IN ('Completed','In-Progress','Not Started') ;
+
+
+  #######################################mail Variables################################################################
+  #receivers: secy-mop@nic.in,hemang.jani@gov.in,shirahatti.deepak@nic.in,nalini@gov.in,deepak.shirahatti@nic.in,pawan.joshi@nic.in,ceo-karmayogi@gov.in,arushimathur@ipeglobal.com,g.d.jayanthi@nic.in,apsingh@ipeglobal.com,Zachariahthomas.edu@nic.in,jitesh.gupta@nic.in,bharat.kumar13@gov.in,priyanka.agarwal@govcontractor.in,prachi.gupta@tarento.com,wilky.singh@tarento.com,rakesh.verma@karmayogi.in,vikas.bagri@karmayogi.in,manthan.sharma@tarento.com,s.ramadorai@tcs.com,monojeet.chakravorty@karmayogi.in,govindiyer09@gmail.com,pankaj@peoplestrong.com,bm@keenable.in
+
+#bcc_receivers: bm@keenable.in,chandni.babu@nic.in,amandeep.singh@fosteringlinux.com,kunwara.jha@fosteringlinux.com,madhu.jaswal@fosteringlinux.com,rohtash.kumar@fosteringlinux.com,manoj.cchounsali@fosteringlinux.com,raju@fosteringlinux.com
+
+#receivers: nalini@nic.in,bm@keenable.in,mayank.01@fosteringlinux.com,amandeep.singh@fosteringlinux.com
+receivers: amandeep.singh@fosteringlinux.com,kunwara.jha@fosteringlinux.com
+bcc_receivers: amandeep.singh@fosteringlinux.com,kunwara.jha@fosteringlinux.com,nandakishor.sudarshan@tarento.com
+
+######################################################################################################################
+
+
+
+#SearchLive: "{\"locale\":[\"en\"],\"query\":\"\",\"request\":{\"query\":\"\",\"filters\":{\"status\":[\"live\"],\"contentType\":\"course\",\"primaryCategory\":\"Course\"},\"sort_by\":{\"lastUpdatedOn\":\"desc\"},\"fields\":[\"name\",\"identifier\"],\"facets\":[\"primaryCategory\",\"status\",\"mimeType\"],\"limit\":1000}}"
+SearchLive: "{\"locale\":[\"en\"],\"query\":\"\",\"request\":{\"query\":\"\",\"filters\":{\"status\":[\"live\"],\"contentType\":\"course\",\"primaryCategory\":\"Course\"},\"sort_by\":{\"lastUpdatedOn\":\"desc\"},\"fields\":[\"name\",\"identifier\",\"createdOn\",\"duration\"],\"facets\":[\"primaryCategory\",\"status\",\"mimeType\"],\"limit\":2000}}"
+
+SearchUserBody: "{\"request\":{\"filters\":{\"email\":\"{{ user.email }}\"},\"fields\":[],\"sortBy\":{\"updatedDate\":\"Desc\"}}}"
+api_key: "Bearer  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI5a04xTW1TcGVuVTAyam8zVHg1U2p0amhTOFVXeGVSUiJ9.LWAgFust4e0wntxqY8_MQjf5WQ9RSD6Hg45jX_NoCXY"
+domain: "https://portal.igotkarmayogi.gov.in"
+auth_username: nalini@nic.in
+auth_passwd: Nautiyal@123
+query99: "select count(*) from sunbird_courses.user_enrolments where active=true and courseid='{{ item.identifier }}'and status=1 ALLOW FILTERING;"

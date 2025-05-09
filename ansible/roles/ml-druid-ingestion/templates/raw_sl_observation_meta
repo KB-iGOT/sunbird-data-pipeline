@@ -1,0 +1,109 @@
+{
+  "type": "kafka",
+  "dataSchema": {
+    "dataSource": "sl-observation-meta",
+    "parser": {
+      "type": "string",
+      "parseSpec": {
+        "format": "json",
+        "timestampSpec": {
+          "column": "completedDate",
+          "format": "auto"
+        },
+        "dimensionsSpec": {
+          "dimensions": [
+            {
+              "type": "string",
+              "name": "completedDate"
+            },
+            {
+              "type": "string",
+              "name": "createdBy"
+            },
+            {
+              "type": "string",
+              "name": "createdAt"
+            },
+            {
+              "type": "string",
+              "name": "entity"
+            },
+            {
+              "type": "string",
+              "name": "entityExternalId"
+            },
+            {
+              "type": "string",
+              "name": "entityType"
+            },
+            {
+              "type": "string",
+              "name": "isAPrivateProgram"
+            },
+            {
+              "type": "string",
+              "name": "observationName"
+            },
+            {
+              "type": "string",
+              "name": "observationSubmissionId"
+            },
+            {
+              "type": "string",
+              "name": "observationId"
+            },
+            {
+              "type": "string",
+              "name": "organisationName"
+            },
+            {
+              "type": "string",
+              "name": "solutionType"
+            },
+            {
+              "type": "string",
+              "name": "solutionExternalId"
+            },
+            {
+              "type": "string",
+              "name": "solutionId"
+            },
+            {
+              "type": "string",
+              "name": "solutionName"
+            },
+            {
+              "type": "string",
+              "name": "userType"
+            },
+            {
+              "type": "string",
+              "name": "userProfile"
+            }
+          ]
+        }
+      }
+    },
+    "metricsSpec": [],
+    "granularitySpec": {
+      "type": "uniform",
+      "segmentGranularity": "DAY",
+      "queryGranularity": "none",
+      "rollup": false
+    }
+  },
+  "tuningConfig": {
+    "type": "kafka",
+    "reportParseExceptions": false
+  },
+  "ioConfig": {
+    "topic": "{{env}}.ml.observation.meta",
+    "consumerProperties": {
+      "bootstrap.servers": "{{kafka_brokers}}"
+    },
+    "taskCount": "{{sl_survey_task_count}}",
+    "replicas": 1,
+    "taskDuration": "PT14400S",
+    "useEarliestOffset": true
+  }
+}

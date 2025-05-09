@@ -3,8 +3,11 @@ analytics:
    soft_path: /mount/data/analytics
    base_path: /home/analytics 
 scala_version: 2.11.8
+
 spark_version: 2.4.4
-model_version: "2.0" 
+model_version: "2.0"
+heap_memory: "-Xmx5120m"
+
 spark:
   home: "{{ analytics.home }}/spark-{{ spark_version }}-bin-hadoop2.7"
   public_dns: 54.255.154.146
@@ -13,17 +16,24 @@ spark:
     host: 172.31.11.117
   worker:
     instances: 1
-    cores: 2
-    memory: 4g
+    cores: 6
+    memory: 18g
   driver:
-    memory: 3g
+    memory: 12g
+    cores: 2
+    memoryOverhead: 2g
   executor:
-    memory: 4g
-  driver_memory: 7g
+    instances: 1
+    cores: 6
+    memory: 14g
+    memoryOverhead: 2g
+  driver_memory: 12g
   executor_extraJavaOptions: -Dconfig.file=/mount/data/analytics/models-{{ model_version }}/{{ env }}.conf -Dlog4j.configurationFile=file:////mount/data/analytics/models-{{ model_version }}/log4j2.xml
   driver_extraJavaOptions: -Dconfig.file=/mount/data/analytics/models-{{ model_version }}/{{ env }}.conf -Dlog4j.configurationFile=file:////mount/data/analytics/models-{{ model_version }}/log4j2.xml
-  executor_memory: 2g
-  heap_conf_str: -Xmx5120m
+  memory_fraction: 0.3
+  storage_fraction: 0.5
+  executor_memory: 14g
+  heap_conf_str: '"-XX:+UseG1GC -XX:MaxGCPauseMillis=100 -Xms250m {{ heap_memory }} -XX:+UseStringDeduplication"'
 
 spark_url: https://archive.apache.org/dist/spark/spark-{{ spark_version }}/spark-{{ spark_version }}-bin-hadoop2.7.tgz
 guava_url: https://repo1.maven.org/maven2/com/google/guava/guava/19.0/guava-19.0.jar
@@ -32,3 +42,12 @@ hadoop_aws_url: https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/2.7.
 java_xmlbuilder_url: https://repo1.maven.org/maven2/com/jamesmurty/utils/java-xmlbuilder/1.1/java-xmlbuilder-1.1.jar
 hadoop_azure_url: https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-azure/2.7.3/hadoop-azure-2.7.3.jar
 azure_storage: https://repo1.maven.org/maven2/com/microsoft/azure/azure-storage/3.0.0/azure-storage-3.0.0.jar
+
+
+# jets3t s3 config, allows us to configure for s3-like object stores
+jets3t_s3_request_signature_version: "{{ s3_request_signature_version }}"
+jets3t_s3_endpoint_host: "{% if s3_storage_endpoint %}{{ s3_storage_endpoint | regex_replace('^[a-z]+://(.*)$', '\\1') }}{% endif %}"
+jets3t_s3_disable_dns_buckets: "{{ s3_path_style_access }}"
+jets3t_s3_https_only: "{{ s3_https_only }}"
+jets3t_s3_default_bucket_location: "{{ s3_default_bucket_location }}"
+

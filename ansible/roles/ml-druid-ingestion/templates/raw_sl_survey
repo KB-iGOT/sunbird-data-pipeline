@@ -1,0 +1,163 @@
+{
+   "type": "kafka",
+   "dataSchema": {
+     "dataSource": "sl-survey",
+     "parser": {
+       "type": "string",
+       "parseSpec": {
+         "format": "json",
+         "timestampSpec": {
+           "column": "completedDate",
+           "format": "auto"
+         },
+         "dimensionsSpec": {
+           "dimensions": [
+             {
+               "type": "string",
+               "name": "completedDate"
+             },
+             {
+               "type": "string",
+               "name": "createdAt"
+             },
+             {
+               "type": "string",
+               "name": "createdBy"
+             },
+             {
+               "type": "string",
+               "name": "criteriaExternalId"
+             },
+             {
+               "type": "string",
+               "name": "criteriaId"
+             },
+             {
+               "type": "string",
+               "name": "criteriaName"
+             },
+             {
+              "type": "string",
+              "name": "evidenceCount"
+             },
+             {
+              "type": "string",
+              "name": "evidences"
+             },
+             {
+              "type": "string",
+              "name": "isAPrivateProgram"
+             },
+             {
+              "type": "string",
+              "name": "organisationId"
+             },
+             {
+              "type": "string",
+              "name": "organisationName"
+             },
+             {
+              "type": "string",
+              "name": "questionAnswer"
+             },
+             {
+              "type": "string",
+              "name": "questionECM"
+             },
+             {
+              "type": "string",
+              "name": "questionExternalId"
+             },
+             {
+              "type": "string",
+              "name": "questionId"
+             },
+             {
+              "type": "string",
+              "name": "questionName"
+             },
+             {
+              "type": "string",
+              "name": "questionResponseLabel"
+             },
+             {
+              "type": "float",
+              "name": "questionResponseLabelNumber"
+             },
+             {
+              "type": "string",
+              "name": "questionResponseType"
+             },
+             {
+              "type": "string",
+              "name": "remarks"
+             },
+             {
+              "type": "string",
+              "name": "solutionExternalId"
+             },
+             {
+              "type": "string",
+              "name": "solutionId"
+             },
+             {
+              "type": "string",
+              "name": "solutionName"
+             },
+             {
+               "type": "string",
+               "name": "surveyId"
+             },
+             {
+               "type": "string",
+               "name": "surveyName"
+             },
+             {
+               "type": "string",
+               "name": "surveySubmissionId"
+             },
+             {
+              "type": "string",
+              "name": "totalEvidences"
+             },
+             {
+               "type": "string",
+               "name": "updatedAt"
+             },
+             {
+              "type": "string",
+              "name": "userProfile"
+             }
+           ]
+         }
+       }
+     },
+     "metricsSpec": [
+       {
+         "type": "floatSum",
+         "name": "questionResponseNumber",
+         "fieldName": "questionResponseLabelNumber"
+       }
+     ],
+     "granularitySpec": {
+       "type": "uniform",
+       "segmentGranularity": "DAY",
+       "queryGranularity": "none",
+       "rollup": false
+     }
+   },
+   "tuningConfig": {
+     "type": "kafka",
+     "reportParseExceptions": false
+   },
+   "ioConfig": {
+     "topic": "{{env}}.ml.survey.druid",
+     "consumerProperties": {
+       "bootstrap.servers": "{{kafka_brokers}}"
+     },
+     "taskCount": "{{sl_survey_task_count}}",
+     "replicas": 1,
+     "taskDuration": "PT14400S",
+     "useEarliestOffset": true
+   }
+ }

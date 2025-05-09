@@ -1,0 +1,35 @@
+# Set your project ID
+PROJECT_ID="{{cloud_storage_project_id}}"
+
+# Set the dataset name
+DATASET_NAME="{{bq_dataset_name}}"
+
+# cloud storage folder name
+STORAGE_FOLDER="{{cloud_storage_file_dest}}"
+
+# Loop over each table name
+for TABLE_NAME in "assessment_detail" "bp_enrolments" "cb_plan" "content" "content_resource" "kcm_content_mapping" "kcm_dictionary" "org_hierarchy" "user_detail" "user_enrolments" "event_details" "event_enrolment_details"; do
+
+  echo "Processing table: $TABLE_NAME"
+
+  # Delete all existing avro files in Cloud Storage
+  gsutil rm -a gs://$STORAGE_FOLDER/$TABLE_NAME/*.avro
+
+  # Copy avro files to Cloud Storage
+  gsutil cp /mount/data/analytics/warehouse/$TABLE_NAME/part*.avro gs://$STORAGE_FOLDER/$TABLE_NAME/
+
+  # delete existing table
+  bq rm -f $DATASET_NAME.$TABLE_NAME
+
+  # create empty
+  bq mk --table $DATASET_NAME.$TABLE_NAME
+
+  # Load data into the BigQuery table
+  bq load \
+  --source_format=AVRO \
+  $DATASET_NAME.$TABLE_NAME \
+  "gs://$STORAGE_FOLDER/$TABLE_NAME/*.avro"
+
+  echo "Completed processing for table: $TABLE_NAME"
+
+done

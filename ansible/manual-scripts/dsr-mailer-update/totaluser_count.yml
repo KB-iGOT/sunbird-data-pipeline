@@ -1,0 +1,54 @@
+---
+- name: Generate authentication token for Total User Count list
+  uri:
+    url: "{{generate_token}}"
+    method: POST
+    body_format: form-urlencoded
+    body:
+      username: "{{username}}"
+      password: "{{password}}"
+      client_id: admin-cli
+      grant_type: password
+    status_code: [200,201,308,302,401]
+  register:  data
+  until: data is not failed
+  retries: 10
+  delay: 10
+
+- name: store token in a variable
+  set_fact:
+    access_token: "{{data.json.access_token}}"
+
+- name: TotalUserCount
+  uri:
+    url: "{{usercount_domain}}"
+    method: POST
+    headers:
+      Content-Type: "application/json"
+      authorization: "{{token}}"
+      x-authenticated-user-token: "{{access_token}}"
+    body_format: json
+    body: |
+      {
+          "request": {
+             "query": "",
+              "filters": {
+                 "status":1
+              },
+              "limit":1
+          }
+      }
+  register: total_user_count
+  until: total_user_count is not failed
+  retries: 10
+  delay: 10
+
+
+- debug:
+    var: total_user_count
+
+- set_fact:
+    total_user_count: "{{ total_user_count.json.result.response.count }}"
+
+- debug:
+    var: total_user_count

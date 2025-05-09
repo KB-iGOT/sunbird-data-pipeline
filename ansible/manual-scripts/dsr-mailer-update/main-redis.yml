@@ -1,0 +1,29 @@
+---
+
+- hosts: localhost
+  vars_files:
+    - /var/lib/jenkins/ansible_play/aman-inventory/PMU_Report_Playbook/automate_data/Dsr-data/vars/main.yml
+  tasks:
+
+    - name: "DSRRedissripts"
+      include: dsr-redisscript.yml
+      delegate_to: 192.168.3.82
+      tags:
+        - dsr-redisscript
+
+
+    - name: "TotalUserCount"
+      include: totaluser_count.yml
+      delegate_to: localhost
+      tags:
+        - totaluser_count
+
+    - name: "generate the report in html"
+      template:
+        src: /var/lib/jenkins/ansible_play/aman-inventory/PMU_Report_Playbook/automate_data/Dsr-data/final-report.html.j2
+        dest: /var/lib/jenkins/ansible_play/aman-inventory/PMU_Report_Playbook/automate_data/Dsr-data/pmu.html
+        owner: admin
+        group: users
+      tags:
+        - html
+

@@ -9,6 +9,6 @@
       apt: update_cache=yes cache_valid_time={{ apt_cache_valid_time }}
       become: yes
   roles:
-    - jdk-1.8.0_121
+    - openjdk
     - { role: ep_logstash, logstash_conf: ".indexer.device_api_metrics" }
   become: yes

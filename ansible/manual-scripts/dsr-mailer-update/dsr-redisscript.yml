@@ -1,0 +1,162 @@
+---
+- name: Central Ministries
+  set_fact:
+    central_ministries: 89
+- name: State Ut
+  set_fact:
+    state_ut: 36
+- name: course_publishers
+  command: "redis-cli -n 12 GET lp_es_live_course_publisher_count"
+  register: course_publishers
+  ignore_errors: yes  # Ignore errors if the key doesn't exist
+- name: Set fact for lp_es_live_course_publisher_count
+  set_fact:
+    course_publishers: "{{ course_publishers.stdout }}"
+  when: course_publishers is succeeded
+-  debug:
+     var: course_publishers
+- name: CoursesPublished
+  command: "redis-cli -n 12 GET lp_es_live_course_count"
+  register: courses_published
+  ignore_errors: yes  # Ignore errors if the key doesn't exist
+- name: Set fact for lp_es_live_course_count
+  set_fact:
+    courses_published: "{{ courses_published.stdout }}"
+  when: courses_published is succeeded
+-  debug:
+     var: courses_published
+- name: CourseDuration
+  command: "redis-cli -n 12 GET lp_es_agg_course_duration"
+  register: course_duration
+  ignore_errors: yes  # Ignore errors if the key doesn't exist
+- name: Set fact for lp_es_agg_course_duration
+  set_fact:
+    course_duration: "{{ course_duration.stdout }}"
+  when: course_duration is succeeded
+-  debug:
+     var: course_duration
+- name: CourseEnrolments
+  command: "redis-cli -n 12 GET dashboard_enrolment_count"
+  register: course_enrolments
+  ignore_errors: yes  # Ignore errors if the key doesn't exist
+- name: Set fact for dashboard_enrolment_count
+  set_fact:
+    course_enrolments: "{{ course_enrolments.stdout }}"
+  when: course_enrolments is succeeded
+-  debug:
+     var: course_enrolments
+- name: CourseCompletions
+  command: "redis-cli -n 12 GET dashboard_completed_count"
+  register: course_completions
+  ignore_errors: yes  # Ignore errors if the key doesn't exist
+- name: Set fact for dashboard_completed_count
+  set_fact:
+    course_completions: "{{ course_completions.stdout }}"
+  when: course_completions is succeeded
+-  debug:
+     var: course_completions
+- name: newUserRegistrationsYesterday
+  command: "redis-cli -n 12 GET dashboard_new_users_registered_yesterday"
+  register: newuser_registrations_yesterday
+  ignore_errors: yes  # Ignore errors if the key doesn't exist
+- name: Set fact for newuser_registrations_yesterday
+  set_fact:
+    newuser_registrations_yesterday: "{{ newuser_registrations_yesterday.stdout }}"
+  when: newuser_registrations_yesterday is succeeded
+-  debug:
+     var: newuser_registrations_yesterday
+- name: TotalUserCount
+  command: "redis-cli -n 12 GET mdo_total_registered_officer_count"
+  register: user_count
+  ignore_errors: yes  # Ignore errors if the key doesn't exist
+- name: Set fact for lp_es_user_count
+  set_fact:
+    user_count: "{{ user_count.stdout }}"
+  when: user_count is succeeded
+-  debug:
+     var: user_count
+
+- name: usersEnrolledinAtleastOneCourse
+  command: "redis-cli -n 12 GET dashboard_unique_users_enrolled_count"
+  register: users_enrolledin_atleast_one_course
+  ignore_errors: yes  # Ignore errors if the key doesn't exist
+- name: Set fact for users_enrolledin_atleast_one_course
+  set_fact:
+    users_enrolledin_atleast_one_course: "{{ users_enrolledin_atleast_one_course.stdout }}"
+  when: users_enrolledin_atleast_one_course is succeeded
+-  debug:
+     var: users_enrolledin_atleast_one_course
+- name: DepartmentOrganisationsOnboarded
+  command: "redis-cli -n 12 GET lp_es_org_count"
+  register: department_organisations_onboarded
+  ignore_errors: yes  # Ignore errors if the key doesn't exist
+- name: Set fact for department_organisations_onboarded
+  #  var: Central_Ministries_Onboarded
+  #var: States_UTs_Onboarded_with_registered_users
+  set_fact:
+    #Central_Ministries_Onboarded: 79
+    #States_UTs_Onboarded_with_registered_users: 36
+    department_organisations_onboarded: "{{ department_organisations_onboarded.stdout | int - central_ministries - state_ut }}"
+  when: department_organisations_onboarded is succeeded
+-  debug:
+     var: department_organisations_onboarded
+- name: UserLoggedinYesterday
+  uri:
+    url: "{{ druid_sql_url }}"
+    method: POST
+    headers:
+      Content-Type: application/json
+    body_format: json
+    body:
+      resultFormat: object
+      header: false
+      context:
+        sqlOuterLimit: 100
+      query: "SELECT COUNT(DISTINCT(actor_id)) AS UserLoggedinYesterday FROM \"telemetry-events-syncts\" WHERE eid='IMPRESSION' AND actor_type='User' AND __time >= TIME_FLOOR(CURRENT_TIMESTAMP + INTERVAL '5:30' HOUR TO MINUTE - INTERVAL '24' HOUR, 'P1D') AND __time < TIME_FLOOR(CURRENT_TIMESTAMP + INTERVAL '5:30' HOUR TO MINUTE, 'P1D')"
+
+  register: user_loggedin_yesterday
+  until: user_loggedin_yesterday is not failed
+  retries: 10
+  delay: 10
+
+- debug:
+    var: user_loggedin_yesterday.json
+
+- set_fact:
+    user_loggedin_yesterday: "{{ user_loggedin_yesterday.json[0].UserLoggedinYesterday }}"
+
+- debug:
+    var: user_loggedin_yesterday
+
+- name: TotalEventsEnrolmentCount
+  command: "redis-cli -n 12 GET dashboard_events_enrolment_count"
+  register: dashboard_events_enrolment_count
+  ignore_errors: yes  # Ignore errors if the key doesn't exist
+- name: Set fact for dashboard_events_enrolment_count
+  set_fact:
+    dashboard_events_enrolment_count: "{{ dashboard_events_enrolment_count.stdout }}"
+  when: dashboard_events_enrolment_count is succeeded
+-  debug:
+     var: dashboard_events_enrolment_count
+
+- name: TotalEventsPublishedCount
+  command: "redis-cli -n 12 GET dashboard_events_published_count"
+  register: dashboard_events_published_count
+  ignore_errors: yes  # Ignore errors if the key doesn't exist
+- name: Set fact for dashboard_events_published_count
+  set_fact:
+    dashboard_events_published_count: "{{ dashboard_events_published_count.stdout }}"
+  when: dashboard_events_published_count is succeeded
+-  debug:
+     var: dashboard_events_published_count
+
+- name: TotalEventsCompletedCount
+  command: "redis-cli -n 12 GET dashboard_events_completed_count"
+  register: dashboard_events_completed_count
+  ignore_errors: yes  # Ignore errors if the key doesn't exist
+- name: Set fact for dashboard_events_completed_count
+  set_fact:
+    dashboard_events_completed_count: "{{ dashboard_events_completed_count.stdout }}"
+  when: dashboard_events_completed_count is succeeded
+-  debug:
+     var: dashboard_events_completed_count

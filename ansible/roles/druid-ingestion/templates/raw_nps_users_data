@@ -1,0 +1,96 @@
+{
+    "type": "kafka",
+    "dataSchema": {
+        "dataSource": "nps-users-data",
+        "parser": {
+            "type": "string",
+            "parseSpec": {
+                "format": "json",
+                "flattenSpec": {
+                    "useFieldDiscovery": false,
+                    "fields": [
+                        {
+                            "type": "root",
+                            "name": "userID"
+                        },
+                        {
+                            "type": "root",
+                            "name": "submitted"
+                        },
+                        {
+                            "type": "root",
+                            "name": "rating"
+                        },
+                        {
+                            "type": "root",
+                            "name": "activityDesc"
+                        },
+                        {
+                            "type": "root",
+                            "name": "activityID"
+                        },
+                        {
+                            "type": "root",
+                            "name": "originPlatform"
+                        }
+                    ]
+                },
+                "dimensionsSpec": {
+                    "dimensions": [
+                        {
+                            "type": "string",
+                            "name": "userID"
+                        },
+                        {
+                            "type": "string",
+                            "name": "submitted"
+                        },
+                        {
+                            "type": "long",
+                            "name": "rating"
+                        },
+                        {
+                            "type": "string",
+                            "name": "activityDesc"
+                        },
+                        {
+                            "type": "long",
+                            "name": "activityID"
+                        },
+                        {
+                            "type": "string",
+                            "name": "originPlatform"
+                        }
+                    ],
+                    "dimensionsExclusions": []
+                },
+                "timestampSpec": {
+                    "column": "timestamp",
+                    "format": "auto"
+                }
+            }
+        },
+        "metricsSpec": [],
+        "granularitySpec": {
+            "type": "uniform",
+            "segmentGranularity": "day",
+            "rollup": false
+        }
+    },
+    "ioConfig": {
+        "topic": "{{ env }}.nps_submission",
+        "consumerProperties": {
+            "bootstrap.servers": "{{kafka_brokers}}"
+        },
+        "taskCount": 1,
+        "replicas": 1,
+        "taskDuration": "PT7200S",
+        "useEarliestOffset": true,
+        "completionTimeout": "PT7200S"
+    },
+    "tuningConfig": {
+        "type": "kafka",
+        "reportParseExceptions": false,
+        "maxRowsPerSegment": "2000000"
+    }
+}

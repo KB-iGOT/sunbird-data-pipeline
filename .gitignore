@@ -12,6 +12,7 @@ database.yml
 .idea
 tmp/
 kibana-auth/node_modules/
+kubernetes/helm_charts/*/values.yaml
 
 # DevOps
 *.backup
@@ -28,3 +29,4 @@ target/
 *.iml
 **/.settings
 dependency-reduced-pom.xml
+/pom.xml

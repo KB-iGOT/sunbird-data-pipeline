@@ -3,8 +3,44 @@
   become: yes
   vars_files:
     - "{{inventory_dir}}/secrets.yml"
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{sunbird_artifact_storage_account_name}}"
-    AZURE_STORAGE_SAS_TOKEN: "{{sunbird_artifact_storage_account_sas}}"
-  roles:
-    - artifacts-download-azure
+  tasks:
+    - name: Set GCP environment variables
+      set_fact:
+        gcp_environment:
+          GOOGLE_APPLICATION_CREDENTIALS: "/tmp/gcp_service_account.json"
+      tags: gcp
+
+    - name: Create temporary directory for GCP service account file
+      file:
+        path: /tmp/gcp_service_account.json
+        state: touch
+      tags: gcp
+
+    - name: Write GCP service account file
+      copy:
+        content: "{{ gcp_artifcats_upload_service_account }}"
+        dest: /tmp/gcp_service_account.json
+        mode: "0600"
+      tags: gcp
+
+    - name: Authenticate gcloud login
+      shell: gcloud auth activate-service-account --key-file /tmp/gcp_service_account.json
+      tags: gcp
+
+    - name: Ensure Google Cloud Storage bucket exists
+      shell: gsutil mb gs://{{ artifacts_container }} || true
+      environment: "{{ gcp_environment }}"
+      tags: gcp
+
+    - name: Download from Google Cloud Storage
+      shell: gsutil cp gs://{{ artifacts_container }}/{{ artifact }} {{ artifact_path }}
+      async: 3600
+      poll: 10
+      tags: gcp
+
+    - name: Remove temporary GCP service account file
+      file:
+        path: /tmp/gcp_service_account.json
+        state: absent
+      tags: gcp
+

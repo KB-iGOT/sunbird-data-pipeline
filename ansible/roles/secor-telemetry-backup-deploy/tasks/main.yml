@@ -25,7 +25,7 @@
 
 - name: Unarchive secor libraries
   unarchive:
-    src: "{{ analytics_user_home }}/secor-0.25-SNAPSHOT-bin.tar.gz"
+    src: "{{ analytics_user_home }}/secor-{{ secor.artifact_ver }}-SNAPSHOT-bin.tar.gz"
     dest: "/mount/{{ item.key }}"
     copy: no
     owner: "{{ analytics_user }}"
@@ -37,6 +37,13 @@
   with_nested:
     - "{{ secor_service_name }}"
     - "{{ secor.properties }}"
+
+- name: Write GCP service account file
+  copy:
+    content: "{{ gcp_artifcats_upload_service_account }}"
+    dest: /mount/{{ item }}/gcp_service_account.json
+    mode: "0640"
+  with_items: "{{ secor_service_name }}"
 
 - name: Clean cron jobs
   command: crontab -r

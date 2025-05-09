@@ -3,8 +3,13 @@
   become: yes
   vars_files:
     - "{{inventory_dir}}/secrets.yml"
-  environment:
-    AZURE_STORAGE_ACCOUNT: "{{sunbird_artifact_storage_account_name}}"
-    AZURE_STORAGE_SAS_TOKEN: "{{sunbird_artifact_storage_account_sas}}"
   roles:
-    - artifacts-upload-azure
+    - role: artifacts-upload-gcp
+      vars:
+        service_account: "{{ gcp_artifcats_upload_service_account }}"
+      tags: gcp
+    - role: artifacts-upload-azure
+      environment:
+        AZURE_STORAGE_ACCOUNT: "{{ sunbird_artifact_storage_account_name }}"
+        AZURE_STORAGE_SAS_TOKEN: "{{ sunbird_artifact_storage_account_sas }}"
+      tags: azure

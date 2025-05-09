@@ -14,7 +14,53 @@
 # limitations under the License.
 
 include=secor.properties
-include=secor.azure.properties
+
+
+# Choose what to fill according to the service you are using
+# in the choice option you can fill S3, GS, Swift or Azure
+cloud.service={{ secor_cloud_service }}
+
+
+# Class that will manage uploads. Default is to use the hadoop
+# interface to S3.
+secor.upload.manager.class={{ cloud_storage_uploadmanager }}
+
+
+# Name of the Google cloud storage bucket where log files are stored.
+secor.gs.bucket={{ cloud_storage_bucket_secor }}
+
+# Google cloud storage path where files are stored within the bucket.
+secor.gs.path={{ gs_base_path }}/{{ secor_service_name[item[0]].base_path }}
+
+# Use direct uploads
+# WARNING: disables resumable uploads, files are uploaded in a single request
+# This may help prevent IOException: insufficient data written,
+# see https://github.com/pinterest/secor/issues/177
+# https://cloud.google.com/storage/docs/json_api/v1/how-tos/upload
+secor.gs.upload.direct=true
+
+# Application credentials configuration file
+# https://developers.google.com/identity/protocols/application-default-credentials
+# It can be empty when secor running in Google Cloud VMs with proper scopes
+secor.gs.credentials.path=/mount/{{ item.0 }}/gcp_service_account.json
+
+
+# Output file pattern excluding prefix. Defaults to topic/partition/generation_kafkaPartition_fmOffset.gz.
+# Available placeholders are
+# topic - The topic name the data is being fetched
+# partition - The partition name
+# generation - Generation
+# kafkaPartition - The kafka partition
+# fmOffset - First Message offset in the file.
+# randomHex - A 4 character random hex to append to the file name
+# currentTimestamp - Time of upload in epoch format
+# currentTime - Time of upload in HH-mm format
+# currentDate - Time of upload in YYYYMMDD format
+# folder - Folder to use based on message id map lookup
+secor.s3.output_file_pattern={{ secor_service_name[item[0]].output_file_pattern }}
+
+
+
 
 # Name of the Kafka consumer group.
 secor.kafka.group={{ secor_service_name[item[0]].consumer_group }}
@@ -22,14 +68,8 @@ secor.kafka.group={{ secor_service_name[item[0]].consumer_group }}
 # Parser class that extracts s3 partitions from consumed messages.
 secor.message.parser.class={{ secor_service_name[item[0]].message_parser }}
 
-# S3 path where sequence files are stored.
-secor.s3.path=
-
 # Swift path where sequence files are stored.
 secor.swift.path=secor_dev/partition
-
-# Azure path where sequence files are stored.
-secor.azure.path={{ secor_service_name[item[0]].base_path }}
 
 # Local path where sequence files are stored before they are uploaded to s3.
 secor.local.path=/mount/{{ item.0 }}/message_logs/partition
@@ -50,16 +90,4 @@ secor.partition.prefix.mapping={{ secor_service_name[item[0]].partition_prefix_m
 
 secor.max.file.age.policy=oldest
 
-# Output file pattern excluding prefix. Defaults to topic/partition/generation_kafkaPartition_fmOffset.gz.
-# Available placeholders are 
-# topic - The topic name the data is being fetched
-# partition - The partition name
-# generation - Generation
-# kafkaPartition - The kafka partition
-# fmOffset - First Message offset in the file.
-# randomHex - A 4 character random hex to append to the file name
-# currentTimestamp - Time of upload in epoch format
-# currentTime - Time of upload in HH-mm format
-# currentDate - Time of upload in YYYYMMDD format
-# folder - Folder to use based on message id map lookup
-secor.s3.output_file_pattern={{ secor_service_name[item[0]].output_file_pattern }}
+secor.partition.message.channel.identifier={{ secor_service_name[item[0]].message_channel_identifier }}

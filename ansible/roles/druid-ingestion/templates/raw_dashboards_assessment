@@ -1,0 +1,208 @@
+{
+  "type": "kafka",
+  "dataSchema": {
+    "dataSource": "dashboards-assessment",
+    "parser": {
+      "type": "string",
+      "parseSpec": {
+        "format": "json",
+        "flattenSpec": {
+          "useFieldDiscovery": false,
+          "fields": [
+            {
+              "type": "root",
+              "name": "assessID"
+            },
+            {
+              "type": "root",
+              "name": "assessCategory"
+            },
+            {
+              "type": "root",
+              "name": "assessName"
+            },
+            {
+              "type": "root",
+              "name": "assessStatus"
+            },
+            {
+              "type": "root",
+              "name": "assessReviewStatus"
+            },
+            {
+              "type": "root",
+              "name": "assessOrgID"
+            },
+            {
+              "type": "root",
+              "name": "assessOrgName"
+            },
+            {
+              "type": "root",
+              "name": "assessOrgStatus"
+            },
+            {
+              "type": "root",
+              "name": "assessDuration"
+            },
+            {
+              "type": "root",
+              "name": "assessChildCount"
+            },
+            {
+              "type": "root",
+              "name": "assessPublishType"
+            },
+            {
+              "type": "root",
+              "name": "assessIsExternal"
+            },
+            {
+              "type": "root",
+              "name": "assessContentType"
+            },
+            {
+              "type": "root",
+              "name": "assessObjectType"
+            },
+            {
+              "type": "root",
+              "name": "assessUserConsent"
+            },
+            {
+              "type": "root",
+              "name": "assessVisibility"
+            },
+            {
+              "type": "root",
+              "name": "assessCreatedOn"
+            },
+            {
+              "type": "root",
+              "name": "assessLastUpdatedOn"
+            },
+            {
+              "type": "root",
+              "name": "assessLastPublishedOn"
+            },
+            {
+              "type": "root",
+              "name": "assessLastSubmittedOn"
+            }
+          ]
+        },
+        "dimensionsSpec": {
+          "dimensions": [
+            {
+              "type": "string",
+              "name": "assessID"
+            },
+            {
+              "type": "string",
+              "name": "assessCategory"
+            },
+            {
+              "type": "string",
+              "name": "assessName"
+            },
+            {
+              "type": "string",
+              "name": "assessStatus"
+            },
+            {
+              "type": "string",
+              "name": "assessReviewStatus"
+            },
+            {
+              "type": "string",
+              "name": "assessOrgID"
+            },
+            {
+              "type": "string",
+              "name": "assessOrgName"
+            },
+            {
+              "type": "long",
+              "name": "assessOrgStatus"
+            },
+            {
+              "type": "float",
+              "name": "assessDuration"
+            },
+            {
+              "type": "long",
+              "name": "assessChildCount"
+            },
+            {
+              "type": "string",
+              "name": "assessPublishType"
+            },
+            {
+              "type": "long",
+              "name": "assessIsExternal"
+            },
+            {
+              "type": "string",
+              "name": "assessContentType"
+            },
+            {
+              "type": "string",
+              "name": "assessObjectType"
+            },
+            {
+              "type": "string",
+              "name": "assessUserConsent"
+            },
+            {
+              "type": "string",
+              "name": "assessVisibility"
+            },
+            {
+              "type": "long",
+              "name": "assessCreatedOn"
+            },
+            {
+              "type": "long",
+              "name": "assessLastUpdatedOn"
+            },
+            {
+              "type": "long",
+              "name": "assessLastPublishedOn"
+            },
+            {
+              "type": "long",
+              "name": "assessLastSubmittedOn"
+            }
+          ],
+          "dimensionsExclusions": []
+        },
+        "timestampSpec": {
+          "column": "timestamp",
+          "format": "auto"
+        }
+      }
+    },
+    "metricsSpec": [],
+    "granularitySpec": {
+      "type": "uniform",
+      "segmentGranularity": "day",
+      "rollup": false
+    }
+  },
+  "ioConfig": {
+    "topic": "{{ env }}.dashboards.assessment",
+    "consumerProperties": {
+      "bootstrap.servers": "{{kafka_brokers}}"
+    },
+    "taskCount": {{raw_dashboards_assessment_taskcount}},
+    "replicas": 1,
+    "taskDuration": "PT7200S",
+    "useEarliestOffset": true,
+    "completionTimeout" : "PT7200S"
+  },
+  "tuningConfig": {
+    "type": "kafka",
+    "reportParseExceptions": false,
+    "maxRowsPerSegment": "2000000"
+  }
+}

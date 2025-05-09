@@ -8,6 +8,6 @@ secor_username: secor-monitor
 script_dir: "{{ sbin_path }}"
 
 secor:
-  properties: ['secor.common', 'secor', 'secor.partition']
+  properties: ['secor.common', 'secor', 'secor.partition', 'log4j']
   artifact_dir: /mount/secor
   channel: "#monitor-sunbirddev-lpa"

@@ -64,13 +64,16 @@
 # - SPARK_IDENT_STRING  A string representing this instance of spark. (Default: $USER)
 # - SPARK_NICENESS      The scheduling priority for daemons. (Default: 0)
 export SPARK_MASTER_HOST="{{ spark.master.host }}"
+
 export SPARK_DRIVER_MEMORY={{ spark.driver.memory }}
+export SPARK_DRIVER_CORES={{ spark.driver.cores }}
+
 export SPARK_WORKER_CORES={{ spark.worker.cores }}
 export SPARK_WORKER_MEMORY={{ spark.worker.memory }}
 export SPARK_WORKER_INSTANCES={{ spark.worker.instances }}
+
 export SPARK_EXECUTOR_MEMORY={{ spark.executor.memory }}
+export SPARK_EXECUTOR_CORES={{ spark.executor.cores }}
+export SPARK_EXECUTOR_INSTANCES={{ spark.executor.instances }}
+
 export SPARK_PUBLIC_DNS="{{ spark.public_dns }}"
-export reports_storage_key={{sunbird_private_storage_account_name}}
-export reports_storage_secret={{sunbird_private_storage_account_key}}
-export azure_storage_key={{sunbird_private_storage_account_name}}
-export azure_storage_secret={{sunbird_private_storage_account_key}}

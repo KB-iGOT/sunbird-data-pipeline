@@ -26,7 +26,7 @@
   with_items:
     - rsync
     - zip
-    - python-pip
+    - python3-pip
 
 - name: Set locale LC_ALL=en_US.UTF-8
   become: yes

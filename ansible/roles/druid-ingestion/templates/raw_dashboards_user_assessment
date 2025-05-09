@@ -1,0 +1,624 @@
+{
+  "type": "kafka",
+  "dataSchema": {
+    "dataSource": "dashboards-user-assessment",
+    "parser": {
+      "type": "string",
+      "parseSpec": {
+        "format": "json",
+        "flattenSpec": {
+          "useFieldDiscovery": false,
+          "fields": [
+            {
+              "type": "root",
+              "name": "userID"
+            },
+            {
+              "type": "root",
+              "name": "courseID"
+            },
+            {
+              "type": "root",
+              "name": "assessChildID"
+            },
+            {
+              "type": "root",
+              "name": "assessStartTime"
+            },
+            {
+              "type": "root",
+              "name": "assessEndTime"
+            },
+            {
+              "type": "root",
+              "name": "assessUserStatus"
+            },
+            {
+              "type": "root",
+              "name": "assessTotalQuestions"
+            },
+            {
+              "type": "root",
+              "name": "assessMaxQuestions"
+            },
+            {
+              "type": "root",
+              "name": "assessExpectedDuration"
+            },
+            {
+              "type": "root",
+              "name": "assessVersion"
+            },
+            {
+              "type": "root",
+              "name": "assessMaxRetakeAttempts"
+            },
+            {
+              "type": "root",
+              "name": "assessReadStatus"
+            },
+            {
+              "type": "root",
+              "name": "assessBatchID"
+            },
+            {
+              "type": "root",
+              "name": "assessPrimaryCategory"
+            },
+            {
+              "type": "root",
+              "name": "assessIsAssessment"
+            },
+            {
+              "type": "root",
+              "name": "assessTimeLimit"
+            },
+            {
+              "type": "root",
+              "name": "assessResult"
+            },
+            {
+              "type": "root",
+              "name": "assessTotal"
+            },
+            {
+              "type": "root",
+              "name": "assessBlank"
+            },
+            {
+              "type": "root",
+              "name": "assessCorrect"
+            },
+            {
+              "type": "root",
+              "name": "assessIncorrect"
+            },
+            {
+              "type": "root",
+              "name": "assessPass"
+            },
+            {
+              "type": "root",
+              "name": "assessOverallResult"
+            },
+            {
+              "type": "root",
+              "name": "assessPassPercentage"
+            },
+            {
+              "type": "root",
+              "name": "assessID"
+            },
+            {
+              "type": "root",
+              "name": "assessChildName"
+            },
+            {
+              "type": "root",
+              "name": "assessChildDuration"
+            },
+            {
+              "type": "root",
+              "name": "assessChildPrimaryCategory"
+            },
+            {
+              "type": "root",
+              "name": "assessChildContentType"
+            },
+            {
+              "type": "root",
+              "name": "assessChildObjectType"
+            },
+            {
+              "type": "root",
+              "name": "assessChildShowTimer"
+            },
+            {
+              "type": "root",
+              "name": "assessChildAllowSkip"
+            },
+            {
+              "type": "root",
+              "name": "assessCategory"
+            },
+            {
+              "type": "root",
+              "name": "assessName"
+            },
+            {
+              "type": "root",
+              "name": "assessStatus"
+            },
+            {
+              "type": "root",
+              "name": "assessReviewStatus"
+            },
+            {
+              "type": "root",
+              "name": "assessOrgID"
+            },
+            {
+              "type": "root",
+              "name": "assessOrgName"
+            },
+            {
+              "type": "root",
+              "name": "assessOrgStatus"
+            },
+            {
+              "type": "root",
+              "name": "assessDuration"
+            },
+            {
+              "type": "root",
+              "name": "assessChildCount"
+            },
+            {
+              "type": "root",
+              "name": "assessPublishType"
+            },
+            {
+              "type": "root",
+              "name": "assessIsExternal"
+            },
+            {
+              "type": "root",
+              "name": "assessContentType"
+            },
+            {
+              "type": "root",
+              "name": "assessObjectType"
+            },
+            {
+              "type": "root",
+              "name": "assessUserConsent"
+            },
+            {
+              "type": "root",
+              "name": "assessVisibility"
+            },
+            {
+              "type": "root",
+              "name": "assessCreatedOn"
+            },
+            {
+              "type": "root",
+              "name": "assessLastUpdatedOn"
+            },
+            {
+              "type": "root",
+              "name": "assessLastPublishedOn"
+            },
+            {
+              "type": "root",
+              "name": "assessLastSubmittedOn"
+            },
+            {
+              "type": "root",
+              "name": "category"
+            },
+            {
+              "type": "root",
+              "name": "courseName"
+            },
+            {
+              "type": "root",
+              "name": "courseStatus"
+            },
+            {
+              "type": "root",
+              "name": "courseReviewStatus"
+            },
+            {
+              "type": "root",
+              "name": "courseDuration"
+            },
+            {
+              "type": "root",
+              "name": "courseResourceCount"
+            },
+            {
+              "type": "root",
+              "name": "courseOrgID"
+            },
+            {
+              "type": "root",
+              "name": "courseOrgName"
+            },
+            {
+              "type": "root",
+              "name": "courseOrgStatus"
+            },
+            {
+              "type": "root",
+              "name": "ratingSum"
+            },
+            {
+              "type": "root",
+              "name": "ratingCount"
+            },
+            {
+              "type": "root",
+              "name": "ratingAverage"
+            },
+            {
+              "type": "root",
+              "name": "userOrgID"
+            },
+            {
+              "type": "root",
+              "name": "userOrgName"
+            },
+            {
+              "type": "root",
+              "name": "userOrgStatus"
+            },
+            {
+              "type": "root",
+              "name": "firstName"
+            },
+            {
+              "type": "root",
+              "name": "lastName"
+            },
+            {
+              "type": "root",
+              "name": "maskedEmail"
+            },
+            {
+              "type": "root",
+              "name": "userStatus"
+            },
+            {
+              "type": "root",
+              "name": "userCreatedTimestamp"
+            },
+            {
+              "type": "root",
+              "name": "userUpdatedTimestamp"
+            }
+          ]
+        },
+        "dimensionsSpec": {
+          "dimensions": [
+            {
+              "type": "string",
+              "name": "userID"
+            },
+            {
+              "type": "string",
+              "name": "courseID"
+            },
+            {
+              "type": "string",
+              "name": "assessChildID"
+            },
+            {
+              "type": "long",
+              "name": "assessStartTime"
+            },
+            {
+              "type": "long",
+              "name": "assessEndTime"
+            },
+            {
+              "type": "string",
+              "name": "assessUserStatus"
+            },
+            {
+              "type": "long",
+              "name": "assessTotalQuestions"
+            },
+            {
+              "type": "long",
+              "name": "assessMaxQuestions"
+            },
+            {
+              "type": "float",
+              "name": "assessExpectedDuration"
+            },
+            {
+              "type": "long",
+              "name": "assessVersion"
+            },
+            {
+              "type": "long",
+              "name": "assessMaxRetakeAttempts"
+            },
+            {
+              "type": "string",
+              "name": "assessReadStatus"
+            },
+            {
+              "type": "string",
+              "name": "assessBatchID"
+            },
+            {
+              "type": "string",
+              "name": "assessPrimaryCategory"
+            },
+            {
+              "type": "long",
+              "name": "assessIsAssessment"
+            },
+            {
+              "type": "float",
+              "name": "assessTimeLimit"
+            },
+            {
+              "type": "float",
+              "name": "assessResult"
+            },
+            {
+              "type": "long",
+              "name": "assessTotal"
+            },
+            {
+              "type": "long",
+              "name": "assessBlank"
+            },
+            {
+              "type": "long",
+              "name": "assessCorrect"
+            },
+            {
+              "type": "long",
+              "name": "assessIncorrect"
+            },
+            {
+              "type": "long",
+              "name": "assessPass"
+            },
+            {
+              "type": "float",
+              "name": "assessOverallResult"
+            },
+            {
+              "type": "float",
+              "name": "assessPassPercentage"
+            },
+            {
+              "type": "string",
+              "name": "assessID"
+            },
+            {
+              "type": "string",
+              "name": "assessChildName"
+            },
+            {
+              "type": "float",
+              "name": "assessChildDuration"
+            },
+            {
+              "type": "string",
+              "name": "assessChildPrimaryCategory"
+            },
+            {
+              "type": "string",
+              "name": "assessChildContentType"
+            },
+            {
+              "type": "string",
+              "name": "assessChildObjectType"
+            },
+            {
+              "type": "string",
+              "name": "assessChildShowTimer"
+            },
+            {
+              "type": "string",
+              "name": "assessChildAllowSkip"
+            },
+            {
+              "type": "string",
+              "name": "assessCategory"
+            },
+            {
+              "type": "string",
+              "name": "assessName"
+            },
+            {
+              "type": "string",
+              "name": "assessStatus"
+            },
+            {
+              "type": "string",
+              "name": "assessReviewStatus"
+            },
+            {
+              "type": "string",
+              "name": "assessOrgID"
+            },
+            {
+              "type": "string",
+              "name": "assessOrgName"
+            },
+            {
+              "type": "long",
+              "name": "assessOrgStatus"
+            },
+            {
+              "type": "float",
+              "name": "assessDuration"
+            },
+            {
+              "type": "long",
+              "name": "assessChildCount"
+            },
+            {
+              "type": "string",
+              "name": "assessPublishType"
+            },
+            {
+              "type": "long",
+              "name": "assessIsExternal"
+            },
+            {
+              "type": "string",
+              "name": "assessContentType"
+            },
+            {
+              "type": "string",
+              "name": "assessObjectType"
+            },
+            {
+              "type": "string",
+              "name": "assessUserConsent"
+            },
+            {
+              "type": "string",
+              "name": "assessVisibility"
+            },
+            {
+              "type": "long",
+              "name": "assessCreatedOn"
+            },
+            {
+              "type": "long",
+              "name": "assessLastUpdatedOn"
+            },
+            {
+              "type": "long",
+              "name": "assessLastPublishedOn"
+            },
+            {
+              "type": "long",
+              "name": "assessLastSubmittedOn"
+            },
+            {
+              "type": "string",
+              "name": "category"
+            },
+            {
+              "type": "string",
+              "name": "courseName"
+            },
+            {
+              "type": "string",
+              "name": "courseStatus"
+            },
+            {
+              "type": "string",
+              "name": "courseReviewStatus"
+            },
+            {
+              "type": "float",
+              "name": "courseDuration"
+            },
+            {
+              "type": "long",
+              "name": "courseResourceCount"
+            },
+            {
+              "type": "string",
+              "name": "courseOrgID"
+            },
+            {
+              "type": "string",
+              "name": "courseOrgName"
+            },
+            {
+              "type": "long",
+              "name": "courseOrgStatus"
+            },
+            {
+              "type": "float",
+              "name": "ratingSum"
+            },
+            {
+              "type": "float",
+              "name": "ratingCount"
+            },
+            {
+              "type": "float",
+              "name": "ratingAverage"
+            },
+            {
+              "type": "string",
+              "name": "userOrgID"
+            },
+            {
+              "type": "string",
+              "name": "userOrgName"
+            },
+            {
+              "type": "long",
+              "name": "userOrgStatus"
+            },
+            {
+              "type": "string",
+              "name": "firstName"
+            },
+            {
+              "type": "string",
+              "name": "lastName"
+            },
+            {
+              "type": "string",
+              "name": "maskedEmail"
+            },
+            {
+              "type": "long",
+              "name": "userStatus"
+            },
+            {
+              "type": "long",
+              "name": "userCreatedTimestamp"
+            },
+            {
+              "type": "long",
+              "name": "userUpdatedTimestamp"
+            }
+          ],
+          "dimensionsExclusions": []
+        },
+        "timestampSpec": {
+          "column": "timestamp",
+          "format": "auto"
+        }
+      }
+    },
+    "metricsSpec": [],
+    "granularitySpec": {
+      "type": "uniform",
+      "segmentGranularity": "day",
+      "rollup": false
+    }
+  },
+  "ioConfig": {
+    "topic": "{{ env }}.dashboards.user.assessment",
+    "consumerProperties": {
+      "bootstrap.servers": "{{kafka_brokers}}"
+    },
+    "taskCount": {{raw_dashboards_user_assessment_taskcount}},
+    "replicas": 1,
+    "taskDuration": "PT7200S",
+    "useEarliestOffset": true,
+    "completionTimeout" : "PT7200S"
+  },
+  "tuningConfig": {
+    "type": "kafka",
+    "reportParseExceptions": false,
+    "maxRowsPerSegment": "2000000"
+  }
+}

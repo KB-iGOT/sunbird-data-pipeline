@@ -1,0 +1,33 @@
+---
+- name: Set GCP environment variables
+  set_fact:
+    gcp_environment:
+      GOOGLE_APPLICATION_CREDENTIALS: "/tmp/gcp_service_account.json"
+
+- name: Create temporary directory for GCP service account file
+  file:
+    path: /tmp/gcp_service_account.json
+    state: touch
+
+- name: Write GCP service account file
+  copy:
+    content: "{{ service_account }}"
+    dest: /tmp/gcp_service_account.json
+    mode: "0600"
+
+- name: Authenticate gcloud login
+  shell: gcloud auth activate-service-account --key-file /tmp/gcp_service_account.json
+
+- name: Ensure Google Cloud Storage bucket exists
+  shell: gsutil mb gs://{{ artifacts_container }} || true
+  environment: "{{ gcp_environment }}"
+
+- name: Upload to Google Cloud Storage
+  shell: gsutil cp {{ artifact_path }} gs://{{ artifacts_container }}/{{ artifact }}
+  async: 3600
+  poll: 10
+
+- name: Remove temporary GCP service account file
+  file:
+    path: /tmp/gcp_service_account.json
+    state: absent

@@ -1,0 +1,338 @@
+{
+  "type": "kafka",
+  "dataSchema": {
+    "dataSource": "dashboards-acbp-enrolment",
+    "parser": {
+      "type": "string",
+      "parseSpec": {
+        "format": "json",
+        "flattenSpec": {
+          "useFieldDiscovery": false,
+          "fields": [
+            {
+              "type": "root",
+              "name": "userID"
+            },
+            {
+              "type": "root",
+              "name": "courseID"
+            },
+            {
+              "type": "root",
+              "name": "fullName"
+            },
+            {
+              "type": "root",
+              "name": "userPrimaryEmail"
+            },
+            {
+              "type": "root",
+              "name": "userMobile"
+            },
+            {
+              "type": "root",
+              "name": "designation"
+            },
+            {
+              "type": "root",
+              "name": "group"
+            },
+            {
+              "type": "root",
+              "name": "userOrgID"
+            },
+            {
+              "type": "path",
+              "name": "ministryName",
+              "expr": "$.ministry_name"
+            },
+            {
+              "type": "path",
+              "name": "deptName",
+              "expr": "$.dept_name"
+            },
+            {
+              "type": "root",
+              "name": "userOrgName"
+            },
+            {
+              "type": "root",
+              "name": "acbpID"
+            },
+            {
+              "type": "root",
+              "name": "assignmentType"
+            },
+            {
+              "type": "root",
+              "name": "allocatedOn"
+            },
+            {
+              "type": "root",
+              "name": "completionDueDate"
+            },
+            {
+              "type": "root",
+              "name": "courseOrgID"
+            },
+            {
+              "type": "root",
+              "name": "category"
+            },
+            {
+              "type": "root",
+              "name": "courseName"
+            },
+            {
+              "type": "root",
+              "name": "courseStatus"
+            },
+            {
+              "type": "root",
+              "name": "courseReviewStatus"
+            },
+            {
+              "type": "root",
+              "name": "courseChannel"
+            },
+            {
+              "type": "root",
+              "name": "courseLastPublishedOn"
+            },
+            {
+              "type": "root",
+              "name": "courseDuration"
+            },
+            {
+              "type": "root",
+              "name": "courseResourceCount"
+            },
+            {
+              "type": "root",
+              "name": "lastStatusChangedOn"
+            },
+            {
+              "type": "root",
+              "name": "identifier"
+            },
+            {
+              "type": "root",
+              "name": "courseOrgName"
+            },
+            {
+              "type": "root",
+              "name": "courseOrgStatus"
+            },
+            {
+              "type": "root",
+              "name": "batchID"
+            },
+            {
+              "type": "root",
+              "name": "courseProgress"
+            },
+            {
+              "type": "root",
+              "name": "dbCompletionStatus"
+            },
+            {
+              "type": "root",
+              "name": "courseEnrolledTimestamp"
+            },
+            {
+              "type": "root",
+              "name": "courseCompletedTimestamp"
+            },
+            {
+              "type": "root",
+              "name": "lastContentAccessTimestamp"
+            },
+            {
+              "type": "root",
+              "name": "issuedCertificateCount"
+            },
+            {
+              "type": "root",
+              "name": "certificateGeneratedOn"
+            }
+          ]
+        },
+        "dimensionsSpec": {
+          "dimensions": [
+            {
+              "type": "string",
+              "name": "userID"
+            },
+            {
+              "type": "string",
+              "name": "courseID"
+            },
+            {
+              "type": "string",
+              "name": "fullName"
+            },
+            {
+              "type": "string",
+              "name": "userPrimaryEmail"
+            },
+            {
+              "type": "string",
+              "name": "userMobile"
+            },
+            {
+              "type": "string",
+              "name": "designation"
+            },
+            {
+              "type": "string",
+              "name": "group"
+            },
+            {
+              "type": "string",
+              "name": "userOrgID"
+            },
+            {
+              "type": "string",
+              "name": "ministryName"
+            },
+            {
+              "type": "string",
+              "name": "deptName"
+            },
+            {
+              "type": "string",
+              "name": "userOrgName"
+            },
+            {
+              "type": "string",
+              "name": "acbpID"
+            },
+            {
+              "type": "string",
+              "name": "assignmentType"
+            },
+            {
+              "type": "long",
+              "name": "allocatedOn"
+            },
+            {
+              "type": "long",
+              "name": "completionDueDate"
+            },
+            {
+              "type": "string",
+              "name": "courseOrgID"
+            },
+            {
+              "type": "string",
+              "name": "category"
+            },
+            {
+              "type": "string",
+              "name": "courseName"
+            },
+            {
+              "type": "string",
+              "name": "courseStatus"
+            },
+            {
+              "type": "string",
+              "name": "courseReviewStatus"
+            },
+            {
+              "type": "string",
+              "name": "courseChannel"
+            },
+            {
+              "type": "long",
+              "name": "courseLastPublishedOn"
+            },
+            {
+              "type": "float",
+              "name": "courseDuration"
+            },
+            {
+              "type": "long",
+              "name": "courseResourceCount"
+            },
+            {
+              "type": "long",
+              "name": "lastStatusChangedOn"
+            },
+            {
+              "type": "string",
+              "name": "identifier"
+            },
+            {
+              "type": "string",
+              "name": "courseOrgName"
+            },
+            {
+              "type": "long",
+              "name": "courseOrgStatus"
+            },
+            {
+              "type": "string",
+              "name": "batchID"
+            },
+            {
+              "type": "long",
+              "name": "courseProgress"
+            },
+            {
+              "type": "root",
+              "name": "dbCompletionStatus"
+            },
+            {
+              "type": "long",
+              "name": "courseEnrolledTimestamp"
+            },
+            {
+              "type": "long",
+              "name": "courseCompletedTimestamp"
+            },
+            {
+              "type": "long",
+              "name": "lastContentAccessTimestamp"
+            },
+            {
+              "type": "long",
+              "name": "issuedCertificateCount"
+            },
+            {
+              "type": "long",
+              "name": "certificateGeneratedOn"
+            }
+          ],
+          "dimensionsExclusions": []
+        },
+        "timestampSpec": {
+          "column": "timestamp",
+          "format": "auto"
+        }
+      }
+    },
+    "metricsSpec": [],
+    "granularitySpec": {
+      "type": "uniform",
+      "segmentGranularity": "day",
+      "rollup": false
+    }
+  },
+  "ioConfig": {
+    "topic": "{{ env }}.dashboards.acbp.enrolment",
+    "consumerProperties": {
+      "bootstrap.servers": "{{kafka_brokers}}"
+    },
+    "taskCount": {{raw_dashboards_acbp_enrolment_taskcount}},
+    "replicas": 1,
+    "taskDuration": "PT7200S",
+    "useEarliestOffset": true,
+    "completionTimeout" : "PT7200S"
+  },
+  "tuningConfig": {
+    "type": "kafka",
+    "reportParseExceptions": false,
+    "maxRowsPerSegment": "2000000"
+  }
+}
