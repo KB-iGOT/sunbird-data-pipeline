@@ -41,93 +41,87 @@ class RatingFunction(config: RatingConfig, @transient var cassandraUtil: Cassand
   override def processElement(event: Event, context: ProcessFunction[Event, Event]#Context, metrics: Metrics): Unit = {
     var userStatus: Boolean = false
     try {
-      val query = QueryBuilder.select().column("userid").from(config.dbCoursesKeyspace, config.courseTable)
-        .where(QueryBuilder.eq(config.userId, event.userId)).and(QueryBuilder.eq(config.courseId, event.activityId))
-      val rows: java.util.List[Row] = cassandraUtil.find(query.toString);
-      if (null != rows && !rows.isEmpty) {
-        userStatus = true
-        var delta = 0.0f
-        val prevRatingValue = event.prevValues
-        if(prevRatingValue!=null){
-          delta = event.updatedValues.get("rating").asInstanceOf[Double].toFloat - event.prevValues.get("rating").asInstanceOf[Double].toFloat
-        }else{
-          delta = event.updatedValues.get("rating").asInstanceOf[Double].toFloat
-        }
-        val validReview = event.updatedValues.get("review").asInstanceOf[String]
-        var tempRow: Row = null
-        val ratingQuery = QueryBuilder.select().all().from(config.dbKeyspace, config.ratingsSummaryTable)
-          .where(QueryBuilder.eq(config.activityId, event.activityId))
-          .and(QueryBuilder.eq(config.activityType, event.activityType)).toString
-        val ratingRows: java.util.List[Row] = cassandraUtil.find(ratingQuery.toString);
-
-        if (delta != 0.0f || (validReview!=null && validReview.size > 100)) {
-          var updatedRating: Float = 0.0f
-          var updatedRatingValues: HashMap[Float, Float] = new HashMap[Float, Float]()
-          var prevRating: Float = 0.0f
-          var x = 0.0f
-          var sumOfTotalRating: Float = 0.0f
-          var totalNumberOfRatings: Float = 0.0f
-          var summary: String = null
-          if (null != ratingRows && !ratingRows.isEmpty) {
-            tempRow = ratingRows.asScala.toList(0)
-            if (delta != 0.0f) {
-              if(prevRatingValue!=null) {
-                prevRating = event.prevValues.get("rating").asInstanceOf[Double].toFloat
-              }
-              updatedRating = event.updatedValues.get("rating").asInstanceOf[Double].toFloat
-              updatedRatingValues = update_ratings_count(tempRow, prevRating, updatedRating)
-              sumOfTotalRating = tempRow.getFloat("sum_of_total_ratings") + delta
-              totalNumberOfRatings = tempRow.getFloat("total_number_of_ratings")
-              if(prevRatingValue==null){
-                totalNumberOfRatings = totalNumberOfRatings + 1.0f
-              }
-              if(tempRow.getString("latest50reviews")!=null) {
-                summary = tempRow.getString("latest50reviews")
-              }
-            }
-
-            if ((validReview!=null && validReview.size > 100) && delta == 0.0f) {
-              sumOfTotalRating = tempRow.getFloat("sum_of_total_ratings")
-              totalNumberOfRatings = tempRow.getFloat("total_number_of_ratings")
-                prevRating = event.prevValues.get("rating").asInstanceOf[Double].toFloat
-              updatedRating = event.updatedValues.get("rating").asInstanceOf[Double].toFloat
-              updatedRatingValues = update_ratings_count(tempRow, prevRating, updatedRating)
-              if(tempRow.getString("latest50reviews")!=null) {
-                summary = tempRow.getString("latest50reviews")
-              }
-            }
-          }
-          else {
-            updatedRating = event.updatedValues.get("rating").asInstanceOf[Double].toFloat
-            updatedRatingValues = update_ratings_count(tempRow, 0.0f, updatedRating)
-            sumOfTotalRating =  event.updatedValues.get("rating").asInstanceOf[Double].toFloat
-            totalNumberOfRatings = 1.0f
-          }
-          updateDB(event, updatedRatingValues, sumOfTotalRating,
-            totalNumberOfRatings,
-            summary)
-
-        }
-        if ((validReview!=null && validReview.size < 100) && delta == 0.0f) {
-              tempRow = ratingRows.asScala.toList(0)
-          val sumOfTotalRating = tempRow.getFloat("sum_of_total_ratings")
-          val totalNumberOfRatings = tempRow.getFloat("total_number_of_ratings")
-          val updatedRatingValues = update_ratings_count(tempRow, event.prevValues.get("rating").asInstanceOf[Double].toFloat, event.updatedValues.get("rating").asInstanceOf[Double].toFloat)
-          var summary: String = null
-          if(tempRow.getString("latest50reviews")!=null) {
-            summary = tempRow.getString("latest50reviews")
-          }
-          updateDB(event, updatedRatingValues, sumOfTotalRating,
-            totalNumberOfRatings,
-            summary)
-        }
-          if (null != getRatingLookUp(event)) {
-            deleteRatingLookup(event)
-          }
-          saveRatingLookup(event)
-      } else {
-        context.output(config.failedEvent, event)
+      // removed check for user enrolment
+      userStatus = true
+      var delta = 0.0f
+      val prevRatingValue = event.prevValues
+      if(prevRatingValue!=null){
+        delta = event.updatedValues.get("rating").asInstanceOf[Double].toFloat - event.prevValues.get("rating").asInstanceOf[Double].toFloat
+      }else{
+        delta = event.updatedValues.get("rating").asInstanceOf[Double].toFloat
       }
+      val validReview = event.updatedValues.get("review").asInstanceOf[String]
+      var tempRow: Row = null
+      val ratingQuery = QueryBuilder.select().all().from(config.dbKeyspace, config.ratingsSummaryTable)
+        .where(QueryBuilder.eq(config.activityId, event.activityId))
+        .and(QueryBuilder.eq(config.activityType, event.activityType)).toString
+      val ratingRows: java.util.List[Row] = cassandraUtil.find(ratingQuery.toString);
+
+      if (delta != 0.0f || (validReview!=null && validReview.size > 100)) {
+        var updatedRating: Float = 0.0f
+        var updatedRatingValues: HashMap[Float, Float] = new HashMap[Float, Float]()
+        var prevRating: Float = 0.0f
+        var x = 0.0f
+        var sumOfTotalRating: Float = 0.0f
+        var totalNumberOfRatings: Float = 0.0f
+        var summary: String = null
+        if (null != ratingRows && !ratingRows.isEmpty) {
+          tempRow = ratingRows.asScala.toList(0)
+          if (delta != 0.0f) {
+            if(prevRatingValue!=null) {
+              prevRating = event.prevValues.get("rating").asInstanceOf[Double].toFloat
+            }
+            updatedRating = event.updatedValues.get("rating").asInstanceOf[Double].toFloat
+            updatedRatingValues = update_ratings_count(tempRow, prevRating, updatedRating)
+            sumOfTotalRating = tempRow.getFloat("sum_of_total_ratings") + delta
+            totalNumberOfRatings = tempRow.getFloat("total_number_of_ratings")
+            if(prevRatingValue==null){
+              totalNumberOfRatings = totalNumberOfRatings + 1.0f
+            }
+            if(tempRow.getString("latest50reviews")!=null) {
+              summary = tempRow.getString("latest50reviews")
+            }
+          }
+
+          if ((validReview!=null && validReview.size > 100) && delta == 0.0f) {
+            sumOfTotalRating = tempRow.getFloat("sum_of_total_ratings")
+            totalNumberOfRatings = tempRow.getFloat("total_number_of_ratings")
+              prevRating = event.prevValues.get("rating").asInstanceOf[Double].toFloat
+            updatedRating = event.updatedValues.get("rating").asInstanceOf[Double].toFloat
+            updatedRatingValues = update_ratings_count(tempRow, prevRating, updatedRating)
+            if(tempRow.getString("latest50reviews")!=null) {
+              summary = tempRow.getString("latest50reviews")
+            }
+          }
+        }
+        else {
+          updatedRating = event.updatedValues.get("rating").asInstanceOf[Double].toFloat
+          updatedRatingValues = update_ratings_count(tempRow, 0.0f, updatedRating)
+          sumOfTotalRating =  event.updatedValues.get("rating").asInstanceOf[Double].toFloat
+          totalNumberOfRatings = 1.0f
+        }
+        updateDB(event, updatedRatingValues, sumOfTotalRating,
+          totalNumberOfRatings,
+          summary)
+
+      }
+      if ((validReview!=null && validReview.size < 100) && delta == 0.0f) {
+            tempRow = ratingRows.asScala.toList(0)
+        val sumOfTotalRating = tempRow.getFloat("sum_of_total_ratings")
+        val totalNumberOfRatings = tempRow.getFloat("total_number_of_ratings")
+        val updatedRatingValues = update_ratings_count(tempRow, event.prevValues.get("rating").asInstanceOf[Double].toFloat, event.updatedValues.get("rating").asInstanceOf[Double].toFloat)
+        var summary: String = null
+        if(tempRow.getString("latest50reviews")!=null) {
+          summary = tempRow.getString("latest50reviews")
+        }
+        updateDB(event, updatedRatingValues, sumOfTotalRating,
+          totalNumberOfRatings,
+          summary)
+      }
+      if (null != getRatingLookUp(event)) {
+        deleteRatingLookup(event)
+      }
+      saveRatingLookup(event)
     }
     catch {
       case ex: Exception => {
