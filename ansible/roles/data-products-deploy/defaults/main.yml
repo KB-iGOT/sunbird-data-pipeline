@@ -99,6 +99,7 @@ dashboards_redis_total_org_count_key: "mdo_total_org_count"
 
 es_host_audit_logs: "10.175.5.10"
 user_report_path: "standalone-reports/user-report"
+user_custom_report_path: "standalone-reports/user-custom-report"
 user_enrolment_report_path: "standalone-reports/user-enrollment-report"
 course_report_path: "standalone-reports/course-report"
 cba_report_path: "standalone-reports/cba-report"
