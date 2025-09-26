@@ -125,7 +125,7 @@ class RatingFunction(config: RatingConfig, @transient var cassandraUtil: Cassand
       case ex: Exception =>
         context.output(config.failedEvent, event)
         // log full message + stack trace through logger
-        logger.error(s"Exception while processing eventId=${event.activityId}", ex)
+        logger.error(s"Exception while processing event for activityId=${event.activityId}", ex)
     }
   }
 
