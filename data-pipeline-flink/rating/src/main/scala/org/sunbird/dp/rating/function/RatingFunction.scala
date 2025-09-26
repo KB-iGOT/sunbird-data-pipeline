@@ -122,11 +122,10 @@ class RatingFunction(config: RatingConfig, @transient var cassandraUtil: Cassand
       }
       saveRatingLookup(event)
     } catch {
-      case ex: Exception => {
-        ex.printStackTrace()
+      case ex: Exception =>
         context.output(config.failedEvent, event)
-        logger.info("Event throwing exception: ", ex.getMessage)
-      }
+        // log full message + stack trace through logger
+        logger.error(s"Exception while processing eventId=${event.activityId}", ex)
     }
   }
 
