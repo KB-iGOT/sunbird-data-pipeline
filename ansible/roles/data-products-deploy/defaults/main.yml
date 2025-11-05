@@ -173,6 +173,8 @@ national_learning_week_end: "2024-10-25 23:59:59"
 state_learning_week_start: "2025-03-18 00:00:00"
 state_learning_week_end: "2025-03-23 23:59:59"
 state_learning_week_bucket_size: "1-100-XS,101-500-S,501-1000-M,1001-10000-L,10001-25000-XL,above 25000-XXL"
+trending_events_count: 15
+featured_events_count: 20
 
 cassandra_keyspace_prefix: '{{ env }}_'
 report_cassandra_cluster_host: "{{ report_cassandra_host | default(core_cassandra_host) }}"
