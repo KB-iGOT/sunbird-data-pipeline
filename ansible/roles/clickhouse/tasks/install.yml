@@ -58,3 +58,10 @@
   retries: 10
   delay: 15
   until: apt_install is succeeded
+
+- name: Install ClickHouse
+  apt:
+    name:
+      - clickhouse-server
+      - clickhouse-client
+    state: present
