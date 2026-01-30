@@ -1,4 +1,6 @@
-- name: Wait for dpkg lock to be released
+# ---- APT LOCK HANDLING (Ansible 2.8 safe) ----
+
+- name: Wait for dpkg frontend lock
   shell: |
     while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
       sleep 5
@@ -7,16 +9,40 @@
     executable: /bin/bash
   changed_when: false
 
+- name: Wait for dpkg lock
+  shell: |
+    while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+      sleep 5
+    done
+  args:
+    executable: /bin/bash
+  changed_when: false
+
+- name: Wait for apt lists lock
+  shell: |
+    while fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do
+      sleep 5
+    done
+  args:
+    executable: /bin/bash
+  changed_when: false
+
+# ---- RECOVER BROKEN STATE SAFELY ----
+
 - name: Ensure dpkg is configured
   command: dpkg --configure -a
-  register: dpkg_fix
   failed_when: false
   changed_when: false
 
-- name: Update apt cache (with lock timeout)
+# ---- APT OPERATIONS (RETRY BASED) ----
+
+- name: Update apt cache
   apt:
     update_cache: yes
-    lock_timeout: 300
+  register: apt_update
+  retries: 10
+  delay: 15
+  until: apt_update is succeeded
 
 - name: Install prerequisites
   apt:
@@ -28,4 +54,7 @@
       - dirmngr
       - chrony
     state: present
-    lock_timeout: 300
+  register: apt_install
+  retries: 10
+  delay: 15
+  until: apt_install is succeeded
