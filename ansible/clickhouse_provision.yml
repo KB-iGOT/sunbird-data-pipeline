@@ -2,7 +2,7 @@
   hosts: clickhouse
   become: true
   vars_files:
-    - ['{{inventory_dir}}/secrets.yml', 'secrets/common.yml']
+    - ['{{inventory_dir}}/secrets.yml', '{{inventory_dir}}/common.yml']
   roles:
     - clickhouse
   tags: 
