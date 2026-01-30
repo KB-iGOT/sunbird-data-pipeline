@@ -1,0 +1,10 @@
+clickhouse_repo_url: https://packages.clickhouse.com/deb
+clickhouse_keyring: /usr/share/keyrings/clickhouse-keyring.gpg
+
+clickhouse_tcp_port: 9000
+clickhouse_http_port: 8123
+
+keeper_port: 2181
+keeper_raft_port: 9234
+
+user_files_path: /home/analytics/pyspark/warehouse

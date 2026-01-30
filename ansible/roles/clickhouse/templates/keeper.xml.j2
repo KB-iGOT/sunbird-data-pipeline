@@ -1,0 +1,19 @@
+<clickhouse>
+  <keeper_server>
+    <tcp_port>{{ keeper_port }}</tcp_port>
+    <server_id>{{ keeper_id }}</server_id>
+
+    <log_storage_path>/var/lib/clickhouse/coordination/log</log_storage_path>
+    <snapshot_storage_path>/var/lib/clickhouse/coordination/snapshots</snapshot_storage_path>
+
+    <raft_configuration>
+{% for host in groups['clickhouse'] %}
+      <server>
+        <id>{{ hostvars[host].keeper_id }}</id>
+        <hostname>{{ host }}</hostname>
+        <port>{{ keeper_raft_port }}</port>
+      </server>
+{% endfor %}
+    </raft_configuration>
+  </keeper_server>
+</clickhouse>

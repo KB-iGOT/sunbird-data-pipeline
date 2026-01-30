@@ -1,0 +1,4 @@
+- name: ClickHouse UAT Cluster Setup
+  hosts: clickhouse
+  roles:
+    - clickhouse

@@ -1,0 +1,30 @@
+- name: Install prerequisites
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - dirmngr
+      - chrony
+    state: present
+    update_cache: yes
+
+- name: Add ClickHouse GPG key
+  get_url:
+    url: https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key
+    dest: "{{ clickhouse_keyring }}"
+    mode: "0644"
+
+- name: Add ClickHouse repository
+  apt_repository:
+    repo: "deb [signed-by={{ clickhouse_keyring }}] {{ clickhouse_repo_url }} stable main"
+    filename: clickhouse
+    state: present
+
+- name: Install ClickHouse
+  apt:
+    name:
+      - clickhouse-server
+      - clickhouse-client
+    state: present
