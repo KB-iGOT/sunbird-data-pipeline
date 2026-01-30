@@ -17,3 +17,18 @@
   template:
     src: cluster.xml.j2
     dest: /etc/clickhouse-server/config.d/cluster.xml
+
+- name: Add clickhouse user to analytics group
+  user:
+    name: clickhouse
+    groups: analytics
+    append: yes
+
+- name: Ensure analytics path is accessible to clickhouse
+  file:
+    path: /home/analytics/pyspark/warehouse
+    state: directory
+    owner: analytics
+    group: analytics
+    mode: "2770"
+    recurse: yes
