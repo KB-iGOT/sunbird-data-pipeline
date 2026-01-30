@@ -1,6 +1,6 @@
 <clickhouse>
   <remote_servers>
-    <uat_cluster>
+    <{{ env }}_cluster>
       <shard>
 {% for host in groups['clickhouse'] %}
         <replica>
@@ -9,7 +9,7 @@
         </replica>
 {% endfor %}
       </shard>
-    </uat_cluster>
+    </{{ env }}_cluster>
   </remote_servers>
 
   <distributed_ddl>
