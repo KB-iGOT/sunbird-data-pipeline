@@ -2,3 +2,5 @@
   hosts: clickhouse
   roles:
     - clickhouse
+  tags: 
+    - clickhouse
