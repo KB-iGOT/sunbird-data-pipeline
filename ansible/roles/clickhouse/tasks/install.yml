@@ -1,50 +1,4 @@
-# ---- APT LOCK HANDLING (Ansible 2.8 safe) ----
-
-- name: Wait for dpkg frontend lock
-  shell: |
-    while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
-      sleep 5
-    done
-  args:
-    executable: /bin/bash
-  changed_when: false
-
-- name: Wait for dpkg lock
-  shell: |
-    while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
-      sleep 5
-    done
-  args:
-    executable: /bin/bash
-  changed_when: false
-
-- name: Wait for apt lists lock
-  shell: |
-    while fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do
-      sleep 5
-    done
-  args:
-    executable: /bin/bash
-  changed_when: false
-
-# ---- RECOVER BROKEN STATE SAFELY ----
-
-- name: Ensure dpkg is configured
-  command: dpkg --configure -a
-  failed_when: false
-  changed_when: false
-
-# ---- APT OPERATIONS (RETRY BASED) ----
-
-- name: Update apt cache
-  apt:
-    update_cache: yes
-  register: apt_update
-  retries: 10
-  delay: 15
-  until: apt_update is succeeded
-
-- name: Install prerequisites
+- name: Ensure prerequisites are installed
   apt:
     name:
       - apt-transport-https
@@ -52,16 +6,33 @@
       - curl
       - gnupg
       - dirmngr
-      - chrony
     state: present
-  register: apt_install
-  retries: 10
-  delay: 15
-  until: apt_install is succeeded
+    update_cache: yes
 
-- name: Install ClickHouse
-  apt:
-    name:
-      - clickhouse-server
-      - clickhouse-client
-    state: present
+- name: Add ClickHouse GPG key (exact manual method)
+  shell: |
+    curl -fsSL https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key \
+    | gpg --dearmor -o /usr/share/keyrings/clickhouse-keyring.gpg
+  args:
+    creates: /usr/share/keyrings/clickhouse-keyring.gpg
+
+- name: Add ClickHouse APT repo (exact manual method)
+  shell: |
+    echo "deb [signed-by=/usr/share/keyrings/clickhouse-keyring.gpg] https://packages.clickhouse.com/deb stable main" \
+    > /etc/apt/sources.list.d/clickhouse.list
+  args:
+    creates: /etc/apt/sources.list.d/clickhouse.list
+
+- name: Update apt cache (force apt-get, not apt module)
+  shell: apt-get update
+  register: ch_apt_update
+  retries: 5
+  delay: 10
+  until: ch_apt_update.rc == 0
+
+- name: Install ClickHouse (force apt-get, not apt module)
+  shell: |
+    DEBIAN_FRONTEND=noninteractive \
+    apt-get install -y clickhouse-server clickhouse-client
+  args:
+    creates: /usr/bin/clickhouse-server
