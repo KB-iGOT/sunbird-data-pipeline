@@ -1,6 +1,5 @@
 - name: ClickHouse Cluster Setup
   hosts: clickhouse
-  serial: 1
   become: true
   roles:
     - clickhouse
