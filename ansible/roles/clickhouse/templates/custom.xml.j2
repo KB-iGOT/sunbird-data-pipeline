@@ -1,5 +1,19 @@
 <clickhouse>
-  <listen_host>0.0.0.0</listen_host>
-  <max_connections>4096</max_connections>
-  <user_files_path>{{ user_files_path }}</user_files_path>
+    <!-- Network & limits -->
+    <listen_host>0.0.0.0</listen_host>
+    <max_connections>4096</max_connections>
+
+    <!-- User files path -->
+    <user_files_path>{{ user_files_path }}</user_files_path>
+
+    <!-- Logging configuration -->
+    <logger>
+        <level>{{ clickhouse_log_level | default('error') }}</level>
+
+        <log>/var/log/clickhouse-server/clickhouse-server.log</log>
+        <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
+
+        <size>{{ clickhouse_log_size | default('100M') }}</size>
+        <count>{{ clickhouse_log_count | default(5) }}</count>
+    </logger>
 </clickhouse>
