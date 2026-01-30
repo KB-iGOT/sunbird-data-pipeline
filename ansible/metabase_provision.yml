@@ -1,6 +1,8 @@
 - name: Install Metabase
   hosts: metabase
   become: true
+  vars_files:
+    - ['{{inventory_dir}}/secrets.yml', 'secrets/common.yml']
   roles:
     - metabase
   tags: 
