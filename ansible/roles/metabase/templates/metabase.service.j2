@@ -1,0 +1,20 @@
+[Unit]
+Description=Metabase Analytics
+After=network.target
+
+[Service]
+User={{ metabase_user }}
+Group={{ metabase_group }}
+EnvironmentFile=/etc/default/metabase
+
+ExecStart={{ java_home }}/bin/java $JAVA_OPTS -jar {{ metabase_dir }}/metabase.jar
+
+SuccessExitStatus=143
+Restart=always
+RestartSec=10
+
+StandardOutput=append:{{ metabase_log_dir }}/metabase.log
+StandardError=append:{{ metabase_log_dir }}/metabase.err
+
+[Install]
+WantedBy=multi-user.target

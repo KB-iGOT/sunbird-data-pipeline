@@ -1,0 +1,16 @@
+# Metabase
+metabase_user: metabase
+metabase_group: metabase
+metabase_port: 3000
+
+metabase_dir: /opt/metabase
+metabase_log_dir: /var/log/metabase
+metabase_jar_url: https://downloads.metabase.com/latest/metabase.jar
+
+# Java
+java_home: /usr/lib/jvm/java-21-openjdk-amd64
+java_opts: "-Xms1G -Xmx2G"
+
+# ClickHouse driver
+metabase_plugins_dir: /opt/metabase/plugins
+clickhouse_driver_url: https://github.com/ClickHouse/metabase-clickhouse-driver/releases/latest/download/clickhouse.metabase-driver.jar

@@ -1,0 +1,5 @@
+- name: Install Metabase
+  hosts: metabase
+  become: true
+  roles:
+    - metabase
