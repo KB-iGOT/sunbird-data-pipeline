@@ -1,3 +1,23 @@
+- name: Wait for dpkg lock to be released
+  shell: |
+    while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
+      sleep 5
+    done
+  args:
+    executable: /bin/bash
+  changed_when: false
+
+- name: Ensure dpkg is configured
+  command: dpkg --configure -a
+  register: dpkg_fix
+  failed_when: false
+  changed_when: false
+
+- name: Update apt cache (with lock timeout)
+  apt:
+    update_cache: yes
+    lock_timeout: 300
+
 - name: Install prerequisites
   apt:
     name:
@@ -8,23 +28,4 @@
       - dirmngr
       - chrony
     state: present
-    update_cache: yes
-
-- name: Add ClickHouse GPG key
-  get_url:
-    url: https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key
-    dest: "{{ clickhouse_keyring }}"
-    mode: "0644"
-
-- name: Add ClickHouse repository
-  apt_repository:
-    repo: "deb [signed-by={{ clickhouse_keyring }}] {{ clickhouse_repo_url }} stable main"
-    filename: clickhouse
-    state: present
-
-- name: Install ClickHouse
-  apt:
-    name:
-      - clickhouse-server
-      - clickhouse-client
-    state: present
+    lock_timeout: 300
