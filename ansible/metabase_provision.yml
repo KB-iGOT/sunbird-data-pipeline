@@ -3,3 +3,5 @@
   become: true
   roles:
     - metabase
+  tags: 
+    - metabase
