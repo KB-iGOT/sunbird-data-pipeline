@@ -1,16 +1,19 @@
 <clickhouse>
     <users>
         <default>
-            <!-- Secure password -->
+            <!-- REMOVE auth inherited from users.xml -->
+            <password remove="true"/>
+            <no_password remove="true"/>
+
+            <!-- Define exactly ONE auth method -->
             <password_sha256_hex>{{ clickhouse_default_password_sha }}</password_sha256_hex>
 
-            <!-- Only local access -->
+            <!-- Restrict access -->
             <networks>
                 <ip>127.0.0.1</ip>
                 <ip>::1</ip>
             </networks>
 
-            <!-- Profile & quota -->
             <profile>default</profile>
             <quota>default</quota>
         </default>
