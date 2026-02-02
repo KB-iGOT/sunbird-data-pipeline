@@ -1,0 +1,8 @@
+- name: Deploy minimal ClickHouse users.xml (base file)
+  template:
+    src: users.xml.j2
+    dest: /etc/clickhouse-server/users.xml
+    owner: clickhouse
+    group: clickhouse
+    mode: "0644"
+  notify: Restart ClickHouse
