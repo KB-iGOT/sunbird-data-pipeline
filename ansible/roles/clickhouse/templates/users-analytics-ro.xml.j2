@@ -3,11 +3,10 @@
         <analytics_ro>
             <password_sha256_hex>{{ clickhouse_analytics_ro_password_sha }}</password_sha256_hex>
 
-<networks>
-{% for host in groups['clickhouse-1'] %}
-    <ip>{{ hostvars[host].ansible_host | default(host) }}</ip>
-{% endfor %}
-</networks>
+            <networks>
+                <ip>0.0.0.0/0</ip>
+                <ip>::/0</ip>
+            </networks>
 
             <profile>readonly</profile>
             <quota>readonly</quota>
