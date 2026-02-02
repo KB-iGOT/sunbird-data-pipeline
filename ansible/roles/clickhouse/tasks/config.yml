@@ -27,3 +27,11 @@
     mode: "0750"
     recurse: yes
 
+- name: Force ClickHouse to load users only from users.d
+  template:
+    src: users-config.xml.j2
+    dest: /etc/clickhouse-server/config.d/users-config.xml
+    owner: clickhouse
+    group: clickhouse
+    mode: "0644"
+  notify: Restart ClickHouse
