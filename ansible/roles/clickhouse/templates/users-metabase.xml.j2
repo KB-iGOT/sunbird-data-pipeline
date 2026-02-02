@@ -3,11 +3,11 @@
         <metabase>
             <password_sha256_hex>{{ clickhouse_metabase_password_sha }}</password_sha256_hex>
 
-            <networks>
-{% for host in groups['metabase'] %}
-                <ip>{{ hostvars[host].ansible_host | default(host) }}</ip>
+<networks>
+{% for host in groups['clickhouse-1'] %}
+    <ip>{{ hostvars[host].ansible_host | default(host) }}</ip>
 {% endfor %}
-            </networks>
+</networks>
 
             <profile>readonly</profile>
             <quota>readonly</quota>
