@@ -1,0 +1,20 @@
+<clickhouse>
+    <users>
+        <analytics_ro>
+            <password_sha256_hex>{{ clickhouse_analytics_ro_password_sha }}</password_sha256_hex>
+
+            <networks>
+{% for host in groups['analytics_clients'] %}
+                <ip>{{ hostvars[host].ansible_host | default(host) }}</ip>
+{% endfor %}
+            </networks>
+
+            <profile>readonly</profile>
+            <quota>readonly</quota>
+
+            <allow_databases>
+                <database>analytics</database>
+            </allow_databases>
+        </analytics_ro>
+    </users>
+</clickhouse>

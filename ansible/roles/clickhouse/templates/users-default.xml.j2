@@ -1,0 +1,18 @@
+<clickhouse>
+    <users>
+        <default>
+            <!-- Secure password -->
+            <password_sha256_hex>{{ clickhouse_default_password_sha }}</password_sha256_hex>
+
+            <!-- Only local access -->
+            <networks>
+                <ip>127.0.0.1</ip>
+                <ip>::1</ip>
+            </networks>
+
+            <!-- Profile & quota -->
+            <profile>default</profile>
+            <quota>default</quota>
+        </default>
+    </users>
+</clickhouse>

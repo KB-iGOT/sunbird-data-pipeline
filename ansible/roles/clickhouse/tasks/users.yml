@@ -1,0 +1,27 @@
+- name: Deploy default ClickHouse user config
+  template:
+    src: users-default.xml.j2
+    dest: /etc/clickhouse-server/users.d/default.xml
+    owner: clickhouse
+    group: clickhouse
+    mode: "0640"
+  notify: Restart ClickHouse
+
+- name: Deploy Metabase read-only user
+  template:
+    src: users-metabase.xml.j2
+    dest: /etc/clickhouse-server/users.d/metabase.xml
+    owner: clickhouse
+    group: clickhouse
+    mode: "0640"
+  notify: Restart ClickHouse
+
+- name: Deploy analytics read-only ClickHouse user
+  template:
+    src: users-analytics-ro.xml.j2
+    dest: /etc/clickhouse-server/users.d/analytics_ro.xml
+    owner: clickhouse
+    group: clickhouse
+    mode: "0640"
+  notify: Restart ClickHouse
+
