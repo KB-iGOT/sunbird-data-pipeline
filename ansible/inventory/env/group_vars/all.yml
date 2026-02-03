@@ -188,6 +188,7 @@ s3_https_only: false
 s3_default_bucket_location: ""
 s3_storage_container: ""
 s3_dp_storage_container: ""
+clickhouse_shard: "01"
 
 
 postgres_address_space: "{{groups['postgres'][0].split(\".\")[0]}}.0.0.0/8"

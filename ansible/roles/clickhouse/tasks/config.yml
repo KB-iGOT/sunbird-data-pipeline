@@ -27,3 +27,11 @@
     mode: "0750"
     recurse: yes
 
+- name: Deploy ClickHouse macros
+  template:
+    src: macros.xml.j2
+    dest: /etc/clickhouse-server/config.d/macros.xml
+    owner: clickhouse
+    group: clickhouse
+    mode: '0644'
+  notify: Restart ClickHouse
