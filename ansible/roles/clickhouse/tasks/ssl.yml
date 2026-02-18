@@ -1,0 +1,37 @@
+- name: Create cert directory
+  file:
+    path: "{{ clickhouse_ssl_cert_dir }}"
+    state: directory
+    owner: clickhouse
+    group: clickhouse
+    mode: '0755'
+  when: clickhouse_ssl_enabled
+
+- name: Generate self-signed certificate and private key
+  command: >
+    openssl req -x509 -nodes -days 999
+    -newkey rsa:2048
+    -keyout {{ clickhouse_ssl_cert_dir }}/server.key
+    -out {{ clickhouse_ssl_cert_dir }}/server.crt
+    -subj "/CN={{ inventory_hostname }}"
+  args:
+    creates: "{{ clickhouse_ssl_cert_dir }}/server.crt"
+  when: clickhouse_ssl_enabled
+
+- name: Set permissions on private key
+  file:
+    path: "{{ clickhouse_ssl_cert_dir }}/server.key"
+    owner: clickhouse
+    group: clickhouse
+    mode: '0600'
+  when: clickhouse_ssl_enabled
+
+- name: Deploy SSL config
+  template:
+    src: ssl.xml.j2
+    dest: /etc/clickhouse-server/config.d/ssl.xml
+    owner: clickhouse
+    group: clickhouse
+    mode: '0644'
+  when: clickhouse_ssl_enabled
+  notify: Restart ClickHouse
