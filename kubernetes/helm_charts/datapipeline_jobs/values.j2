@@ -228,7 +228,7 @@ ingest-router:
     jobmanager.memory.flink.size: {{ flink_job_names['ingest-router'].jobmanager_memory }}
     taskmanager.memory.flink.size: {{ flink_job_names['ingest-router'].taskmanager_memory }}
     taskmanager.numberOfTaskSlots: {{ flink_job_names['ingest-router'].taskslots }}
-    parallelism.default: 1
+    parallelism.default: {{ ingest_router_consumer_parallelism }}
     jobmanager.execution.failover-strategy: region
     taskmanager.memory.network.fraction: 0.1
     scheduler-mode: reactive
