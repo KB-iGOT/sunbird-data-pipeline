@@ -67,7 +67,13 @@ class DenormalizationWindowFunction(config: DenormalizationConfig)(implicit val 
 
     override def process(key: Int, context: ProcessWindowFunction[Event, Event, Int, GlobalWindow]#Context, elements: lang.Iterable[Event], metrics: Metrics): Unit = {
 
-        val summaryEventsList = List("ME_WORKFLOW_SUMMARY", "SUMMARY")
+      if (config.skipEnrichment) {
+        // bypass everything — emit events as-is
+        elements.asScala.foreach(event => context.output(config.denormEventsTag, event))
+        return
+      }  
+      
+      val summaryEventsList = List("ME_WORKFLOW_SUMMARY", "SUMMARY")
         val eventsList = elements.asScala.toList
         val filteredEventsList: List[Event] = eventsList.filter { event =>
             if (event.isOlder(config.ignorePeriodInMonths)) { // Skip events older than configured value (default: 3 months)
