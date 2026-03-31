@@ -404,6 +404,7 @@ de-normalization-secondary:
         key.expiry.seconds = {{ de_normalization_duplicationstore_key_expiry_seconds }} 
       }
     }
+    skip. Enrichment = true
     # redis-metadata
     redis-meta {
       database {
@@ -466,6 +467,7 @@ de-normalization-primary:
         key.expiry.seconds = {{ de_normalization_duplicationstore_key_expiry_seconds }} 
       }
     }
+    skip. Enrichment = true
     # redis-metadata
     redis-meta {
       database {
@@ -528,6 +530,7 @@ summary-denormalization:
         key.expiry.seconds = {{ summary_denorm_duplication_key_expiry_seconds }}
       }
     }
+    skip. Enrichment = true
     # redis-metadata
     redis-meta {
       database {
