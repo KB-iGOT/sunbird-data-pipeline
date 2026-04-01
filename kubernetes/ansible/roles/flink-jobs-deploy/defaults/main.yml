@@ -46,19 +46,19 @@ device_profile_table: "{{ env }}_device_profile"
 ### Extractor job related vars
 extractor_event_max_size: 1048576 # Max is only 1MB
 extractor_max_request_size: 5242880
-extractor_consumer_parallelism: 2
-extractor_operators_parallelism: 2
+extractor_consumer_parallelism: 8
+extractor_operators_parallelism: 8
 telemetry_extractor_key_expiry_seconds: 3600
 
 ### Ingest Raw router job related vars
-ingest_router_consumer_parallelism: 2
-ingest_router_operators_parallelism: 2
+ingest_router_consumer_parallelism: 8
+ingest_router_operators_parallelism: 8
 raw_router_consumer_parallelism: 2
 raw_router_downstream_parallelism: 2
 
 ### Pipeline-preprocessor related vars
-pipeline_preprocessor_consumer_parallelism: 2
-pipeline_preprocessor_operators_parallelism: 2
+pipeline_preprocessor_consumer_parallelism: 4
+pipeline_preprocessor_operators_parallelism: 16
 portal_id: "{{ env }}.sunbird.portal"
 desktop_id: "{{ env }}.sunbird.desktop"
 frac_id: "{{ env }}.FRac.portal"
@@ -72,17 +72,17 @@ cb_preprocessor_operators_parallelism: 1
 cb_preprocessor_key_expiry_seconds: 3600
 
 ### De-normalization related vars
-denorm_consumer_parallelism: 2
-telemetry_denorm_operators_parallelism: 2
+denorm_consumer_parallelism: 8
+telemetry_denorm_operators_parallelism: 8
 de_normalization_duplicationstore_key_expiry_seconds: 3600
 de_normalization_key_expiry_seconds: 3600
 denorm_window_count: 1
 denorm_window_shards: 1400
 
-denorm_secondary_consumer_parallelism: 2
-telemetry_denorm_secondary_operators_parallelism: 2
-denorm_primary_consumer_parallelism: 2
-telemetry_denorm_primary_operators_parallelism: 2
+denorm_secondary_consumer_parallelism: 8
+telemetry_denorm_secondary_operators_parallelism: 8
+denorm_primary_consumer_parallelism: 8
+telemetry_denorm_primary_operators_parallelism: 8
 
 redis_meta_content_port: "{{ content_port }}"
 redis_meta_device_port: "{{ device_port }}"
@@ -103,8 +103,8 @@ denorm_summary_window_count: 1
 denorm_summary_window_shards: 1400
 
 ### summary-denormalization related vars
-summary_denorm_consumer_parallelism: 1
-summary_denorm_operators_parallelism: 1
+summary_denorm_consumer_parallelism: 8
+summary_denorm_operators_parallelism: 8
 summary_denorm_duplication_key_expiry_seconds: 3600
 summary_denorm_key_expiry_seconds: 3600
 
@@ -122,8 +122,8 @@ cb_course_aggregator_parallelism: 1
 cb_course_aggregator_scoresubmit_parallelism: 1
 
 ### Druid-validator related vars
-druid_validator_consumer_parallelism: 2
-druid_validator_operators_parallelism: 2
+druid_validator_consumer_parallelism: 8
+druid_validator_operators_parallelism: 8
 druid_validator_key_expiry_seconds: 3600
 druid_validation_enabled: true
 druid_deduplication_enabled: true
