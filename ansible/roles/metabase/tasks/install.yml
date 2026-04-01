@@ -1,0 +1,39 @@
+- name: Install Java 21 (required for Metabase)
+  apt:
+    name: openjdk-21-jre
+    state: present
+    update_cache: yes
+
+- name: Create metabase user
+  user:
+    name: "{{ metabase_user }}"
+    system: yes
+    shell: /usr/sbin/nologin
+
+- name: Create directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ metabase_user }}"
+    group: "{{ metabase_group }}"
+    mode: "0755"
+  loop:
+    - "{{ metabase_dir }}"
+    - "{{ metabase_log_dir }}"
+    - "{{ metabase_plugins_dir }}"
+
+- name: Download Metabase JAR
+  get_url:
+    url: "{{ metabase_jar_url }}"
+    dest: "{{ metabase_dir }}/metabase.jar"
+    owner: "{{ metabase_user }}"
+    group: "{{ metabase_group }}"
+    mode: "0644"
+
+- name: Download ClickHouse Metabase driver
+  get_url:
+    url: "{{ clickhouse_driver_url }}"
+    dest: "{{ metabase_plugins_dir }}/clickhouse.metabase-driver.jar"
+    owner: "{{ metabase_user }}"
+    group: "{{ metabase_group }}"
+    mode: "0644"

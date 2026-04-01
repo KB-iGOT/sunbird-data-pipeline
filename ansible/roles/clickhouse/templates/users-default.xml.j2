@@ -1,0 +1,21 @@
+<clickhouse>
+    <users>
+        <default>
+            <!-- REMOVE auth inherited from users.xml -->
+            <password remove="true"/>
+            <no_password remove="true"/>
+
+            <!-- Define exactly ONE auth method -->
+            <password_sha256_hex>{{ clickhouse_default_password_sha }}</password_sha256_hex>
+
+            <!-- Restrict access -->
+            <networks>
+                <ip>127.0.0.1</ip>
+                <ip>::1</ip>
+            </networks>
+
+            <profile>default</profile>
+            <quota>default</quota>
+        </default>
+    </users>
+</clickhouse>

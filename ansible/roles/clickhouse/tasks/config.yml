@@ -1,0 +1,37 @@
+- name: Ensure config directory
+  file:
+    path: /etc/clickhouse-server/config.d
+    state: directory
+
+- name: Deploy custom config
+  template:
+    src: custom.xml.j2
+    dest: /etc/clickhouse-server/config.d/custom.xml
+
+- name: Deploy Keeper config
+  template:
+    src: keeper.xml.j2
+    dest: /etc/clickhouse-server/config.d/keeper.xml
+
+- name: Deploy cluster config
+  template:
+    src: cluster.xml.j2
+    dest: /etc/clickhouse-server/config.d/cluster.xml
+
+- name: Create user_files_path for ClickHouse
+  file:
+    path: /home/analytics/pyspark/warehouse
+    state: directory
+    owner: clickhouse
+    group: clickhouse
+    mode: "0750"
+    recurse: yes
+
+- name: Deploy ClickHouse macros
+  template:
+    src: macros.xml.j2
+    dest: /etc/clickhouse-server/config.d/macros.xml
+    owner: clickhouse
+    group: clickhouse
+    mode: '0644'
+  notify: Restart ClickHouse

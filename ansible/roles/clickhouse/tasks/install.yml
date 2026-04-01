@@ -1,0 +1,38 @@
+- name: Ensure prerequisites are installed
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - dirmngr
+    state: present
+    update_cache: yes
+
+- name: Add ClickHouse GPG key (exact manual method)
+  shell: |
+    curl -fsSL https://packages.clickhouse.com/rpm/lts/repodata/repomd.xml.key \
+    | gpg --dearmor -o /usr/share/keyrings/clickhouse-keyring.gpg
+  args:
+    creates: /usr/share/keyrings/clickhouse-keyring.gpg
+
+- name: Add ClickHouse APT repo (exact manual method)
+  shell: |
+    echo "deb [signed-by=/usr/share/keyrings/clickhouse-keyring.gpg] https://packages.clickhouse.com/deb stable main" \
+    > /etc/apt/sources.list.d/clickhouse.list
+  args:
+    creates: /etc/apt/sources.list.d/clickhouse.list
+
+- name: Update apt cache (force apt-get, not apt module)
+  shell: apt-get update
+  register: ch_apt_update
+  retries: 5
+  delay: 10
+  until: ch_apt_update.rc == 0
+
+- name: Install ClickHouse (force apt-get, not apt module)
+  shell: |
+    DEBIAN_FRONTEND=noninteractive \
+    apt-get install -y clickhouse-server clickhouse-client
+  args:
+    creates: /usr/bin/clickhouse-server

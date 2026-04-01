@@ -1,0 +1,7 @@
+- name: Configure Metabase environment
+  template:
+    src: metabase.env.j2
+    dest: /etc/default/metabase
+    owner: root
+    group: root
+    mode: "0644"

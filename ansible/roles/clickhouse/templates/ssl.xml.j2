@@ -1,0 +1,19 @@
+<clickhouse>
+  {% if clickhouse_ssl_enabled %}
+  <!-- Secure ports -->
+  <tcp_port_secure>{{ clickhouse_secure_port }}</tcp_port_secure>
+  <https_port>{{ clickhouse_https_port }}</https_port>
+
+  <openSSL>
+    <server>
+      <certificateFile>{{ clickhouse_ssl_cert_dir }}/server.crt</certificateFile>
+      <privateKeyFile>{{ clickhouse_ssl_cert_dir }}/server.key</privateKeyFile>
+      <verificationMode>none</verificationMode>
+      <loadDefaultCAFile>false</loadDefaultCAFile>
+      <disableProtocols>sslv2,sslv3</disableProtocols>
+      <cacheSessions>true</cacheSessions>
+      <preferServerCiphers>true</preferServerCiphers>
+    </server>
+  </openSSL>
+  {% endif %}
+</clickhouse>

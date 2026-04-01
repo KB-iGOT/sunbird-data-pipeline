@@ -1,0 +1,11 @@
+- name: Check if clickhouse-server service exists
+  stat:
+    path: /lib/systemd/system/clickhouse-server.service
+  register: ch_service
+
+- name: Restart ClickHouse
+  systemd:
+    name: clickhouse-server
+    state: restarted
+    enabled: true
+  when: ch_service.stat.exists

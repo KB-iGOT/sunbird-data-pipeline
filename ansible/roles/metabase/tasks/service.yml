@@ -1,0 +1,14 @@
+- name: Install systemd service
+  template:
+    src: metabase.service.j2
+    dest: /etc/systemd/system/metabase.service
+    mode: "0644"
+
+- name: Reload systemd
+  command: systemctl daemon-reexec
+
+- name: Enable and start Metabase
+  systemd:
+    name: metabase
+    enabled: true
+    state: started

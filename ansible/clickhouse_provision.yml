@@ -1,0 +1,10 @@
+- name: ClickHouse Cluster Setup
+  hosts: clickhouse
+  become: true
+  vars_files:
+    - "{{ inventory_dir }}/secrets.yml"
+    - "{{ inventory_dir }}/common.yml"
+  roles:
+    - clickhouse
+  tags: 
+    - clickhouse

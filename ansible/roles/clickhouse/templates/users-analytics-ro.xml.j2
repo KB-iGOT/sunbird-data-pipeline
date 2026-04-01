@@ -1,0 +1,19 @@
+<clickhouse>
+    <users>
+        <analytics_ro>
+            <password_sha256_hex>{{ clickhouse_analytics_ro_password_sha }}</password_sha256_hex>
+
+            <networks>
+                <ip>0.0.0.0/0</ip>
+                <ip>::/0</ip>
+            </networks>
+
+            <profile>readonly</profile>
+            <quota>readonly</quota>
+
+            <allow_databases>
+                <database>warehouse</database>
+            </allow_databases>
+        </analytics_ro>
+    </users>
+</clickhouse>

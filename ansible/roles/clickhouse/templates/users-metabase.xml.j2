@@ -1,0 +1,36 @@
+<clickhouse>
+    <users>
+        <metabase>
+            <password_sha256_hex>{{ clickhouse_metabase_password_sha }}</password_sha256_hex>
+
+<networks>
+{% for host in groups['clickhouse-1'] %}
+    <ip>{{ hostvars[host].ansible_host | default(host) }}</ip>
+{% endfor %}
+</networks>
+
+            <profile>readonly</profile>
+            <quota>readonly</quota>
+
+            <allow_databases>
+                <database>warehouse</database>
+            </allow_databases>
+        </metabase>
+    </users>
+
+    <profiles>
+        <readonly>
+            <readonly>1</readonly>
+        </readonly>
+    </profiles>
+
+    <quotas>
+        <readonly>
+            <interval>
+                <duration>3600</duration>
+                <queries>10000</queries>
+                <errors>100</errors>
+            </interval>
+        </readonly>
+    </quotas>
+</clickhouse>
