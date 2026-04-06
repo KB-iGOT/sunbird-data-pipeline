@@ -72,8 +72,8 @@ cb_preprocessor_operators_parallelism: 1
 cb_preprocessor_key_expiry_seconds: 3600
 
 ### De-normalization related vars
-denorm_consumer_parallelism: 2
-telemetry_denorm_operators_parallelism: 2
+denorm_consumer_parallelism: 8
+telemetry_denorm_operators_parallelism: 8
 de_normalization_duplicationstore_key_expiry_seconds: 3600
 de_normalization_key_expiry_seconds: 3600
 denorm_window_count: 1
@@ -103,8 +103,8 @@ denorm_summary_window_count: 1
 denorm_summary_window_shards: 1400
 
 ### summary-denormalization related vars
-summary_denorm_consumer_parallelism: 1
-summary_denorm_operators_parallelism: 1
+summary_denorm_consumer_parallelism: 8
+summary_denorm_operators_parallelism: 8
 summary_denorm_duplication_key_expiry_seconds: 3600
 summary_denorm_key_expiry_seconds: 3600
 

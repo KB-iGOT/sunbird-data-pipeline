@@ -15,6 +15,9 @@ class DenormalizationConfig(override val config: Config, jobName: String) extend
   implicit val mapTypeInfo: TypeInformation[Event] = TypeExtractor.getForClass(classOf[Event])
   implicit val anyTypeInfo: TypeInformation[String] = TypeExtractor.getForClass(classOf[String])
 
+  // flag for disabling enrichment
+  val skipEnrichment: Boolean = config.getBoolean("skip.enrichment")
+  
   // Kafka Topics Configuration
   val telemetryInputTopic: String = config.getString("kafka.input.telemetry.topic")
   val summaryInputTopic: String = config.getString("kafka.input.summary.topic")

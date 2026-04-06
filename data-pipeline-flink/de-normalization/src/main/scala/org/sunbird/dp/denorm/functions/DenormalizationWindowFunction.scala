@@ -46,28 +46,37 @@ class DenormalizationWindowFunction(config: DenormalizationConfig)(implicit val 
     }
 
     override def open(parameters: Configuration): Unit = {
-        super.open(parameters)
+      super.open(parameters)
+    
+      if (!config.skipEnrichment) {
         denormCache = new DenormWindowCache(config,
-            new RedisConnect(config.contentRedisHost, config.contentRedisPort, config),
-            new RedisConnect(config.deviceRedisHost, config.deviceRedisPort, config),
-            new RedisConnect(config.userRedisHost, config.userRedisPort, config),
-            new RedisConnect(config.dialcodeRedisHost, config.dialcodeRedisPort, config)
+          new RedisConnect(config.contentRedisHost, config.contentRedisPort, config),
+          new RedisConnect(config.deviceRedisHost, config.deviceRedisPort, config),
+          new RedisConnect(config.userRedisHost, config.userRedisPort, config),
+          new RedisConnect(config.dialcodeRedisHost, config.dialcodeRedisPort, config)
         )
-        deviceDenormalization = new DeviceDenormalization(config)
-        userDenormalization = new UserDenormalization(config)
+        deviceDenormalization   = new DeviceDenormalization(config)
+        userDenormalization     = new UserDenormalization(config)
         dialcodeDenormalization = new DialcodeDenormalization(config)
-        contentDenormalization = new ContentDenormalization(config)
+        contentDenormalization  = new ContentDenormalization(config)
         locationDenormalization = new LocationDenormalization(config)
+      }
     }
 
     override def close(): Unit = {
         super.close()
-        denormCache.close()
+        if (denormCache != null) denormCache.close()
     }
 
     override def process(key: Int, context: ProcessWindowFunction[Event, Event, Int, GlobalWindow]#Context, elements: lang.Iterable[Event], metrics: Metrics): Unit = {
 
-        val summaryEventsList = List("ME_WORKFLOW_SUMMARY", "SUMMARY")
+      if (config.skipEnrichment) {
+        // bypass everything — emit events as-is
+        elements.asScala.foreach(event => context.output(config.denormEventsTag, event))
+        return
+      }  
+      
+      val summaryEventsList = List("ME_WORKFLOW_SUMMARY", "SUMMARY")
         val eventsList = elements.asScala.toList
         val filteredEventsList: List[Event] = eventsList.filter { event =>
             if (event.isOlder(config.ignorePeriodInMonths)) { // Skip events older than configured value (default: 3 months)
