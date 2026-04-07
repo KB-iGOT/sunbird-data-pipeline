@@ -62,25 +62,37 @@ class SummaryDenormalizationStreamTask(config: DenormalizationConfig, kafkaConne
         .process(new SummaryDeduplicationFunction(config)).name(config.summaryDedupFunction).uid(config.summaryDedupFunction)
         .setParallelism(config.summaryDownstreamOperatorsParallelism)
 
-    val summaryDenormStream = summaryEventStream.getSideOutput(config.uniqueSummaryEventsOutputTag)
-      .keyBy(new DenormKeySelector(config)).countWindow(config.windowCount)
-      .process(new DenormalizationWindowFunction(config))
-      .name(config.summaryDenormalizationFunction).uid(config.summaryDenormalizationFunction)
-      .setParallelism(config.summaryDownstreamOperatorsParallelism)
-
+    // Duplicates always go to duplicate topic regardless of any config
     summaryEventStream.getSideOutput(config.duplicateEventsOutputTag)
       .addSink(kafkaConnector.kafkaEventSink[Event](config.duplicateTopic))
       .name(config.summaryDuplicateEventProducer).uid(config.summaryDuplicateEventProducer)
       .setParallelism(config.summaryDownstreamOperatorsParallelism)
 
-    summaryDenormStream.getSideOutput(config.denormEventsTag).addSink(kafkaConnector.kafkaEventSink(config.summaryDenormOutputTopic))
-      .name(config.summaryDenormEventsProducer).uid(config.summaryDenormEventsProducer)
-      .setParallelism(config.summaryDownstreamOperatorsParallelism)
-
+    // Unique events always go to unique events topic regardless of any config
     summaryEventStream.getSideOutput(config.uniqueSummaryEventsOutputTag)
       .addSink(kafkaConnector.kafkaEventSink(config.summaryUniqueEventsTopic))
       .name(config.summaryEventsProducer).uid(config.summaryEventsProducer)
       .setParallelism(config.summaryDownstreamOperatorsParallelism)
+
+    if (config.skipEnrichment) {
+      // Enrichment disabled: unique events go directly to denorm output topic without enrichment
+      summaryEventStream.getSideOutput(config.uniqueSummaryEventsOutputTag)
+        .addSink(kafkaConnector.kafkaEventSink(config.summaryDenormOutputTopic))
+        .name(config.summaryDenormEventsProducer).uid(config.summaryDenormEventsProducer)
+        .setParallelism(config.summaryDownstreamOperatorsParallelism)
+    } else {
+      // Enrichment enabled: unique events go through window + denorm before output
+      val summaryDenormStream = summaryEventStream.getSideOutput(config.uniqueSummaryEventsOutputTag)
+        .keyBy(new DenormKeySelector(config)).countWindow(config.windowCount)
+        .process(new DenormalizationWindowFunction(config))
+        .name(config.summaryDenormalizationFunction).uid(config.summaryDenormalizationFunction)
+        .setParallelism(config.summaryDownstreamOperatorsParallelism)
+
+      summaryDenormStream.getSideOutput(config.denormEventsTag)
+        .addSink(kafkaConnector.kafkaEventSink(config.summaryDenormOutputTopic))
+        .name(config.summaryDenormEventsProducer).uid(config.summaryDenormEventsProducer)
+        .setParallelism(config.summaryDownstreamOperatorsParallelism)
+    }
 
     env.execute(config.jobName)
   }
