@@ -52,16 +52,17 @@ import org.sunbird.dp.denorm.functions._
 class DenormalizationStreamTask(config: DenormalizationConfig, kafkaConnector: FlinkKafkaConnector) {
 
   private val serialVersionUID = -7729362727131516112L
-  print(" --- config: "+config)
+  
   def process(): Unit = {
     
     implicit val env: StreamExecutionEnvironment = FlinkUtil.getExecutionContext(config)
     implicit val eventTypeInfo: TypeInformation[Event] = TypeExtractor.getForClass(classOf[Event])
 
     val source = kafkaConnector.kafkaEventSource[Event](config.telemetryInputTopic)
+    logger.info(s"DenormalizationStreamTask starting with skipEnrichment=${config.skipEnrichment}")
+    
     if (config.skipEnrichment) {
       // Pure pass-through: source → sink directly, no keyBy, no window, no Redis, no denorm
-      print("skipping event")
       
       env.addSource(source, config.denormalizationConsumer)
         .uid(config.denormalizationConsumer)
