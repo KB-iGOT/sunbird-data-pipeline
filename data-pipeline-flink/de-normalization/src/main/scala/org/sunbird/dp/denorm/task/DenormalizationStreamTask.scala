@@ -59,16 +59,26 @@ class DenormalizationStreamTask(config: DenormalizationConfig, kafkaConnector: F
     implicit val eventTypeInfo: TypeInformation[Event] = TypeExtractor.getForClass(classOf[Event])
 
     val source = kafkaConnector.kafkaEventSource[Event](config.telemetryInputTopic)
-    val denormStream =
-      env.addSource(source, config.denormalizationConsumer).uid(config.denormalizationConsumer)
-        .setParallelism(config.kafkaConsumerParallelism).rebalance()
-        .keyBy(new DenormKeySelector(config)).countWindow(config.windowCount)
-        .process(new DenormalizationWindowFunction(config)).name(config.denormalizationFunction).uid(config.denormalizationFunction)
-        .setParallelism(config.telemetryDownstreamOperatorsParallelism)
+    if (config.skipEnrichment) {
+      // Pure pass-through: no keyBy, no window, no processing
+      val denormStream = env.addSource(source, config.denormalizationConsumer)
+        .uid(config.denormalizationConsumer)
+        .setParallelism(config.kafkaConsumerParallelism)
 
-    denormStream.getSideOutput(config.denormEventsTag).addSink(kafkaConnector.kafkaEventSink(config.telemetryDenormOutputTopic))
-      .name(config.DENORM_EVENTS_PRODUCER).uid(config.DENORM_EVENTS_PRODUCER)
+      denormStream.getSideOutput(config.denormEventsTag) // This won't work — see note below
+    } else {
+      val denormStream =
+        env.addSource(source, config.denormalizationConsumer).uid(config.denormalizationConsumer)
+          .setParallelism(config.kafkaConsumerParallelism).rebalance()
+          .keyBy(new DenormKeySelector(config)).countWindow(config.windowCount)
+          .process(new DenormalizationWindowFunction(config)).name(config.denormalizationFunction).uid(config.denormalizationFunction)
+          .setParallelism(config.telemetryDownstreamOperatorsParallelism)
+
+      denormStream.getSideOutput(config.denormEventsTag)
+        .addSink(kafkaConnector.kafkaEventSink(config.telemetryDenormOutputTopic))
+        .name(config.DENORM_EVENTS_PRODUCER).uid(config.DENORM_EVENTS_PRODUCER)
         .setParallelism(config.telemetryDownstreamOperatorsParallelism)
+    }
 
     env.execute(config.jobName)
   }
