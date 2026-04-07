@@ -52,6 +52,8 @@ import org.sunbird.dp.denorm.functions._
 class DenormalizationStreamTask(config: DenormalizationConfig, kafkaConnector: FlinkKafkaConnector) {
 
   private val serialVersionUID = -7729362727131516112L
+
+  private val logger = LoggerFactory.getLogger(classOf[DenormalizationStreamTask]) // ADD THIS
   
   def process(): Unit = {
     
