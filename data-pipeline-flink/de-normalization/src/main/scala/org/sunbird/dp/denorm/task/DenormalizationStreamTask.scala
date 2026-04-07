@@ -60,12 +60,14 @@ class DenormalizationStreamTask(config: DenormalizationConfig, kafkaConnector: F
 
     val source = kafkaConnector.kafkaEventSource[Event](config.telemetryInputTopic)
     if (config.skipEnrichment) {
-      // Pure pass-through: no keyBy, no window, no processing
-      val denormStream = env.addSource(source, config.denormalizationConsumer)
+      // Pure pass-through: source → sink directly, no keyBy, no window, no Redis, no denorm
+      env.addSource(source, config.denormalizationConsumer)
         .uid(config.denormalizationConsumer)
         .setParallelism(config.kafkaConsumerParallelism)
-
-      denormStream.getSideOutput(config.denormEventsTag) // This won't work — see note below
+        .addSink(kafkaConnector.kafkaEventSink(config.telemetryDenormOutputTopic))
+        .name(config.DENORM_EVENTS_PRODUCER).uid(config.DENORM_EVENTS_PRODUCER)
+        .setParallelism(config.telemetryDownstreamOperatorsParallelism)
+      
     } else {
       val denormStream =
         env.addSource(source, config.denormalizationConsumer).uid(config.denormalizationConsumer)
