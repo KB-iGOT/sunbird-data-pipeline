@@ -21,7 +21,7 @@ rules:
     name:
       matches: "^(.*)"
       as: "telemetry-extractor_kafka_consumergroup_lag_sum"
-    metricsQuery: sum(kafka_consumergroup_lag_sum{consumergroup="{{ env_name }}-telemetry-extractor-group",topic="{{ env_name }}.telemetry.ingest"}) by (<<.GroupBy>>)
+    metricsQuery: sum(kafka_consumergroup_lag_sum{consumergroup="{{ env_name }}-telemetry-extractor-group",topic="{{ env_name }}.telemetry.ingestion"}) by (<<.GroupBy>>)
   - seriesQuery: 'kafka_consumergroup_lag_sum'
     resources:
       overrides:
