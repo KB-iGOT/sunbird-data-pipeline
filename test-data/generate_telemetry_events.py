@@ -27,7 +27,7 @@ except ImportError:
 ENVIRONMENTS = {
     "dev": {
         "channel": "b00bc992ef25f1a9a8d63291e20efc8d",
-        "kafka_brokers": ["10.175.3.38:9092"],
+        "kafka_brokers": ["localhost:9092"],
         "kafka_topic": "dev.telemetry.ingestion",
         "pdata": {
             "id": "dev.diksha.app",
@@ -607,3 +607,4 @@ if __name__ == "__main__":
 
 # Dry-run: 500 events, dev env
 # python3 test-data/generate_telemetry_events.py -n 500 --env dev --dry-run
+# python3 generate_telemetry_events.py   --env dev   --brokers localhost:9092   --topic dev.telemetry.ingestion   -n 500
