@@ -155,19 +155,45 @@ ansible-playbook \
 
 ### Confirm extractor is consuming from the right topic
 
+Run this against the **ingestion Kafka** (`ingestion_kafka_brokers`) — that is where `telemetry.ingestion` lives:
+
 ```bash
-# Check consumer group lag on the ingestion topic
 kafka-consumer-groups.sh \
   --bootstrap-server <ingestion_kafka_brokers> \
   --group <env>-telemetry-extractor-group \
   --describe
-# Topic column should show: <env>.telemetry.ingestion
+# Expected: Topic column shows <env>.telemetry.ingestion, CONSUMER-ID column shows active members
 ```
 
-### Confirm no consumer group on old topic
+### Confirm old path is dead (processing Kafka)
+
+Run this against the **processing Kafka** (`kafka_brokers`). You should see the group with no active members — that is correct and expected. It shows the historical offsets for the old `telemetry.ingest` topic which the extractor no longer consumes.
 
 ```bash
-# This consumer group should no longer exist or show no activity
+kafka-consumer-groups.sh \
+  --bootstrap-server <kafka_brokers> \
+  --group <env>-telemetry-extractor-group \
+  --describe
+# Expected output (correct — means old path is dead):
+#   Consumer group '<env>-telemetry-extractor-group' has no active members.
+#   TOPIC                     PARTITION  LAG
+#   <env>.telemetry.ingest    0          <some number>   <- stale, harmless
+```
+
+If the stale lag on `telemetry.ingest` is a concern, reset it:
+
+```bash
+kafka-consumer-groups.sh \
+  --bootstrap-server <kafka_brokers> \
+  --group <env>-telemetry-extractor-group \
+  --topic <env>.telemetry.ingest \
+  --reset-offsets --to-latest --execute
+```
+
+### Confirm ingest-router consumer group is gone
+
+```bash
+# Run against ingestion Kafka — should show no active members or unknown group
 kafka-consumer-groups.sh \
   --bootstrap-server <ingestion_kafka_brokers> \
   --group <env>-ingest-router-group \
