@@ -13,6 +13,8 @@ class ClickhouseWriter(config: ClickhouseConfig, columns: Seq[String]){
   def open(): Unit = {
     Class.forName("com.clickhouse.jdbc.ClickHouseDriver")
     connection = DriverManager.getConnection(config.url, config.username, config.password)
+    // Ensure explicit commit control
+    connection.setAutoCommit(false)
     preparedStatement = connection.prepareStatement(insertSQL)
   }
 
@@ -26,15 +28,23 @@ class ClickhouseWriter(config: ClickhouseConfig, columns: Seq[String]){
   def flush(): Unit = {
     if (batchBuffer.isEmpty) return
 
+    try {
       batchBuffer.foreach { record =>
         columns.zipWithIndex.foreach { case (col, idx) =>
           preparedStatement.setObject(idx + 1, record.get(col))
         }
         preparedStatement.addBatch()
       }
-      preparedStatement.executeBatch()
-      batchBuffer.clear()
 
+      preparedStatement.executeBatch()
+      connection.commit()
+    } catch {
+      case ex: Exception =>
+        // Let caller handle/log the exception; rethrow to surface failures
+        throw ex
+    } finally {
+      batchBuffer.clear()
+    }
   }
 
   def close(): Unit = {
