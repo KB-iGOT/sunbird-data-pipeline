@@ -36,7 +36,6 @@ class CertificateDedupConfig(override val config: Config) extends BaseJobConfig(
   val cacheExpirySeconds: Int = config.getInt("redis.database.key.expiry.seconds")
 
   // Deduplication Configuration
-  val dedupKeyField: String = config.getString("deduplication.key.field")
   val dedupFlagName: String = "duplicate_certificate_event"
 
 
