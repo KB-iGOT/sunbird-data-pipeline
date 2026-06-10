@@ -32,6 +32,7 @@
 		<module>user-cache-updater-2.0</module>
 		<module>cb-preprocessor</module>
 		<module>rating</module>
+		<module>certificate-deduplication</module>
 	</modules>
 
 	<properties>
