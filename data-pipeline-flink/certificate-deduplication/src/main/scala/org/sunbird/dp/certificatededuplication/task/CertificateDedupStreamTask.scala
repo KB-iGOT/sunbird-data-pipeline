@@ -23,17 +23,13 @@ class CertificateDeDuplicationStreamTask(config: CertificateDedupConfig, kafkaCo
     implicit val env: StreamExecutionEnvironment = StreamExecutionEnvironment.createLocalEnvironment(config.parallelism)
     implicit val eventTypeInfo: TypeInformation[Event] = TypeExtractor.getForClass(classOf[Event])
     val kafkaConsumer = kafkaConnector.kafkaEventSource[Event](config.kafkaInputTopic)
-
+    env.enableCheckpointing(30000)
     val dedupStream = env.addSource(kafkaConsumer).name(config.certificateDedupConsumer)
       .uid(config.certificateDedupConsumer).setParallelism(config.kafkaConsumerParallelism)
       .rebalance()
       .process(new CertificateDedupFunction(config))
       .name("certificate-deduplication")
 
-    //    dedupStream.addSink(new ClickHouseSinkFunction(config))
-    //      .name(config.clickhouseSinkName)
-    //      .uid(config.clickhouseSinkName)
-    //      .setParallelism(config.sinkParallelism)
 
     val uniqueStream = dedupStream.getSideOutput(config.uniqueEventsOutputTag)
     val duplicateStream = dedupStream.getSideOutput(config.duplicateEventsOutputTag)
@@ -52,7 +48,7 @@ class CertificateDeDuplicationStreamTask(config: CertificateDedupConfig, kafkaCo
     filteredUnique.addSink(new ClickHouseSinkFunction(
       config.chConfig,
       Seq("mid", "primaryCategory", "orgId", "userId", "courseName", "courseCategory", "issuedDate", "batchId", "courseId")
-    ))
+    )).name("clickhouse-sink").uid(config.clickhouseDeduplicationSink)
 
     // Duplicate stream -> Kafka duplicate topic
     duplicateStream.map(new MapFunction[Event, util.Map[String, AnyRef]] {
