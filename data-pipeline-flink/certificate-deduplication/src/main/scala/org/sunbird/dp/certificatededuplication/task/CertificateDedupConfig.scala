@@ -45,6 +45,7 @@ class CertificateDedupConfig(override val config: Config) extends BaseJobConfig(
   val clickhouseUsername: String = config.getString("clickhouse.username")
   val clickhousePassword: String = config.getString("clickhouse.password")
   val clickhouseBatchSize: Int = config.getInt("clickhouse.batch.size")
+  val clickhouseDeduplicationSink = "clickhouse-deduplication-sink"
 
   val chConfig: ClickhouseConfig = ClickhouseConfig(
     url = clickhouseUrl,
