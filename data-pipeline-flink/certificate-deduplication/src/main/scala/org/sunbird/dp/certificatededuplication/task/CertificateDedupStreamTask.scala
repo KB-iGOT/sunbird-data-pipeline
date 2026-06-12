@@ -19,8 +19,7 @@ import org.sunbird.dp.core.util.FlinkUtil
 class CertificateDeDuplicationStreamTask(config: CertificateDedupConfig, kafkaConnector: FlinkKafkaConnector) {
 
   def process(): Unit = {
-//    implicit val env: StreamExecutionEnvironment = FlinkUtil.getExecutionContext(config)
-    implicit val env: StreamExecutionEnvironment = StreamExecutionEnvironment.createLocalEnvironment(config.parallelism)
+    implicit val env: StreamExecutionEnvironment = FlinkUtil.getExecutionContext(config)
     implicit val eventTypeInfo: TypeInformation[Event] = TypeExtractor.getForClass(classOf[Event])
     val kafkaConsumer = kafkaConnector.kafkaEventSource[Event](config.kafkaInputTopic)
     env.enableCheckpointing(30000)
