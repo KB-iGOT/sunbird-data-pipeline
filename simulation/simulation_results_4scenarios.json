@@ -1,0 +1,819 @@
+[
+  {
+    "id": 1,
+    "name": "cbrelease-4.8.31 \u2014 Full Pipeline (ingest-router + streaming denorm)",
+    "branch": "cbrelease-4.8.31",
+    "timeline": {
+      "bottleneck_stage": "de_normalization",
+      "bottleneck_tps": 2800,
+      "total_seconds": 3571.4,
+      "total_minutes": 59.52,
+      "stage_times_sec": {
+        "ingest_router": 52.1,
+        "telemetry_extractor": 263.2,
+        "pipeline_preprocessor": 245.1,
+        "de_normalization": 3571.4,
+        "druid_validator": 200.0,
+        "druid_indexing": 227.3
+      },
+      "max_kafka_lag_events": 9313725,
+      "max_kafka_lag_mb": 6143.0
+    },
+    "e2e_latency": {
+      "p50_ms": 164.5,
+      "p95_ms": 473.5,
+      "p99_ms": 807.9,
+      "p50_sec": 0.165,
+      "p95_sec": 0.473,
+      "p99_sec": 0.808,
+      "broker_p50_ms": 68.4,
+      "broker_p95_ms": 196.8,
+      "stage_p50_ms": 96.1,
+      "stage_p95_ms": 276.7
+    },
+    "redis": {
+      "total_lookups": 37499999,
+      "total_hits": 20124999,
+      "total_misses": 17375000,
+      "overall_hit_rate_pct": 53.7,
+      "avg_latency_per_event_ms": 23.36,
+      "total_redis_time_sec": 233602.5,
+      "redis_working_set_mb": 2693.2,
+      "breakdown": {
+        "device": {
+          "eligible_events": 9400000,
+          "hits": 6796200,
+          "misses": 2603800,
+          "hit_rate_pct": 72.3,
+          "total_latency_ms": 40375444.0
+        },
+        "user": {
+          "eligible_events": 8800000,
+          "hits": 5992800,
+          "misses": 2807200,
+          "hit_rate_pct": 68.1,
+          "total_latency_ms": 41634736.0
+        },
+        "content": {
+          "eligible_events": 8199999,
+          "hits": 6182799,
+          "misses": 2017200,
+          "hit_rate_pct": 75.4,
+          "total_latency_ms": 32582535.0
+        },
+        "dialcode": {
+          "eligible_events": 1100000,
+          "hits": 673200,
+          "misses": 426800,
+          "hit_rate_pct": 61.2,
+          "total_latency_ms": 5992184.0
+        },
+        "dedup": {
+          "eligible_events": 10000000,
+          "hits": 480000,
+          "misses": 9520000,
+          "hit_rate_pct": 4.8,
+          "total_latency_ms": 113017600.0
+        }
+      }
+    },
+    "kafka": {
+      "topics": 6,
+      "bytes_per_event": 1128.0,
+      "total_data_gb": 189.16,
+      "replication_factor": 3,
+      "retained_hours": 48,
+      "monthly_storage_usd": 0.25
+    },
+    "druid": {
+      "raw_size_gb": 11.18,
+      "compressed_size_gb": 3.58,
+      "compression_ratio": 0.32,
+      "segment_count": 20,
+      "monthly_storage_usd": 0.07
+    },
+    "infra": {
+      "total_pods": 40,
+      "total_ram_gb": 146.0,
+      "total_cpu_req": 38.0,
+      "vms_required_16gb": 12,
+      "vms_required_64gb": 3,
+      "flink_pods": 30,
+      "broker_nodes": 2,
+      "broker_label": "Kafka brokers",
+      "cache_nodes": 4,
+      "cache_label": "Redis instances",
+      "db_nodes": 3,
+      "db_label": "Druid nodes",
+      "pg_instances": 1,
+      "pyspark_cores": 0,
+      "pyspark_ram_mb": 0,
+      "infra_breakdown": {
+        "kafka_brokers_ram_gb": 16.0,
+        "redis_instances_ram_gb": 4.0,
+        "druid_nodes_ram_gb": 48.0,
+        "postgres_ram_gb": 2.0
+      },
+      "job_details": [
+        {
+          "job": "ingest_router",
+          "tm_pods": 2,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "telemetry_extractor",
+          "tm_pods": 2,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "pipeline_preprocessor",
+          "tm_pods": 2,
+          "tm_ram_mb": 3010,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "de_normalization",
+          "tm_pods": 1,
+          "tm_ram_mb": 3210,
+          "cpu_req": 0.3
+        },
+        {
+          "job": "druid_validator",
+          "tm_pods": 2,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "cb_preprocessor",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "user_cache_updater",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "content_cache_updater",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "device_profile_updater",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "summary_denorm",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "assessment_aggregator",
+          "tm_pods": 1,
+          "tm_ram_mb": 3170,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "rating",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "error_denorm",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        }
+      ],
+      "kafka_brokers": 2,
+      "redis_instances": 4,
+      "druid_nodes": 3
+    },
+    "cost": {
+      "dry_run_hours": 0.992,
+      "vm_cost_usd": 2.31,
+      "cache_cost_usd": 0.167,
+      "db_cost_usd": 1.155,
+      "kafka_storage_usd": 0.25,
+      "network_cost_usd": 0.407,
+      "dry_run_total_usd": 4.288,
+      "monthly_equiv_usd": 1029.2,
+      "vm_type_used": "GCP n2-standard-16 (64 GB / 16 vCPU)",
+      "redis_cost_usd": 0.167,
+      "druid_cost_usd": 1.155
+    },
+    "kafka_hops": 6,
+    "notes": [
+      "ingest-router adds one full Kafka hop (11.4 ms p50, 32.8 ms p95)",
+      "de-normalization (window=30, 1 slot) is the primary throughput bottleneck",
+      "5 Redis lookups per event (device, user, content, dialcode, dedup)",
+      "HPA on extractor/preprocessor/druid-validator scales up on lag; denorm does NOT scale (scale_enabled=false)",
+      "Kafka lag in .telemetry.unique peaks at ~9 M events"
+    ]
+  },
+  {
+    "id": 2,
+    "name": "cbrelease-4.8.31 \u2014 Denorm DISABLED (raw events to Druid)",
+    "branch": "cbrelease-4.8.31",
+    "timeline": {
+      "bottleneck_stage": "telemetry_extractor",
+      "bottleneck_tps": 38000,
+      "total_seconds": 263.2,
+      "total_minutes": 4.39,
+      "stage_times_sec": {
+        "ingest_router": 52.1,
+        "telemetry_extractor": 263.2,
+        "pipeline_preprocessor": 245.1,
+        "druid_validator": 200.0,
+        "druid_indexing": 227.3
+      },
+      "max_kafka_lag_events": 8020833,
+      "max_kafka_lag_mb": 5290.2
+    },
+    "e2e_latency": {
+      "p50_ms": 100.7,
+      "p95_ms": 292.1,
+      "p99_ms": 462.4,
+      "p50_sec": 0.101,
+      "p95_sec": 0.292,
+      "p99_sec": 0.462,
+      "broker_p50_ms": 57.0,
+      "broker_p95_ms": 164.0,
+      "stage_p50_ms": 43.7,
+      "stage_p95_ms": 128.1
+    },
+    "redis": {
+      "total_lookups": 20000000,
+      "total_hits": 960000,
+      "total_misses": 19040000,
+      "overall_hit_rate_pct": 4.8,
+      "avg_latency_per_event_ms": 22.603520000000003,
+      "total_redis_time_sec": 226035.2,
+      "redis_working_set_mb": 1280,
+      "breakdown": {
+        "dedup_preprocessor": {
+          "eligible_events": 10000000,
+          "hits": 480000,
+          "misses": 9520000,
+          "hit_rate_pct": 4.8,
+          "total_latency_ms": 113017600
+        },
+        "dedup_validator": {
+          "eligible_events": 10000000,
+          "hits": 480000,
+          "misses": 9520000,
+          "hit_rate_pct": 4.8,
+          "total_latency_ms": 113017600
+        }
+      }
+    },
+    "kafka": {
+      "topics": 5,
+      "bytes_per_event": 1128.0,
+      "total_data_gb": 157.64,
+      "replication_factor": 3,
+      "retained_hours": 48,
+      "monthly_storage_usd": 0.21
+    },
+    "druid": {
+      "raw_size_gb": 11.18,
+      "compressed_size_gb": 3.58,
+      "compression_ratio": 0.32,
+      "segment_count": 20,
+      "monthly_storage_usd": 0.07
+    },
+    "infra": {
+      "total_pods": 38,
+      "total_ram_gb": 140.6,
+      "total_cpu_req": 37.5,
+      "vms_required_16gb": 12,
+      "vms_required_64gb": 3,
+      "flink_pods": 28,
+      "broker_nodes": 2,
+      "broker_label": "Kafka brokers",
+      "cache_nodes": 4,
+      "cache_label": "Redis instances",
+      "db_nodes": 3,
+      "db_label": "Druid nodes",
+      "pg_instances": 1,
+      "pyspark_cores": 0,
+      "pyspark_ram_mb": 0,
+      "infra_breakdown": {
+        "kafka_brokers_ram_gb": 16.0,
+        "redis_instances_ram_gb": 4.0,
+        "druid_nodes_ram_gb": 48.0,
+        "postgres_ram_gb": 2.0
+      },
+      "job_details": [
+        {
+          "job": "ingest_router",
+          "tm_pods": 2,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "telemetry_extractor",
+          "tm_pods": 2,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "pipeline_preprocessor",
+          "tm_pods": 2,
+          "tm_ram_mb": 3010,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "druid_validator",
+          "tm_pods": 2,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "cb_preprocessor",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "user_cache_updater",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "content_cache_updater",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "device_profile_updater",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "summary_denorm",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "assessment_aggregator",
+          "tm_pods": 1,
+          "tm_ram_mb": 3170,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "rating",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "error_denorm",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        }
+      ],
+      "kafka_brokers": 2,
+      "redis_instances": 4,
+      "druid_nodes": 3
+    },
+    "cost": {
+      "dry_run_hours": 0.073,
+      "vm_cost_usd": 0.17,
+      "cache_cost_usd": 0.006,
+      "db_cost_usd": 0.085,
+      "kafka_storage_usd": 0.21,
+      "network_cost_usd": 0.407,
+      "dry_run_total_usd": 0.878,
+      "monthly_equiv_usd": 210.78,
+      "vm_type_used": "GCP n2-standard-16 (64 GB / 16 vCPU)",
+      "redis_cost_usd": 0.006,
+      "druid_cost_usd": 0.085
+    },
+    "kafka_hops": 5,
+    "notes": [
+      "Denorm job disabled \u2192 events reach Druid WITHOUT device/user/content enrichment",
+      "Druid queries on user_state, content_type etc. will return NULL \u2014 reports will be incomplete",
+      "Bottleneck shifts to pipeline-preprocessor and druid-validator (roughly equal at ~40k eps)",
+      "Redis load drops by ~96 % (only dedup lookups remain)",
+      "Redis memory drops from ~2693 MB to 1,280 MB",
+      "ingest-router still active (cbrelease branch), still adds latency and Kafka hop"
+    ]
+  },
+  {
+    "id": 3,
+    "name": "postnlw \u2014 Extractor as entry point, ingest-router removed, streaming denorm",
+    "branch": "postnlw",
+    "timeline": {
+      "bottleneck_stage": "de_normalization",
+      "bottleneck_tps": 2800,
+      "total_seconds": 3571.4,
+      "total_minutes": 59.52,
+      "stage_times_sec": {
+        "telemetry_extractor": 263.2,
+        "pipeline_preprocessor": 245.1,
+        "de_normalization": 3571.4,
+        "druid_validator": 200.0,
+        "druid_indexing": 227.3
+      },
+      "max_kafka_lag_events": 9313725,
+      "max_kafka_lag_mb": 6143.0
+    },
+    "e2e_latency": {
+      "p50_ms": 151.0,
+      "p95_ms": 433.3,
+      "p99_ms": 755.9,
+      "p50_sec": 0.151,
+      "p95_sec": 0.433,
+      "p99_sec": 0.756,
+      "broker_p50_ms": 57.0,
+      "broker_p95_ms": 164.0,
+      "stage_p50_ms": 94.0,
+      "stage_p95_ms": 269.3
+    },
+    "redis": {
+      "total_lookups": 37499999,
+      "total_hits": 20124999,
+      "total_misses": 17375000,
+      "overall_hit_rate_pct": 53.7,
+      "avg_latency_per_event_ms": 23.36,
+      "total_redis_time_sec": 233602.5,
+      "redis_working_set_mb": 2693.2,
+      "breakdown": {
+        "device": {
+          "eligible_events": 9400000,
+          "hits": 6796200,
+          "misses": 2603800,
+          "hit_rate_pct": 72.3,
+          "total_latency_ms": 40375444.0
+        },
+        "user": {
+          "eligible_events": 8800000,
+          "hits": 5992800,
+          "misses": 2807200,
+          "hit_rate_pct": 68.1,
+          "total_latency_ms": 41634736.0
+        },
+        "content": {
+          "eligible_events": 8199999,
+          "hits": 6182799,
+          "misses": 2017200,
+          "hit_rate_pct": 75.4,
+          "total_latency_ms": 32582535.0
+        },
+        "dialcode": {
+          "eligible_events": 1100000,
+          "hits": 673200,
+          "misses": 426800,
+          "hit_rate_pct": 61.2,
+          "total_latency_ms": 5992184.0
+        },
+        "dedup": {
+          "eligible_events": 10000000,
+          "hits": 480000,
+          "misses": 9520000,
+          "hit_rate_pct": 4.8,
+          "total_latency_ms": 113017600.0
+        }
+      }
+    },
+    "kafka": {
+      "topics": 5,
+      "bytes_per_event": 1128.0,
+      "total_data_gb": 157.64,
+      "replication_factor": 3,
+      "retained_hours": 48,
+      "monthly_storage_usd": 0.21
+    },
+    "druid": {
+      "raw_size_gb": 11.18,
+      "compressed_size_gb": 3.58,
+      "compression_ratio": 0.32,
+      "segment_count": 20,
+      "monthly_storage_usd": 0.07
+    },
+    "infra": {
+      "total_pods": 37,
+      "total_ram_gb": 138.3,
+      "total_cpu_req": 35.8,
+      "vms_required_16gb": 12,
+      "vms_required_64gb": 3,
+      "flink_pods": 27,
+      "broker_nodes": 2,
+      "broker_label": "Kafka brokers",
+      "cache_nodes": 4,
+      "cache_label": "Redis instances",
+      "db_nodes": 3,
+      "db_label": "Druid nodes",
+      "pg_instances": 1,
+      "pyspark_cores": 0,
+      "pyspark_ram_mb": 0,
+      "infra_breakdown": {
+        "kafka_brokers_ram_gb": 16.0,
+        "redis_instances_ram_gb": 4.0,
+        "druid_nodes_ram_gb": 48.0,
+        "postgres_ram_gb": 2.0
+      },
+      "job_details": [
+        {
+          "job": "telemetry_extractor",
+          "tm_pods": 2,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "pipeline_preprocessor",
+          "tm_pods": 2,
+          "tm_ram_mb": 3010,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "de_normalization",
+          "tm_pods": 1,
+          "tm_ram_mb": 3210,
+          "cpu_req": 0.3
+        },
+        {
+          "job": "druid_validator",
+          "tm_pods": 2,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "cb_preprocessor",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "user_cache_updater",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "content_cache_updater",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "device_profile_updater",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "summary_denorm",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "assessment_aggregator",
+          "tm_pods": 1,
+          "tm_ram_mb": 3170,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "rating",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "error_denorm",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        }
+      ],
+      "kafka_brokers": 2,
+      "redis_instances": 4,
+      "druid_nodes": 3
+    },
+    "cost": {
+      "dry_run_hours": 0.992,
+      "vm_cost_usd": 2.31,
+      "cache_cost_usd": 0.167,
+      "db_cost_usd": 1.155,
+      "kafka_storage_usd": 0.21,
+      "network_cost_usd": 0.407,
+      "dry_run_total_usd": 4.248,
+      "monthly_equiv_usd": 1019.6,
+      "vm_type_used": "GCP n2-standard-16 (64 GB / 16 vCPU)",
+      "redis_cost_usd": 0.167,
+      "druid_cost_usd": 1.155
+    },
+    "kafka_hops": 5,
+    "notes": [
+      "ingest-router pod removed (replica=0, scale_enabled=false in postnlw ansible defaults)",
+      "Extractor now reads directly from ingestion Kafka cluster (consumer.broker-servers = ingestion_kafka_brokers)",
+      "Saves 1 Kafka hop: .telemetry.ingest topic eliminated (saves ~11-33 ms per event latency)",
+      "de-normalization remains bottleneck \u2014 same throughput as Scenario 1",
+      "One fewer Flink job reduces RAM by ~3.5 GB and pods by 3 (1 JM + 2 TM for ingest-router)",
+      "Kafka cross-cluster write: extractor producer explicitly targets processing kafka_brokers"
+    ]
+  },
+  {
+    "id": 4,
+    "name": "postnlw \u2014 No streaming denorm + On-demand PySpark enrichment",
+    "branch": "postnlw",
+    "timeline": {
+      "bottleneck_stage": "telemetry_extractor",
+      "bottleneck_tps": 38000,
+      "total_seconds": 263.2,
+      "total_minutes": 4.39,
+      "stage_times_sec": {
+        "telemetry_extractor": 263.2,
+        "pipeline_preprocessor": 245.1,
+        "druid_validator": 200.0,
+        "druid_indexing": 227.3
+      },
+      "max_kafka_lag_events": 0,
+      "max_kafka_lag_mb": 0.0
+    },
+    "e2e_latency": {
+      "p50_ms": 87.2,
+      "p95_ms": 251.9,
+      "p99_ms": 410.4,
+      "p50_sec": 0.087,
+      "p95_sec": 0.252,
+      "p99_sec": 0.41,
+      "broker_p50_ms": 45.6,
+      "broker_p95_ms": 131.2,
+      "stage_p50_ms": 41.6,
+      "stage_p95_ms": 120.7
+    },
+    "redis": {
+      "total_lookups": 20000000,
+      "total_hits": 960000,
+      "total_misses": 19040000,
+      "overall_hit_rate_pct": 4.8,
+      "avg_latency_per_event_ms": 22.603520000000003,
+      "total_redis_time_sec": 226035.2,
+      "redis_working_set_mb": 1280,
+      "breakdown": {}
+    },
+    "kafka": {
+      "topics": 4,
+      "bytes_per_event": 1128.0,
+      "total_data_gb": 126.11,
+      "replication_factor": 3,
+      "retained_hours": 48,
+      "monthly_storage_usd": 0.17
+    },
+    "druid": {
+      "raw_size_gb": 11.18,
+      "compressed_size_gb": 3.58,
+      "compression_ratio": 0.32,
+      "segment_count": 20,
+      "monthly_storage_usd": 0.07
+    },
+    "infra": {
+      "total_pods": 35,
+      "total_ram_gb": 197.0,
+      "total_cpu_req": 51.2,
+      "vms_required_16gb": 16,
+      "vms_required_64gb": 4,
+      "flink_pods": 25,
+      "broker_nodes": 2,
+      "broker_label": "Kafka brokers",
+      "cache_nodes": 4,
+      "cache_label": "Redis instances",
+      "db_nodes": 3,
+      "db_label": "Druid nodes",
+      "pg_instances": 1,
+      "pyspark_cores": 16,
+      "pyspark_ram_mb": 65536,
+      "infra_breakdown": {
+        "kafka_brokers_ram_gb": 16.0,
+        "redis_instances_ram_gb": 4.0,
+        "druid_nodes_ram_gb": 48.0,
+        "postgres_ram_gb": 2.0
+      },
+      "job_details": [
+        {
+          "job": "telemetry_extractor",
+          "tm_pods": 2,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "pipeline_preprocessor",
+          "tm_pods": 2,
+          "tm_ram_mb": 3010,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "druid_validator",
+          "tm_pods": 2,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "cb_preprocessor",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "user_cache_updater",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "content_cache_updater",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "device_profile_updater",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "summary_denorm",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "assessment_aggregator",
+          "tm_pods": 1,
+          "tm_ram_mb": 3170,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "rating",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        },
+        {
+          "job": "error_denorm",
+          "tm_pods": 1,
+          "tm_ram_mb": 2790,
+          "cpu_req": 1.0
+        }
+      ],
+      "kafka_brokers": 2,
+      "redis_instances": 4,
+      "druid_nodes": 3
+    },
+    "cost": {
+      "dry_run_hours": 0.073,
+      "vm_cost_usd": 0.227,
+      "cache_cost_usd": 0.006,
+      "db_cost_usd": 0.085,
+      "kafka_storage_usd": 0.17,
+      "network_cost_usd": 0.407,
+      "dry_run_total_usd": 0.895,
+      "monthly_equiv_usd": 214.8,
+      "vm_type_used": "GCP n2-standard-16 (64 GB / 16 vCPU)",
+      "redis_cost_usd": 0.006,
+      "druid_cost_usd": 0.085
+    },
+    "kafka_hops": 4,
+    "pyspark": {
+      "cores_16gb_vm": 4,
+      "throughput_16gb_eps": 39344.0,
+      "time_16gb_sec": 254.2,
+      "time_16gb_fmt": "4m 14s",
+      "cores_64gb_vm": 16,
+      "throughput_64gb_eps": 157377.0,
+      "time_64gb_sec": 63.5,
+      "time_64gb_fmt": "1m 03s",
+      "raw_blob_gb": 6.44,
+      "enriched_blob_gb": 8.7,
+      "blob_monthly_usd": 0.3
+    },
+    "notes": [
+      "Streaming pipeline delivers raw (unenriched) events to Druid in real-time",
+      "PySpark runs on-demand (not continuously) \u2014 no continuous streaming overhead",
+      "PySpark reads unenriched events from blob + Redis/API metadata \u2192 writes enriched back",
+      "16 GB VM (4 vCPU) PySpark: batch completes in 4m 14s",
+      "64 GB VM (16 vCPU) PySpark: batch completes in 1m 03s",
+      "Real-time Druid data available immediately but queries on enriched fields return NULL until PySpark run completes",
+      "Ideal for report-on-demand workflows where enrichment is not time-critical",
+      "Significant cost savings: no always-on denorm pods"
+    ]
+  }
+]

@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sunbird Data Pipeline Visualizer</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg0:#0f172a;--bg1:#1e293b;--bg2:#334155;--border:#475569;
+  --t0:#f1f5f9;--t1:#94a3b8;--t2:#64748b;
+  --blue:#3b82f6;--blue2:#2563eb;--green:#10b981;
+  --amber:#f59e0b;--red:#ef4444;--purple:#8b5cf6;--cyan:#06b6d4;
+}
+body{background:var(--bg0);color:var(--t0);font-family:'Segoe UI',system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* HEADER */
+.hdr{background:var(--bg1);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.hdr-logo{font-size:17px;font-weight:800;flex:1}.hdr-logo span{color:var(--blue)}
+.hdr-sub{font-size:11px;color:var(--t2)}
+.btn{padding:6px 13px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--t0);cursor:pointer;font-size:12px;transition:.15s;display:flex;align-items:center;gap:5px}
+.btn:hover{background:var(--border)}
+.btn.pri{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.pri:hover{background:var(--blue2)}
+.btn.warn{border-color:var(--amber);color:var(--amber);background:transparent}
+.btn.warn:hover{background:rgba(245,158,11,.1)}
+.mode-tag{padding:3px 9px;border-radius:12px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.mode-tag.view{background:rgba(16,185,129,.2);color:#34d399}
+.mode-tag.edit{background:rgba(245,158,11,.2);color:#fbbf24}
+
+/* LAYOUT */
+.main{display:flex;flex:1;overflow:hidden}
+.canvas{flex:1;overflow-y:auto;padding:24px 32px}
+.panel{width:0;overflow:hidden;transition:width .3s ease;background:var(--bg1);border-left:1px solid var(--border);flex-shrink:0}
+.panel.open{width:440px}
+.panel-inner{width:440px;height:100%;overflow-y:auto;padding:20px}
+
+/* PIPELINE NODES */
+.flow{display:flex;flex-direction:column;align-items:center}
+.connector{width:2px;height:28px;background:var(--border);position:relative;flex-shrink:0}
+.connector::after{content:'';position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--border)}
+
+.source-box,.sink-box{padding:10px 28px;border-radius:8px;font-size:13px;font-weight:700;text-align:center;letter-spacing:.3px}
+.source-box{background:rgba(139,92,246,.15);border:1.5px solid var(--purple);color:var(--purple)}
+.sink-box{background:rgba(6,182,212,.15);border:1.5px solid var(--cyan);color:var(--cyan);margin:4px}
+
+.topic-pill{padding:6px 18px;border-radius:20px;border:1.5px solid;font-size:12px;font-weight:600;cursor:default;white-space:nowrap;transition:.15s}
+.topic-pill.main{border-color:var(--green);color:var(--green);background:rgba(16,185,129,.08)}
+.topic-pill.route{border-color:var(--amber);color:var(--amber);background:rgba(245,158,11,.08)}
+.topic-pill.err{border-color:var(--red);color:var(--red);background:rgba(239,68,68,.08)}
+.topic-pill.sink{border-color:var(--cyan);color:var(--cyan);background:rgba(6,182,212,.08)}
+
+/* JOB CARD */
+.job-card{background:var(--bg1);border:2px solid var(--border);border-radius:12px;padding:14px 18px;width:420px;cursor:pointer;transition:.2s;position:relative}
+.job-card:hover,.job-card.active{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+.job-card.active{background:rgba(59,130,246,.06)}
+.jc-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.jc-icon{font-size:22px;width:40px;height:40px;background:rgba(59,130,246,.15);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.jc-name{font-size:14px;font-weight:700}
+.jc-badges{display:flex;gap:5px;margin-top:3px}
+.badge{font-size:9px;padding:2px 7px;border-radius:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.badge.flink{background:rgba(59,130,246,.2);color:#60a5fa}
+.badge.redis{background:rgba(239,68,68,.2);color:#f87171}
+.badge.kafka{background:rgba(16,185,129,.2);color:#34d399}
+.jc-desc{font-size:12px;color:var(--t1);line-height:1.5}
+.jc-meta{display:flex;gap:14px;margin-top:10px;padding-top:10px;border-top:1px solid var(--bg2);font-size:11px;color:var(--t2)}
+.jc-meta strong{color:var(--t1)}
+
+/* SIDE OUTPUTS */
+.side-outs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:520px;margin-top:6px}
+.side-out{display:flex;flex-direction:column;align-items:center;gap:3px}
+.side-label{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--t2);font-weight:600}
+
+/* SPLIT */
+.split-row{display:flex;gap:12px;align-items:flex-start;justify-content:center}
+.split-col{display:flex;flex-direction:column;align-items:center;gap:6px}
+.split-lbl{font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.5px}
+
+/* EDIT CONTROLS */
+.edit-btns{display:none;position:absolute;top:6px;right:6px;gap:4px}
+.canvas.edit .edit-btns{display:flex}
+.eb{width:26px;height:26px;border-radius:5px;border:1px solid var(--border);background:var(--bg0);color:var(--t1);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:.15s}
+.eb:hover{background:var(--border);color:var(--t0)}
+.eb.del:hover{background:rgba(239,68,68,.2);border-color:var(--red);color:var(--red)}
+.add-btn{display:none;align-items:center;gap:7px;padding:7px 18px;border-radius:8px;border:2px dashed var(--border);background:transparent;color:var(--t2);cursor:pointer;font-size:12px;transition:.15s;margin:4px 0}
+.canvas.edit .add-btn{display:flex}
+.add-btn:hover{border-color:var(--blue);color:var(--blue)}
+
+/* DETAIL PANEL */
+.dp-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:16px}
+.dp-icon{font-size:28px;width:48px;height:48px;background:rgba(59,130,246,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dp-title{font-size:16px;font-weight:700;margin-bottom:4px}
+.dp-desc{font-size:12px;color:var(--t1);line-height:1.5}
+.dp-close{margin-left:auto;background:none;border:none;color:var(--t1);cursor:pointer;font-size:18px;padding:2px;flex-shrink:0}
+.dp-close:hover{color:var(--t0)}
+
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:16px;overflow-x:auto;gap:0}
+.tab{padding:7px 14px;font-size:12px;cursor:pointer;color:var(--t2);border-bottom:2px solid transparent;white-space:nowrap;transition:.15s}
+.tab:hover{color:var(--t1)}
+.tab.on{color:var(--blue);border-bottom-color:var(--blue)}
+.tc{display:none}.tc.on{display:block}
+
+.sec-h{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--t2);font-weight:700;margin-bottom:8px;margin-top:14px}
+.sec-h:first-child{margin-top:0}
+
+.step{display:flex;gap:10px;margin-bottom:14px}
+.step-n{width:26px;height:26px;border-radius:50%;background:rgba(59,130,246,.2);color:#60a5fa;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-t{font-size:13px;font-weight:600;margin-bottom:3px}
+.step-d{font-size:12px;color:var(--t1);line-height:1.5}
+
+.t-item{background:var(--bg2);border-radius:7px;padding:8px 12px;margin-bottom:6px;border-left:3px solid}
+.t-item.in{border-color:var(--purple)}.t-item.out{border-color:var(--green)}.t-item.dup{border-color:var(--amber)}.t-item.fail{border-color:var(--red)}.t-item.rt{border-color:var(--cyan)}
+.t-name{font-size:12px;font-weight:700;font-family:monospace;margin-bottom:2px}
+.t-desc{font-size:11px;color:var(--t2)}
+.t-tag{font-size:9px;padding:1px 6px;border-radius:4px;font-weight:700;text-transform:uppercase;display:inline-block;margin-top:3px}
+
+.r-card{background:var(--bg2);border-radius:7px;padding:10px;border-left:3px solid var(--red);margin-bottom:8px}
+.r-db{font-size:18px;font-weight:800;color:#f87171}
+.r-info{font-size:11px;color:var(--t1);line-height:1.6;margin-top:4px}
+
+.f-item{background:var(--bg2);border-radius:7px;padding:9px 12px;margin-bottom:7px}
+.f-name{font-size:12px;font-weight:700;font-family:monospace;color:#60a5fa;margin-bottom:2px}
+.f-path{font-size:10px;color:var(--t2);font-family:monospace;word-break:break-all;margin-bottom:3px}
+.f-desc{font-size:11px;color:var(--t1)}
+
+.m-item{padding:5px 10px;background:var(--bg2);border-radius:5px;font-size:11px;font-family:monospace;color:var(--t1);margin-bottom:5px}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;align-items:center;justify-content:center}
+.overlay.on{display:flex}
+.modal{background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:22px;width:620px;max-width:92vw;max-height:85vh;overflow-y:auto}
+.m-head{display:flex;align-items:center;margin-bottom:16px}
+.m-title{font-size:15px;font-weight:700;flex:1}
+.m-close{background:none;border:none;color:var(--t1);cursor:pointer;font-size:18px}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:10px;color:var(--t2);margin-bottom:5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.fg input,.fg textarea,.fg select{width:100%;padding:7px 10px;background:var(--bg0);border:1px solid var(--border);border-radius:6px;color:var(--t0);font-size:12px;outline:none;transition:.15s}
+.fg input:focus,.fg textarea:focus{border-color:var(--blue)}
+.fg textarea{resize:vertical;min-height:72px;font-family:inherit}
+.fg .hint{font-size:10px;color:var(--t2);margin-top:3px}
+.json-area{font-family:monospace;font-size:11px;line-height:1.6;min-height:350px}
+
+/* LEGEND */
+.legend{display:flex;flex-wrap:wrap;gap:12px;padding:0 0 16px 0}
+.lg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t1)}
+.lg-dot{width:10px;height:10px;border-radius:2px}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;z-index:300;transform:translateY(80px);transition:.3s}
+.toast.show{transform:translateY(0)}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg0)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ── ANATOMY VIEW ───────────────────────────────────────── */
+.view-toggle{display:flex;gap:4px;margin-right:4px}
+.vtb{padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:var(--bg2);color:var(--t1);cursor:pointer;font-size:11px;font-weight:600;transition:.15s}
+.vtb:hover{background:var(--border);color:var(--t0)}
+.vtb.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.anat-wrap{padding:4px 0 40px}
+.anat-section-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--t2);padding:16px 0 8px;border-top:1px solid var(--border);margin-top:4px}
+.anat-section-title:first-child{border-top:none;padding-top:0}
+.anat-card{background:var(--bg1);border:1px solid var(--border);border-radius:10px;padding:0;margin-bottom:16px;overflow:hidden}
+.anat-card-header{display:flex;align-items:flex-start;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid var(--bg2);gap:12px}
+.anat-job-name{font-size:14px;font-weight:700}
+.anat-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.jb{font-size:9px;padding:2px 7px;border-radius:4px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.jb.pass{background:rgba(16,185,129,.15);color:#34d399}
+.jb.heavy{background:rgba(239,68,68,.15);color:#f87171}
+.jb.redundant{background:rgba(245,158,11,.15);color:#fbbf24}
+.jb.moderate{background:rgba(59,130,246,.15);color:#60a5fa}
+.jb.maint{background:rgba(100,116,139,.15);color:#94a3b8}
+.jb.critical{background:rgba(239,68,68,.3);color:#ef4444;border:1px solid rgba(239,68,68,.4)}
+.jb.warn{background:rgba(245,158,11,.15);color:#fbbf24}
+.kf{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:7px 16px;background:rgba(0,0,0,.15);border-bottom:1px solid var(--bg2);font-size:11px}
+.kf-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--t2);font-weight:700}
+.kf-tp{padding:2px 8px;border-radius:9px;font-family:monospace;font-size:10px;font-weight:600}
+.kf-tp.in{background:rgba(139,92,246,.15);color:#a78bfa;border:1px solid rgba(139,92,246,.3)}
+.kf-tp.out{background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.3)}
+.kf-tp.err{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2)}
+.kf-tp.side{background:rgba(245,158,11,.1);color:#fbbf24;border:1px solid rgba(245,158,11,.2)}
+.kf-jb{padding:2px 9px;border-radius:4px;background:rgba(59,130,246,.15);color:#60a5fa;font-size:10px;font-weight:700;border:1px solid rgba(59,130,246,.3)}
+.kf-arr{color:var(--t2);font-size:11px}
+.kf-sep{color:var(--border);margin:0 3px}
+.anat-body{display:grid;grid-template-columns:1fr 270px;gap:0}
+.asteps-col{padding:12px 16px}
+.adeps-col{padding:12px 14px;border-left:1px solid var(--bg2);background:rgba(0,0,0,.08)}
+.asteps-title{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--t2);font-weight:700;margin-bottom:8px;margin-top:0}
+.asteps-title+.asteps-title{margin-top:12px}
+.asr{display:flex;gap:8px;margin-bottom:10px;align-items:flex-start}
+.asn{min-width:22px;height:22px;border-radius:50%;background:rgba(59,130,246,.2);color:#60a5fa;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.asb{flex:1}
+.ast{font-size:12px;color:var(--t1);line-height:1.5;margin-bottom:4px}
+.astags{display:flex;flex-wrap:wrap;gap:4px}
+.op{font-size:9px;padding:2px 6px;border-radius:3px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.op.kafka{background:rgba(16,185,129,.15);color:#34d399}
+.op.redis{background:rgba(239,68,68,.15);color:#f87171}
+.op.compute{background:rgba(59,130,246,.15);color:#60a5fa}
+.op.route{background:rgba(100,116,139,.15);color:#94a3b8}
+.op.cassandra{background:rgba(139,92,246,.15);color:#a78bfa}
+.op.postgres{background:rgba(6,182,212,.15);color:#22d3ee}
+.op.api{background:rgba(245,158,11,.15);color:#fbbf24}
+.op.bug{background:rgba(239,68,68,.3);color:#ef4444;border:1px solid rgba(239,68,68,.4)}
+.op.warn{background:rgba(245,158,11,.2);color:#f59e0b}
+.adeps-title{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--t2);font-weight:700;margin-bottom:8px}
+.adi{display:flex;gap:7px;margin-bottom:8px;align-items:flex-start}
+.adi-ic{font-size:12px;flex-shrink:0;margin-top:1px}
+.adi-inf{font-size:11px;color:var(--t1)}
+.adi-inf strong{display:block;color:var(--t0);margin-bottom:2px;font-size:11px}
+.adi-inf span{display:block;font-size:10px;color:var(--t2);line-height:1.4}
+.sbox{margin-top:10px;border-radius:6px;padding:8px 10px;border:1px solid var(--border);background:rgba(0,0,0,.08)}
+.sbox.ok{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.04)}
+.sbox.warn{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.04)}
+.sbox-title{font-size:9px;text-transform:uppercase;letter-spacing:.7px;font-weight:700;color:var(--t2);margin-bottom:4px}
+.sbox.ok .sbox-title{color:#34d399}
+.sbox.warn .sbox-title{color:#fbbf24}
+.sbox-txt{font-size:11px;color:var(--t1);line-height:1.5}
+.anat-tbl{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px;overflow-x:auto;display:block}
+.anat-tbl th{background:var(--bg2);padding:6px 9px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--t2);font-weight:700;white-space:nowrap}
+.anat-tbl td{padding:6px 9px;border-bottom:1px solid var(--bg2);vertical-align:top;line-height:1.4;white-space:nowrap}
+.anat-tbl tr:last-child td{border-bottom:none}
+.anat-tbl .ajc{font-weight:700;color:var(--t0)}
+.dot-r,.dot-a,.dot-g,.dot-b{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:3px;vertical-align:middle}
+.dot-r{background:#ef4444}.dot-a{background:#f59e0b}.dot-g{background:#10b981}.dot-b{background:#3b82f6}
+
+/* ── SIDE BRANCHES + SUPPORT BAND ───────────────────────── */
+.branch-callout{display:flex;align-items:center;gap:0;margin:6px 0 6px 0;width:640px;max-width:100%}
+.bc-wire{display:flex;align-items:center;flex-shrink:0;margin-left:169px}
+.bc-wire-h{width:32px;height:2px;background:var(--amber)}
+.bc-tip{width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid var(--amber);flex-shrink:0}
+.bc-content{display:flex;flex-direction:column;gap:4px;min-width:200px}
+.bc-topic-lbl{padding:2px 10px;border-radius:9px;border:1px solid var(--amber);color:var(--amber);background:rgba(245,158,11,.08);font-size:10px;font-family:monospace;font-weight:600;align-self:flex-start}
+.bc-card{background:var(--bg1);border:1.5px solid var(--amber);border-radius:9px;padding:9px 14px;cursor:pointer;transition:.15s}
+.bc-card:hover{border-color:#fbbf24;background:rgba(245,158,11,.05)}
+.bc-card.active{border-color:var(--blue);background:rgba(59,130,246,.06)}
+.bc-name{font-size:12px;font-weight:700;margin-bottom:3px}
+.bc-short{font-size:10px;color:var(--t2);line-height:1.4}
+.bc-out{font-size:9px;font-family:monospace;color:var(--green);margin-top:4px;font-weight:600}
+.support-band{margin-top:20px;background:var(--bg1);border:1px solid var(--border);border-radius:10px;padding:14px 16px;max-width:640px}
+.sb-header{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--t2);margin-bottom:4px}
+.sb-note{font-size:11px;color:var(--t1);margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--bg2);line-height:1.5}
+.sb-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.sb-card{background:var(--bg2);border-radius:8px;padding:9px 12px;cursor:pointer;transition:.15s;border:1.5px solid transparent}
+.sb-card:hover,.sb-card.active{border-color:var(--blue)}
+.sb-icon{font-size:16px;margin-bottom:4px}
+.sb-name{font-size:12px;font-weight:700;margin-bottom:3px}
+.sb-short{font-size:10px;color:var(--t2);line-height:1.4}
+.sb-writes{font-size:9px;font-family:monospace;margin-top:5px;font-weight:600;color:var(--red)}
+.sb-writes.amber{color:var(--amber)}.sb-writes.purple{color:var(--purple)}.sb-writes.cyan{color:var(--cyan)}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-logo">Sunbird <span>Data Pipeline</span> Visualizer</div>
+    <div class="hdr-sub">Click any Flink job to explore its details</div>
+  </div>
+  <div class="view-toggle">
+    <button class="vtb on" id="flowBtn" onclick="toggleView('flow')">🔀 Flow</button>
+    <button class="vtb" id="anatomyBtn" onclick="toggleView('anatomy')">🔬 Anatomy</button>
+  </div>
+  <span class="mode-tag view" id="modeTag">View Mode</span>
+  <button class="btn warn" id="editBtn" onclick="toggleEdit()">✏️ Edit Mode</button>
+  <button class="btn" onclick="openIE()">⬆️ Import / Export</button>
+  <button class="btn" onclick="openHelp()">❓ Help</button>
+</div>
+
+<div class="main">
+  <div class="canvas" id="canvas"></div>
+  <div class="panel" id="panel"><div class="panel-inner" id="panelInner"></div></div>
+</div>
+
+<!-- Edit Job Modal -->
+<div class="overlay" id="editModal">
+  <div class="modal">
+    <div class="m-head"><div class="m-title" id="emt">Edit Job</div><button class="m-close" onclick="closeM('editModal')">✕</button></div>
+    <div id="emBody"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="btn" onclick="closeM('editModal')">Cancel</button>
+      <button class="btn pri" onclick="saveEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import/Export Modal -->
+<div class="overlay" id="ieModal">
+  <div class="modal">
+    <div class="m-head"><div class="m-title">Import / Export Pipeline JSON</div><button class="m-close" onclick="closeM('ieModal')">✕</button></div>
+    <p style="font-size:12px;color:var(--t1);margin-bottom:12px">Edit the JSON below to fully customize the pipeline. All jobs, topics, steps, Redis DBs, and source files are configurable.</p>
+    <textarea class="fg json-area" id="jsonArea" style="width:100%;border:1px solid var(--border);background:var(--bg0);color:var(--t0);padding:10px;border-radius:6px;outline:none"></textarea>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button class="btn" onclick="downloadJSON()">⬇️ Download</button>
+      <button class="btn" onclick="closeM('ieModal')">Cancel</button>
+      <button class="btn pri" onclick="applyJSON()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- Help Modal -->
+<div class="overlay" id="helpModal">
+  <div class="modal" style="max-width:520px">
+    <div class="m-head"><div class="m-title">How This Pipeline Works</div><button class="m-close" onclick="closeM('helpModal')">✕</button></div>
+    <div style="font-size:13px;color:var(--t1);line-height:1.8">
+      <p style="margin-bottom:10px"><strong style="color:var(--t0)">Apache Flink</strong> — A stream processing engine. Each "job" is a continuously running program that reads events as they arrive, processes them, and writes results. No batch delay.</p>
+      <p style="margin-bottom:10px"><strong style="color:var(--t0)">Apache Kafka / Redpanda</strong> — A message bus with named "topics" (like mailboxes). Job A drops events into a topic; Job B reads from that topic. This decouples each stage so they run independently.<br>
+      <span style="font-size:11px;color:var(--t2)"><strong style="color:var(--t1)">Local dev:</strong> runs Apache Kafka 3.7 (KRaft) with the Kubernetes Service named <em>redpanda</em> — so all Flink configs point to <code style="background:var(--bg2);padding:1px 3px;border-radius:2px">redpanda:9092</code> and work unchanged when the image is swapped to real Redpanda in production. Redpanda is a separate C++ product (not a newer Kafka) that is 100% Kafka wire-compatible.</span></p>
+      <p style="margin-bottom:10px"><strong style="color:var(--t0)">Redis</strong> — An in-memory key-value store used for two things: (1) Deduplication — "have I seen this event before?", and (2) Metadata caching — "what city is device X from?"</p>
+      <p style="margin-bottom:10px"><strong style="color:var(--t0)">Apache Druid</strong> — A time-series analytics database where final validated events are stored for dashboards and reports. Both <code style="background:var(--bg2);padding:1px 3px;border-radius:2px">druid.events.telemetry</code> and <code style="background:var(--bg2);padding:1px 3px;border-radius:2px">druid.events.summary</code> feed into Druid — not cloud storage.</p>
+      <p style="margin-bottom:10px"><strong style="color:var(--t0)">SECOR</strong> — A separate Pinterest-era archival tool that reads certain Kafka topics (<code style="background:var(--bg2);padding:1px 3px;border-radius:2px">telemetry.raw</code>, <code style="background:var(--bg2);padding:1px 3px;border-radius:2px">telemetry.denorm</code>, etc.) and writes them as flat JSON files to S3. This is the long-term backup path — separate from the analytics path.</p>
+      <hr style="border-color:var(--border);margin:14px 0">
+      <p><strong style="color:var(--t0)">Using this tool:</strong><br>
+      • Click any <strong>blue job card</strong> to see full details in the right panel<br>
+      • Click <strong>Edit Mode</strong> to add, remove, or modify jobs in the pipeline<br>
+      • Use <strong>Import/Export</strong> to save or share the pipeline config as JSON</p>
+    </div>
+    <div style="text-align:right;margin-top:16px"><button class="btn pri" onclick="closeM('helpModal')">Got it</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// PIPELINE DATA — edit this to configure the pipeline
+// ═══════════════════════════════════════════════════════════
+let cfg = {
+  title: "Sunbird Data Pipeline",
+  stages: [
+    {
+      id:"ingest-router",
+      name:"Ingest Router",
+      icon:"🔀",
+      shortDesc:"Pure Kafka-to-Kafka relay. No transformation logic. Routes external SDK events from telemetry.ingestion into the internal pipeline and provides the earliest observable lag monitoring boundary.",
+      inputTopic:{name:"telemetry.ingestion",desc:"External SDK/API write target. Mobile apps, web portal, and Telemetry API write batched events here."},
+      outputTopic:{name:"telemetry.ingest",desc:"Internal pipeline entry point. All downstream Flink jobs start reading from here."},
+      sideOutputs:[
+        {name:"telemetry.raw (raw-stream relay)",desc:"Relays telemetry.raw.event → telemetry.raw. Secondary non-batch ingest path for raw pre-formatted events. No business logic.",type:"route"}
+      ],
+      description:"The <strong>gateway job</strong>. Runs two completely independent byte-stream pipelines inside a single Flink job: (1) the <strong>ingest stream</strong> relays <code>telemetry.ingestion → telemetry.ingest</code> byte-for-byte, and (2) the <strong>raw stream</strong> relays <code>telemetry.raw.event → telemetry.raw</code>. There is no ProcessFunction, no deserialization, and no business logic — it is a pure Kafka-to-Kafka relay.<br><br>This job provides a critical monitoring boundary: the consumer group lag on <code>telemetry.ingestion</code> is the <strong>earliest observable lag signal</strong> in the entire pipeline. If SDK burst traffic outpaces pipeline capacity, this group shows lag before any downstream job does.",
+      steps:[
+        {title:"Ingest Stream (Pass-through)",desc:"Reads byte arrays from telemetry.ingestion and writes them unchanged to telemetry.ingest. No deserialization, no schema parsing, no field modification. The SDK payload is preserved byte-for-byte."},
+        {title:"Raw Stream (Pass-through)",desc:"Reads from telemetry.raw.event and relays to telemetry.raw. This handles a secondary non-batch ingest path for raw events that bypass the batch API. After optimization P2.5, telemetry.raw becomes a shadow write — the pipeline no longer reads from it."},
+        {title:"Monitoring Boundary",desc:"The consumer group {env}-ingest-router-group on telemetry.ingestion is the earliest observable lag point. If SDK/API burst volume outpaces processing capacity, this group accumulates lag before any downstream job does — making it the first alert trigger in the entire pipeline."},
+        {title:"Why Not Eliminated",desc:"Eliminating this job would require either renaming telemetry-intake's input topic or coordinating all SDK/API deployments to write to a different topic. Both coordination costs exceed the performance gain (~200k Kafka I/O ops/sec saved). This job also provides the critical monitoring boundary that would need to be explicitly recreated elsewhere."}
+      ],
+      redis:[],
+      files:[
+        {name:"IngestRouterStreamTask.scala",path:"data-pipeline-flink/ingest-router/src/main/scala/org/sunbird/dp/ingestrouter/task/IngestRouterStreamTask.scala",desc:"Main entry point. Sets up two independent kafkaBytesSource → kafkaBytesSink pipelines with no intermediate ProcessFunctions."},
+        {name:"ingest-router.conf",path:"data-pipeline-flink/ingest-router/src/main/resources/ingest-router.conf",desc:"Config: input/output topic names, parallelism, consumer group IDs for both the ingest and raw streams."}
+      ],
+      metrics:["ingest-route-count — Events relayed from telemetry.ingestion to telemetry.ingest","raw-route-count — Events relayed from telemetry.raw.event to telemetry.raw"]
+    },
+    {
+      id:"telemetry-extractor",
+      name:"Telemetry Extractor",
+      icon:"📦",
+      shortDesc:"Unpacks batch events from the Telemetry API, deduplicates at batch level, validates size, and routes by event type.",
+      inputTopic:{name:"telemetry.ingest",desc:"Batch events sent by mobile/web Telemetry API"},
+      outputTopic:{name:"telemetry.raw",desc:"Individual unpacked events ready for preprocessing"},
+      sideOutputs:[
+        {name:"telemetry.assess.raw",desc:"Redacted ASSESS/RESPONSE events",type:"route"},
+        {name:"druid.events.log",desc:"LOG type events",type:"route"},
+        {name:"telemetry.extractor.duplicate",desc:"Duplicate batches (same msgid)",type:"dup"},
+        {name:"telemetry.failed",desc:"Oversized events >1MB",type:"fail"},
+        {name:"telemetry.extractor.failed",desc:"Batch-level parsing failures",type:"fail"}
+      ],
+      description:"The <strong>first stage</strong> in the pipeline. The Telemetry API batches many individual events into a single HTTP payload and drops it to Kafka. This job unpacks each batch, validates it, and emits individual events for downstream processing.",
+      steps:[
+        {title:"Batch Deduplication",desc:"Each batch carries a unique msgid. The job checks Redis DB 1 (TTL 3600s) to see if this batch was already processed. If yes, the whole batch is routed to telemetry.extractor.duplicate and skipped. This prevents double-processing when the API retries."},
+        {title:"Event Extraction",desc:"Unpacks the events[] array from the batch container JSON. One batch → many individual events. Adds syncts (server receive timestamp) and @timestamp fields to each event."},
+        {title:"Size Validation",desc:"Any individual event larger than 1MB is dropped to telemetry.failed. Oversized events would cause downstream memory issues."},
+        {title:"Event Type Routing",desc:"Routes by event type: ASSESS/RESPONSE → RedactorFunction → telemetry.assess.raw | LOG → druid.events.log | Everything else → telemetry.raw"},
+        {title:"Assessment Redaction",desc:"ASSESS and RESPONSE events can contain raw question text. The RedactorFunction removes sensitive fields based on questionType before emitting to telemetry.assess.raw."},
+        {title:"Audit Event Generation",desc:"After processing each unique batch, an AUDIT event is generated summarizing how many events were extracted, failed, etc."}
+      ],
+      redis:[
+        {db:"DB 1",host:"localhost:6379",ttl:"3600s",purpose:"Batch-level deduplication store. Key = msgid from batch params."}
+      ],
+      files:[
+        {name:"TelemetryExtractorStreamTask.scala",path:"data-pipeline-flink/telemetry-extractor/src/main/scala/org/sunbird/dp/extractor/task/TelemetryExtractorStreamTask.scala",desc:"Main entry point. Sets up Flink StreamExecutionEnvironment, wires Kafka source → functions → Kafka sinks."},
+        {name:"ExtractionFunction.scala",path:"data-pipeline-flink/telemetry-extractor/src/main/scala/org/sunbird/dp/extractor/functions/ExtractionFunction.scala",desc:"Core extraction logic: unpacks events[], validates size, adds timestamps, routes by event type."},
+        {name:"DeduplicationFunction.scala",path:"data-pipeline-flink/telemetry-extractor/src/main/scala/org/sunbird/dp/extractor/functions/DeduplicationFunction.scala",desc:"Checks batch msgid in Redis. Unique → continue. Duplicate → side output."},
+        {name:"RedactorFunction.scala",path:"data-pipeline-flink/telemetry-extractor/src/main/scala/org/sunbird/dp/extractor/functions/RedactorFunction.scala",desc:"Removes sensitive fields from ASSESS/RESPONSE events before routing downstream."},
+        {name:"TelemetryExtractorConfig.scala",path:"data-pipeline-flink/telemetry-extractor/src/main/scala/org/sunbird/dp/extractor/task/TelemetryExtractorConfig.scala",desc:"All config keys: topic names, Redis DB ID, max event size, parallelism settings."},
+        {name:"telemetry-extractor.conf",path:"data-pipeline-flink/telemetry-extractor/src/main/resources/telemetry-extractor.conf",desc:"TypeSafe Config file. Kafka topics, Redis DB, max size. Merged with base-config.conf."}
+      ],
+      metrics:["success-event-count — Events successfully extracted","failed-event-count — Events dropped (too large)","success-batch-count — Unique batches processed","duplicate-batch-count — Duplicate batches skipped","audit-event-count — Audit events generated","cache-hit-count — Redis dedup hits","cache-miss-count — Redis dedup misses"]
+    },
+    {
+      id:"pipeline-preprocessor",
+      name:"Pipeline Preprocessor",
+      icon:"🔍",
+      shortDesc:"Validates events against JSON schema, corrects data quality issues, deduplicates at event level, and routes by event type.",
+      inputTopic:{name:"telemetry.raw",desc:"Individual events from Telemetry Extractor"},
+      outputTopic:{name:"telemetry.unique",desc:"Validated, corrected, deduplicated events"},
+      sideOutputs:[
+        {name:"telemetry.unique.primary",desc:"High-priority events (AUDIT, START, END, etc.)",type:"route"},
+        {name:"telemetry.unique.secondary",desc:"Lower-priority: INTERACT, IMPRESSION, SHARE_ITEM",type:"route"},
+        {name:"druid.events.log",desc:"LOG type events",type:"route"},
+        {name:"telemetry.error",desc:"ERROR type events",type:"route"},
+        {name:"telemetry.audit",desc:"AUDIT type events",type:"route"},
+        {name:"telemetry.cb.audit",desc:"Content Broadcast audit events",type:"route"},
+        {name:"telemetry.duplicate",desc:"Events with duplicate mid (event-level dedup)",type:"dup"},
+        {name:"telemetry.failed",desc:"Events that fail schema validation",type:"fail"}
+      ],
+      description:"The <strong>second stage</strong>. Receives individual events from Telemetry Extractor and does three things: (1) corrects known data quality issues, (2) validates each event's structure against a JSON schema, and (3) deduplicates at the event level using the mid field. Valid unique events are then routed to different output topics based on their type.",
+      steps:[
+        {title:"Data Correction",desc:"Fixes known data quality issues before validation: removes 'f:' prefix from federated user IDs, fills in a default channel if missing, corrects dialCodes → dialcode key naming, corrects dialCode values for DialCode/QR object types."},
+        {title:"Schema Validation",desc:"Validates each event's JSON structure against schemas in schemas/telemetry/3.0/. The schema file is chosen by event type (eid). Invalid events → telemetry.failed."},
+        {title:"Event-Level Deduplication",desc:"Each event has a unique mid (message ID). Checks Redis DB 2 (TTL 3600s). Duplicate mids → telemetry.duplicate. This prevents the same event from being processed twice even if received through different batches."},
+        {title:"SHARE Event Flattening",desc:"A SHARE event represents a user sharing content. This step flattens it: creates one SHARE_ITEM sub-event per transferred item. transfer=0 → type 'download', transfer>0 → type 'import'."},
+        {title:"Event Routing",desc:"Routes validated events by eid: LOG → druid.events.log, ERROR → telemetry.error, AUDIT → telemetry.audit, CB_AUDIT → telemetry.cb.audit, INTERACT/IMPRESSION/SHARE_ITEM → telemetry.unique.secondary (lower priority), everything else → telemetry.unique.primary."}
+      ],
+      redis:[
+        {db:"DB 2",host:"localhost:6379",ttl:"3600s",purpose:"Event-level deduplication store. Key = mid (message ID) of each event."}
+      ],
+      files:[
+        {name:"PipelinePreprocessorStreamTask.scala",path:"data-pipeline-flink/pipeline-preprocessor/src/main/scala/org/sunbird/dp/preprocessor/task/PipelinePreprocessorStreamTask.scala",desc:"Main entry point. Chains validation → routing → flattening functions with Kafka sources/sinks."},
+        {name:"TelemetryValidationFunction.scala",path:"data-pipeline-flink/pipeline-preprocessor/src/main/scala/org/sunbird/dp/preprocessor/functions/TelemetryValidationFunction.scala",desc:"Orchestrates data correction, schema validation, and deduplication for each event."},
+        {name:"TelemetryRouterFunction.scala",path:"data-pipeline-flink/pipeline-preprocessor/src/main/scala/org/sunbird/dp/preprocessor/functions/TelemetryRouterFunction.scala",desc:"Routes validated events to the correct output topic based on event type."},
+        {name:"ShareEventsFlattenerFunction.scala",path:"data-pipeline-flink/pipeline-preprocessor/src/main/scala/org/sunbird/dp/preprocessor/functions/ShareEventsFlattenerFunction.scala",desc:"Expands SHARE events into individual SHARE_ITEM events."},
+        {name:"pipeline-preprocessor.conf",path:"data-pipeline-flink/pipeline-preprocessor/src/main/resources/pipeline-preprocessor.conf",desc:"Config: topic names, Redis DB, schema path, default channel, producer IDs for dedup."}
+      ],
+      metrics:["validation-success-count — Events passing schema validation","validation-failed-count — Events failing schema validation","dedup-unique-count — Unique events passed through","dedup-duplicate-count — Duplicate events blocked","primary-route-count — Events routed to primary topic","secondary-route-count — Events routed to secondary topic","share-events-count — SHARE events flattened"]
+    },
+    {
+      id:"de-normalization",
+      name:"De-normalization",
+      icon:"🔗",
+      shortDesc:"Enriches events with device, user, content, and location metadata fetched from Redis caches populated by separate updater jobs.",
+      inputTopic:{name:"telemetry.unique",desc:"Validated deduplicated events (primary + secondary streams)"},
+      outputTopic:{name:"telemetry.denorm",desc:"Events enriched with device, user, content, and location metadata"},
+      sideOutputs:[
+        {name:"druid.events.summary",desc:"Denormalized summary events (ME_WORKFLOW_SUMMARY)",type:"route"},
+        {name:"telemetry.failed",desc:"Events older than 3 months (expired)",type:"fail"},
+        {name:"telemetry.duplicate",desc:"Dedup failures from denorm processing",type:"dup"}
+      ],
+      description:"The <strong>third stage</strong>. Raw events only contain IDs (device ID, user ID, content ID). For analytics queries, you need the actual metadata. This job looks up those IDs in Redis caches and enriches each event with full metadata. The caches are kept warm by separate 'updater' Flink jobs (device-profile-updater, user-cache-updater-2.0, content-cache-updater).",
+      steps:[
+        {title:"Windowed Processing",desc:"Events are grouped into windows of 30 events per device ID (1400 shards). This is a Flink optimization — batching Redis lookups into pipelines reduces network round-trips and increases throughput significantly."},
+        {title:"Age Filter",desc:"Events older than ~3 months are considered stale and dropped to telemetry.failed. This prevents processing ancient events that would have no cache hits anyway."},
+        {title:"Device Enrichment",desc:"Looks up event's did (device ID) in Redis DB 2 (port 6381). Adds: country, state, city, district, device specifications, first access time. Derives ISO state code from state name."},
+        {title:"User Enrichment",desc:"Looks up actor.id in Redis DB 12 (port 6382) when actor.type='User'. Adds: usertype, grade, language, subject, state, district, login type. Defaults to usersignintype='Anonymous' if not found."},
+        {title:"Content Enrichment",desc:"Looks up object.id in Redis DB 5 (port 6380) for content, or DB 6 (port 6383) for dialcodes/QR. Adds: content name, type, MIME type, framework, subject, medium, board, rollup hierarchy (L1=collection, L2=parent)."},
+        {title:"Location Derivation",desc:"Derives final location from priority chain: (1) User Profile location, (2) User Declared location, (3) IP-based device location. No direct lookup — derived from the above enrichments."}
+      ],
+      redis:[
+        {db:"DB 2 (port 6381)",host:"localhost:6381",ttl:"Managed by device-profile-updater",purpose:"Device metadata cache. Key = device ID (did). Populated by device-profile-updater Flink job."},
+        {db:"DB 12 (port 6382)",host:"localhost:6382",ttl:"Managed by user-cache-updater",purpose:"User profile cache. Key = user ID. Populated by user-cache-updater-2.0 Flink job."},
+        {db:"DB 5 (port 6380)",host:"localhost:6380",ttl:"Managed by content-cache-updater",purpose:"Content metadata cache. Key = content ID. Populated by content-cache-updater Flink job."},
+        {db:"DB 6 (port 6383)",host:"localhost:6383",ttl:"Managed by content-cache-updater",purpose:"DialCode/QR code metadata cache. Key = dialcode. Populated by content-cache-updater Flink job."}
+      ],
+      files:[
+        {name:"DenormalizationStreamTask.scala",path:"data-pipeline-flink/de-normalization/src/main/scala/org/sunbird/dp/denorm/task/DenormalizationStreamTask.scala",desc:"Main entry point. Sets up windowed stream with two Kafka inputs (telemetry.unique + telemetry.derived)."},
+        {name:"DenormalizationWindowFunction.scala",path:"data-pipeline-flink/de-normalization/src/main/scala/org/sunbird/dp/denorm/functions/DenormalizationWindowFunction.scala",desc:"Window processor: collects events, checks age, batches Redis lookups, calls each enricher."},
+        {name:"DeviceDenormalization.scala",path:"data-pipeline-flink/de-normalization/src/main/scala/org/sunbird/dp/denorm/domain/DeviceDenormalization.scala",desc:"Fetches device data from Redis and adds devicedata object to event."},
+        {name:"UserDenormalization.scala",path:"data-pipeline-flink/de-normalization/src/main/scala/org/sunbird/dp/denorm/domain/UserDenormalization.scala",desc:"Fetches user profile from Redis and adds userdata object to event."},
+        {name:"ContentDenormalization.scala",path:"data-pipeline-flink/de-normalization/src/main/scala/org/sunbird/dp/denorm/domain/ContentDenormalization.scala",desc:"Fetches content/dialcode metadata from Redis and adds contentdata object to event."},
+        {name:"LocationDenormalization.scala",path:"data-pipeline-flink/de-normalization/src/main/scala/org/sunbird/dp/denorm/domain/LocationDenormalization.scala",desc:"Derives location from device/user enrichment data and adds derivedlocationdata."},
+        {name:"de-normalization.conf",path:"data-pipeline-flink/de-normalization/src/main/resources/de-normalization.conf",desc:"Config: topic names, Redis hosts/ports/DBs, window size (30), shards (1400)."}
+      ],
+      metrics:["device-total — Total device cache lookups","device-cache-hit — Device lookups found in cache","device-cache-miss — Device lookups not found","user-total / user-cache-hit / user-cache-miss","content-total / content-cache-hit / content-cache-miss","location-total — Location derivation attempts","denorm-total — Total events processed"]
+    },
+    {
+      id:"druid-events-validator",
+      name:"Druid Events Validator",
+      icon:"✅",
+      shortDesc:"Final quality gate before Druid. Validates enriched events against Druid schemas, deduplicates summary events, and routes to correct Druid ingestion topics.",
+      inputTopic:{name:"telemetry.denorm",desc:"Fully enriched events from De-normalization"},
+      outputTopic:{name:"druid.events.telemetry",desc:"Validated telemetry events ready for Druid ingestion"},
+      sideOutputs:[
+        {name:"druid.events.summary",desc:"Validated ME_WORKFLOW_SUMMARY events for Druid",type:"route"},
+        {name:"telemetry.duplicate",desc:"Duplicate summary events",type:"dup"},
+        {name:"telemetry.failed",desc:"Events failing Druid schema validation",type:"fail"}
+      ],
+      description:"The <strong>final stage</strong> before events reach Druid (the analytics database). Even after enrichment, events may not be valid Druid records — missing required fields, wrong types, etc. This job performs a final schema validation against Druid-specific schemas and deduplicates summary events. Valid events are then routed to the correct Druid ingestion Kafka topics.",
+      steps:[
+        {title:"Summary Event Deduplication",desc:"ME_WORKFLOW_SUMMARY events are checked for duplicates in Redis DB 8 (TTL 3600s). Duplicate summaries → telemetry.duplicate. Regular telemetry events skip dedup here (they were deduped in preprocessor)."},
+        {title:"Druid Schema Validation",desc:"Validates each event against Druid-specific schemas in schemas/telemetry/ and schemas/summary/. Uses envelope.json for regular events, me_workflow_summary.json for ME_WORKFLOW_SUMMARY. Invalid events → telemetry.failed."},
+        {title:"Final Routing",desc:"ME_WORKFLOW_SUMMARY events → druid.events.summary. All other events → druid.events.telemetry. Druid's Kafka Indexing Service (supervisor) reads from these two topics and ingests into Druid datasources."}
+      ],
+      redis:[
+        {db:"DB 8",host:"localhost:6379",ttl:"3600s",purpose:"Summary event deduplication store. Key = mid of ME_WORKFLOW_SUMMARY events."}
+      ],
+      files:[
+        {name:"DruidValidatorStreamTask.scala",path:"data-pipeline-flink/druid-events-validator/src/main/scala/org/sunbird/dp/validator/task/DruidValidatorStreamTask.scala",desc:"Main entry point. Wires Kafka source → DruidValidatorFunction → two Kafka sinks."},
+        {name:"DruidValidatorFunction.scala",path:"data-pipeline-flink/druid-events-validator/src/main/scala/org/sunbird/dp/validator/functions/DruidValidatorFunction.scala",desc:"Core logic: deduplication → schema validation → routing by event type."},
+        {name:"druid-events-validator.conf",path:"data-pipeline-flink/druid-events-validator/src/main/resources/druid-events-validator.conf",desc:"Config: topic names, Redis DB 8, schema paths, enable/disable validation and dedup flags."}
+      ],
+      metrics:["druid-valid-count — Events passing Druid schema validation","druid-invalid-count — Events failing Druid schema validation","telemetry-route-count — Events routed to druid.events.telemetry","summary-route-count — Events routed to druid.events.summary","duplicate-count — Duplicate summary events blocked"]
+    },
+
+    // ─── SIDE BRANCH: off Telemetry Extractor's assess.raw output ───────────
+    {
+      id:"assessment-aggregator", category:"sidebranch", parentId:"telemetry-extractor",
+      branchTopic:"telemetry.assess.raw",
+      name:"Assessment Aggregator", icon:"📊",
+      shortDesc:"Validates ASSESS events against course leaf nodes, aggregates question scores, persists to Cassandra, emits BE_JOB_REQUEST to trigger certificate issuance.",
+      inputTopic:{name:"telemetry.assess.raw",desc:"Redacted ASSESS/RESPONSE events from Telemetry Extractor (step 9 of that job)"},
+      outputTopic:{name:"kafka.certissue.topic",desc:"BE_JOB_REQUEST Kafka events picked up by the certificate issuance service"},
+      sideOutputs:[
+        {name:"score.aggregate.topic",desc:"User score aggregation events for user_activity_agg table",type:"route"},
+        {name:"kafka.failed.topic",desc:"Events that fail leaf-node or question-count validation",type:"fail"}
+      ],
+      description:"Side path job — receives only ASSESS/RESPONSE events, not the full telemetry stream. Validates that the content is a leaf node in the course, deduplicates questions by item ID (keeping the latest attempt), computes totalScore/totalMaxScore, reads/writes assessment_aggregator Cassandra table, and emits a BE_JOB_REQUEST event so the downstream certificate service can auto-issue certificates.",
+      steps:[
+        {title:"Leaf Node Validation",desc:"Redis SMEMBERS on {courseId}:{courseId}:leafnodes to check contentId is a valid leaf. On cache miss → Content Read API (HTTP GET). If content not in leaf nodes → route to failed."},
+        {title:"Question Deduplication",desc:"Group edata.events[] by edata.item.id, keep only the most recent entry per question (sort by ets descending). One answer per question per attempt."},
+        {title:"Question Count Validation",desc:"If skipMissingRecords=true: Redis HGETALL contentId → totalQuestions field. On miss → Content Read API. If submitted question count exceeds totalQuestions → skip event."},
+        {title:"Read Existing Assessment",desc:"Cassandra SELECT from assessment_aggregator WHERE attempt_id + batch_id + user_id + content_id + course_id. Checks if incoming event is newer than stored attempt."},
+        {title:"Compute Score Metrics",desc:"Sum edata.score across all unique questions → totalScore. Sum edata.item.maxscore → totalMaxScore. Format as 'X.X/Y.Y' for grand_total. Build UDT question list."},
+        {title:"Upsert to Cassandra",desc:"INSERT INTO assessment_aggregator (course_id, batch_id, user_id, content_id, attempt_id, scores, grand_total, question UDT list, timestamps). If newer event: overwrite existing."},
+        {title:"Emit Certificate Event",desc:"Generates BE_JOB_REQUEST Kafka event: action=issue-certificate, userId, batchId, courseId. Downstream certificate service auto-issues."}
+      ],
+      redis:[
+        {db:"relationCacheNode",host:"Redis (metaRedis)",ttl:"Managed by content-cache-updater",purpose:"Leaf node SMEMBERS check: {courseId}:{courseId}:leafnodes"},
+        {db:"contentCacheNode",host:"Redis (metaRedis)",ttl:"Managed by content-cache-updater",purpose:"HGETALL contentId → totalQuestions field for question count validation"}
+      ],
+      files:[
+        {name:"AssessmentAggregatorStreamTask.scala",path:"data-pipeline-flink/assessment-aggregator/src/main/scala/",desc:"Entry point. Wires Kafka source → AssessmentAggregatorFunction → Cassandra + Kafka sinks."},
+        {name:"AssessmentAggregatorFunction.scala",path:"data-pipeline-flink/assessment-aggregator/src/main/scala/",desc:"Core logic: leaf node validation, question dedup, score computation, Cassandra upsert, cert event emission."}
+      ],
+      metrics:["success-event-count","failed-event-count","cache-hit-count — Redis leaf node hits","db-read-count — Cassandra reads","db-write-count — Cassandra writes","cert-issued-count"]
+    },
+
+    // ─── SIDE BRANCH: off Pipeline Preprocessor's cb.audit output ───────────
+    {
+      id:"cb-preprocessor", category:"sidebranch", parentId:"pipeline-preprocessor",
+      branchTopic:"telemetry.cb.audit",
+      name:"CB Preprocessor", icon:"🎓",
+      shortDesc:"Competency-based learning platform job. Deduplicates CB_AUDIT events, enriches with org info from user Redis cache, flattens work order structures into individual officer/item records.",
+      inputTopic:{name:"telemetry.cb.audit",desc:"CB_AUDIT events routed here by Pipeline Preprocessor (not sent to denorm pipeline)"},
+      outputTopic:{name:"cb.audit.topic",desc:"All unique CB audit events for Druid analytics"},
+      sideOutputs:[
+        {name:"cb.work-order.officer.topic",desc:"One record per officer in a work order (flattened from nested structure)",type:"route"},
+        {name:"cb.work-order.row.topic",desc:"One record per activity×competency combination in a published work order",type:"route"},
+        {name:"telemetry.duplicate",desc:"Duplicate CB events (same cbUid)",type:"dup"}
+      ],
+      description:"CB Preprocessor handles the Competency-Based (iGOT) learning platform audit events. These are completely separate from the main telemetry analytics pipeline. It deduplicates events, enriches non-work-order events with org info from the user cache, and flattens complex nested work order structures into flat records suitable for Druid ingestion.",
+      steps:[
+        {title:"CB-Specific Dedup",desc:"Deduplicate on cbUid (key: CB:{mid}) using Redis SETEX. Separate from the main pipeline dedup (DB2). CB events get their own dedup store."},
+        {title:"Org Info Enrichment",desc:"For non-work-order events: Redis HGETALL on userRedis for actor.id. Extracts orgId and orgName. Updates event with organization context."},
+        {title:"Output to CB Audit Topic",desc:"All unique events (work order or not) go to cb.audit.topic — the raw CB audit trail consumed by Druid for competency analytics."},
+        {title:"Work Order Officer Flattening",desc:"CBEventsFlattener.flattenedOfficerEvents(): iterates users in the work order, merges workOrder fields (wa_ prefix) with each user. Creates one officer record per user."},
+        {title:"Published Work Order Item Flattening",desc:"For published work orders: flattenedEvents() iterates activities and competencies. For each activity/competency pair: merges all hierarchy fields (wa_, wa_activity_, wa_competency_, wa_role_, wa_rcl_). Creates one CB_ITEM per combination."}
+      ],
+      redis:[
+        {db:"DB0 (dedupStore)",host:"localhost:6379",ttl:"config TTL",purpose:"CB-specific dedup by cbUid = CB:{mid}"},
+        {db:"userCacheStore",host:"userRedis",ttl:"Managed by user-cache-updater-2.0",purpose:"HGETALL actorId to get orgId and orgName for non-work-order events"}
+      ],
+      files:[
+        {name:"CBPreprocessorStreamTask.scala",path:"data-pipeline-flink/cb-preprocessor/src/main/scala/",desc:"Entry point."},
+        {name:"CBPreprocessorFunction.scala",path:"data-pipeline-flink/cb-preprocessor/src/main/scala/",desc:"Dedup + org enrichment + routing logic."},
+        {name:"CBEventsFlattener.scala",path:"data-pipeline-flink/cb-preprocessor/src/main/scala/",desc:"Officer flattening (flattenedOfficerEvents) and item flattening (flattenedEvents) logic."}
+      ],
+      metrics:["cb-audit-count","cb-duplicate-count","cb-work-order-count","cb-officer-count","cb-item-count"]
+    },
+
+    // ─── CACHE UPDATER JOBS (independent — keep Redis/DB warm for De-norm) ───
+    {
+      id:"content-cache-updater", category:"cacheupdater",
+      writesTo:"→ Redis contentStore + dialcodeStore", writesColor:"",
+      name:"Content Cache Updater", icon:"📦",
+      shortDesc:"Listens to graph-DB content change events, transforms date/list fields, merges changes into existing Redis content cache. Also updates the dialcode Redis cache via DialCode API on content-dialcode link changes.",
+      inputTopic:{name:"kafka.input.topic (graph-DB events)",desc:"Content management system graph database change feed"},
+      outputTopic:{name:"(no Kafka output)",desc:"Writes only to Redis contentStore and dialcodeStore"},
+      sideOutputs:[],
+      description:"Maintenance job. Keeps the Redis content and dialcode caches warm so De-normalization (Job 4) has low-latency metadata lookup. Reads graph-DB change events from content management, transforms them (dates → epoch, lists → arrays), and merges into the existing contentRedis JSON cache. If dialcode-related properties changed, also updates the dialcodeRedis cache (fetching from DialCode API on miss).",
+      steps:[
+        {title:"Extract nodeUniqueId",desc:"Extract nodeUniqueId from graph-DB change event. Null → skip."},
+        {title:"Read Existing from Redis",desc:"contentRedis GET(nodeUniqueId) — read current cached JSON string and parse to Map. Will merge on top."},
+        {title:"Transform Properties",desc:"Filter null values. Date fields (lastUpdatedOn, lastPublishedOn, lastSubmittedOn) → epoch ms. List fields (gradeLevel, subject, medium, language) → wrap single strings in List; keep ArrayList as-is."},
+        {title:"Write Back to Redis",desc:"Merge transformed properties into existing map. Serialize to JSON. contentRedis SET(nodeUniqueId, json)."},
+        {title:"Dialcode Cache Update (conditional)",desc:"If any changed property is in config.dialCodeProperties → DialCodeUpdaterFunction: for each dialcode, dialcodeRedis GET. If miss → DialCode API (HTTP GET) → SET dialcodeRedis."}
+      ],
+      redis:[
+        {db:"contentRedis",host:"contentRedis host",ttl:"No TTL — permanent cache",purpose:"GET existing + SET merged content metadata. Feeds De-norm contentStore."},
+        {db:"dialcodeRedis",host:"dialcodeRedis host",ttl:"No TTL",purpose:"GET + SET dialcode metadata. Feeds De-norm dialcodeStore."}
+      ],
+      files:[
+        {name:"ContentUpdaterFunction.scala",path:"data-pipeline-flink/content-cache-updater/src/main/scala/",desc:"Core content cache update logic."},
+        {name:"DialCodeUpdaterFunction.scala",path:"data-pipeline-flink/content-cache-updater/src/main/scala/",desc:"Dialcode cache update on content-dialcode link changes."}
+      ],
+      metrics:["content-cache-update-count","dialcode-cache-update-count","skipped-event-count"]
+    },
+    {
+      id:"user-cache-updater", category:"cacheupdater",
+      writesTo:"→ Redis userStore", writesColor:"",
+      name:"User Cache Updater 2.0", icon:"👤",
+      shortDesc:"Listens to user-service CREATE/UPDATE events, calls User Read API to fetch full profile (BGMS framework, locations, org), writes to Redis user cache read by De-normalization.",
+      inputTopic:{name:"kafka.input.topic (user-service events)",desc:"User service change events (CREATE/CREATED/UPDATE/UPDATED states)"},
+      outputTopic:{name:"(no Kafka output)",desc:"Writes only to Redis userStore"},
+      sideOutputs:[],
+      description:"Maintenance job. Keeps the Redis user cache warm for De-normalization's user enrichment step (Job 4, Step 6). On each user event, calls the User Read API (blocking HTTP call), extracts BGMS framework, location hierarchy, org info, and profile types, removes stale fields, and writes a flat hash map to Redis. New user registrations also increment the per-org registration count.",
+      steps:[
+        {title:"Extract SignupType + UserRole from event",desc:"Read cdata array: find type==SignupType → usersignintype. Find type==UserRole → userlogintype. No API call needed for these."},
+        {title:"User Read API (blocking)",desc:"For registered users: HTTP GET {userReadApiUrl}{userId}?fields=locations. Blocking call — Flink thread waits. Returns full user profile."},
+        {title:"Extract BGMS Framework",desc:"board (first element), medium (list), grade (list), subject (list), framework id (first element) from API response."},
+        {title:"Extract Location Hierarchy",desc:"Iterate userLocations array: school type → schoolname + schooludisecode. Other types (state, district, block, cluster) → key by type name."},
+        {title:"Stale Field Cleanup",desc:"Redis HGETALL existing user hash → compute keys in Redis NOT in new update → HDEL those keys. Keeps cache clean when user removes profile info."},
+        {title:"Write to Redis",desc:"HMSET userId with all gathered fields (stringified). On CREATE/CREATED: also HINCRBY rootOrgId registration count."}
+      ],
+      redis:[
+        {db:"userRedis (userStore)",host:"userRedis host",ttl:"No TTL",purpose:"HMSET + HGETALL + HDEL + HINCRBY. Feeds De-norm userStore."}
+      ],
+      files:[
+        {name:"UserCacheUpdaterFunctionV2.scala",path:"data-pipeline-flink/user-cache-updater-2.0/src/main/scala/",desc:"Entry point function."},
+        {name:"UserMetadataUpdater.scala",path:"data-pipeline-flink/user-cache-updater-2.0/src/main/scala/",desc:"Core API call, BGMS extraction, location extraction, Redis write logic."}
+      ],
+      metrics:["api-read-success-count","api-read-miss-count","cache-update-count","registration-count"]
+    },
+    {
+      id:"device-profile-updater", category:"cacheupdater",
+      writesTo:"→ Redis deviceStore + PostgreSQL", writesColor:"amber",
+      name:"Device Profile Updater", icon:"📱",
+      shortDesc:"Dual-writes device profiles to both Redis (hot cache for De-normalization) and PostgreSQL (persistent store). Preserves first_access and user_declared_on timestamps using conditional UPDATE.",
+      inputTopic:{name:"kafka.input.topic (device profile events)",desc:"Device registration and profile update events (IP geolocation, user-declared state/district)"},
+      outputTopic:{name:"(no Kafka output)",desc:"Dual-write: Redis deviceStore + PostgreSQL device_profile table"},
+      sideOutputs:[],
+      description:"Maintenance job with dual-write pattern. Keeps Redis deviceStore warm (for De-normalization's device enrichment) and also persists device profiles to PostgreSQL for long-term storage and reporting. Uses conditional UPDATE for first_access and user_declared_on so those timestamps are only set once (never overwritten).",
+      steps:[
+        {title:"Parse DeviceProfile",desc:"Extract device_id. Remove empty strings and {} JSON empty objects. Map to DeviceProfile domain object (country_code, country, state_code, state, city, district_custom, uaspec, devicespec, first_access)."},
+        {title:"Redis EXISTS check",desc:"deviceRedis EXISTS(deviceId). If exists → HGETALL to preserve first_access → remove empty fields → HMSET. If new device → HMSET directly."},
+        {title:"PostgreSQL upsert",desc:"INSERT INTO device_profile ON CONFLICT(device_id) DO UPDATE SET (...) using parameterized PreparedStatement."},
+        {title:"Conditional first_access UPDATE",desc:"UPDATE device_profile SET first_access=X WHERE device_id=Y AND first_access IS NULL — only sets the first visit timestamp once."},
+        {title:"Conditional user_declared_on UPDATE",desc:"If user_declared_state present: UPDATE ... SET user_declared_on=X WHERE ... AND user_declared_on IS NULL — only stamps declaration date once."}
+      ],
+      redis:[
+        {db:"deviceRedis (deviceStore)",host:"deviceRedis host",ttl:"No TTL",purpose:"EXISTS + HGETALL + HMSET. Feeds De-norm deviceStore."}
+      ],
+      files:[
+        {name:"DeviceProfileUpdaterFunction.scala",path:"data-pipeline-flink/device-profile-updater/src/main/scala/",desc:"Full dual-write logic: Redis EXISTS/HGETALL/HMSET + PostgreSQL INSERT ON CONFLICT + conditional UPDATEs."}
+      ],
+      metrics:["device-cache-update-count","postgres-update-count","new-device-count"]
+    },
+    {
+      id:"rating", category:"cacheupdater",
+      writesTo:"→ Cassandra (completely independent)", writesColor:"purple",
+      name:"Rating", icon:"⭐",
+      shortDesc:"Maintains content rating aggregates and a top-50 review queue in Cassandra. 4–5 Cassandra ops per rating event. No Redis. Completely independent from the telemetry hot path.",
+      inputTopic:{name:"kafka.input.topic (rating events)",desc:"Content rating and review events from the user-facing platform"},
+      outputTopic:{name:"(no Kafka output)",desc:"Writes only to Cassandra — ratings_summary_table and ratings_lookup_table"},
+      sideOutputs:[
+        {name:"failed.event.topic",desc:"Rating events that fail processing",type:"fail"}
+      ],
+      description:"Side-path job, completely independent from telemetry analytics. Maintains per-content star rating aggregates (1–5 star counts, sum, total count) and a rolling top-50 review queue in Cassandra. Uses time-based UUIDs for the ratings_lookup_table to support deleting old rating entries when a user changes their rating.",
+      steps:[
+        {title:"Compute Rating Delta",desc:"delta = updatedValues.rating - prevValues.rating. If new rating (null prevValues): delta = updatedValues.rating."},
+        {title:"Read Current Aggregate",desc:"Cassandra SELECT from ratings_summary_table WHERE activityid + activitytype. Returns totalcount1stars–5stars, sum_of_total_ratings, total_number_of_ratings, latest50reviews JSON."},
+        {title:"Update Star Buckets",desc:"If newRating != oldRating: increment new bucket (floor to int), decrement old bucket. Handles both new ratings and rating changes."},
+        {title:"Maintain Top-50 Review Queue",desc:"Parse latest50reviews JSON. Remove existing entry for this userId. If queue ≥ 50 → dequeue oldest. If new review length > 100 chars → enqueue. Serialize back."},
+        {title:"Write Updated Aggregate",desc:"If no existing row: INSERT INTO ratings_summary_table. If exists: UPDATE. Both update all star counts, sum, total count, latest50reviews."},
+        {title:"Update ratings_lookup_table",desc:"SELECT by activityid + activitytype + old rating. DELETE old entry (time-based UUID from prevValues.updatedOn). INSERT new entry (UUID from updatedValues.updatedOn)."}
+      ],
+      redis:[],
+      files:[
+        {name:"RatingFunction.scala",path:"data-pipeline-flink/rating/src/main/scala/",desc:"All rating logic: delta calculation, aggregate read/write, top-50 queue maintenance, lookup table cleanup."}
+      ],
+      metrics:["rating-success-count","rating-failed-count","db-update-count"]
+    }
+  ]
+};
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let editMode = false;
+let selectedId = null;
+let editingId = null;
+let activeTab = 'overview';
+let viewMode = 'flow';
+
+// ═══════════════════════════════════════════════════════════
+// VIEW TOGGLE
+// ═══════════════════════════════════════════════════════════
+function toggleView(mode) {
+  viewMode = mode;
+  document.getElementById('flowBtn').classList.toggle('on', mode === 'flow');
+  document.getElementById('anatomyBtn').classList.toggle('on', mode === 'anatomy');
+  // edit mode only makes sense in flow view
+  if (mode === 'anatomy') {
+    editMode = false;
+    document.getElementById('modeTag').textContent = 'View Mode';
+    document.getElementById('modeTag').className = 'mode-tag view';
+    document.getElementById('editBtn').textContent = '✏️ Edit Mode';
+    document.getElementById('editBtn').className = 'btn warn';
+    closePanel();
+  }
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════
+// ANATOMY VIEW
+// ═══════════════════════════════════════════════════════════
+function renderAnatomy() {
+  const c = document.getElementById('canvas');
+  c.className = 'canvas';
+  c.innerHTML = `<div class="anat-wrap">
+
+<div style="overflow-x:auto;margin-bottom:6px">
+<table class="anat-tbl">
+<thead><tr>
+  <th>Job</th><th>Kafka In</th><th>Kafka Out</th><th>Redis DBs</th><th>Cassandra</th><th>Postgres</th><th>REST API</th><th>Verdict</th>
+</tr></thead>
+<tbody>
+<tr><td class="ajc">Ingest Router</td><td>telemetry.ingestion + raw.input</td><td>telemetry.ingest + raw.success</td><td style="color:var(--green)">None</td><td style="color:var(--green)">No</td><td style="color:var(--green)">No</td><td style="color:var(--green)">No</td><td><span class="dot-g"></span>Pure pass-through</td></tr>
+<tr><td class="ajc">Telemetry Extractor</td><td>telemetry.ingest</td><td>telemetry.raw + assess.raw</td><td style="color:var(--amber)">DB0 (dedup) + metaRedis</td><td style="color:var(--green)">No</td><td style="color:var(--green)">No</td><td style="color:var(--green)">No</td><td><span class="dot-a"></span>Moderate — 2 Redis DBs</td></tr>
+<tr><td class="ajc">Pipeline Preprocessor</td><td>telemetry.raw</td><td>telemetry.unique + secondary</td><td style="color:var(--red)">DB2 (dedup — always-true bug)</td><td style="color:var(--green)">No</td><td style="color:var(--green)">No</td><td style="color:var(--green)">No</td><td><span class="dot-r"></span>Bug: dedup forced on all events</td></tr>
+<tr><td class="ajc">De-normalization</td><td>telemetry.unique</td><td>telemetry.denorm</td><td style="color:var(--red)">4 DBs × pipeline.sync() blocking</td><td style="color:var(--green)">No</td><td style="color:var(--green)">No</td><td style="color:var(--green)">No</td><td><span class="dot-r"></span>Heaviest job — 4 blocking Redis calls</td></tr>
+<tr><td class="ajc">Druid Validator</td><td>telemetry.denorm</td><td>druid.events.telemetry + summary</td><td style="color:var(--red)">DB8 (redundant dedup — disabled)</td><td style="color:var(--green)">No</td><td style="color:var(--green)">No</td><td style="color:var(--green)">No</td><td><span class="dot-r"></span>Redundant — pure routing relay</td></tr>
+<tr><td class="ajc">Assessment Aggregator</td><td>telemetry.assess.raw</td><td>certissue.topic</td><td style="color:var(--amber)">metaRedis (leafnodes + content)</td><td style="color:var(--amber)">Yes — 2 tables</td><td style="color:var(--green)">No</td><td style="color:var(--amber)">Content Read API</td><td><span class="dot-a"></span>Moderate — side path</td></tr>
+<tr><td class="ajc">Content Cache Updater</td><td>graph-DB events</td><td>None (Redis write only)</td><td style="color:var(--amber)">contentRedis (GET + SET)</td><td style="color:var(--green)">No</td><td style="color:var(--green)">No</td><td style="color:var(--amber)">DialCode API (on miss)</td><td><span class="dot-b"></span>Cache maintenance job</td></tr>
+<tr><td class="ajc">User Cache Updater 2.0</td><td>user-service events</td><td>None (Redis write only)</td><td style="color:var(--amber)">userRedis (HMSET + HGETALL + HDEL)</td><td style="color:var(--green)">No</td><td style="color:var(--green)">No</td><td style="color:var(--red)">User Read API (every event)</td><td><span class="dot-a"></span>Cache maintenance — API-heavy</td></tr>
+<tr><td class="ajc">Device Profile Updater</td><td>device profile events</td><td>None (Redis + Postgres write)</td><td style="color:var(--amber)">deviceRedis (HMSET + EXISTS)</td><td style="color:var(--green)">No</td><td style="color:var(--amber)">Yes — device_profile table</td><td style="color:var(--green)">No</td><td><span class="dot-b"></span>Cache + DB maintenance</td></tr>
+<tr><td class="ajc">CB Preprocessor</td><td>telemetry.cb.audit</td><td>cb.audit + work order topics</td><td style="color:var(--amber)">DB0 (dedup) + userRedis</td><td style="color:var(--green)">No</td><td style="color:var(--green)">No</td><td style="color:var(--green)">No</td><td><span class="dot-b"></span>CB-specific — separate concern</td></tr>
+<tr><td class="ajc">Rating</td><td>rating events</td><td>None (Cassandra write only)</td><td style="color:var(--green)">None</td><td style="color:var(--red)">Yes — 2 tables, 4–5 ops/event</td><td style="color:var(--green)">No</td><td style="color:var(--green)">No</td><td><span class="dot-a"></span>Cassandra-heavy, side path</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="anat-section-title">🔥 Hot Path — Every telemetry event flows through these 5 jobs</div>
+
+<!-- 1. INGEST ROUTER -->
+<div class="anat-card">
+  <div class="anat-card-header">
+    <div>
+      <div class="anat-job-name">1 · Ingest Router</div>
+      <div style="font-size:10px;color:var(--t2);margin-top:2px">ingest-router · IngestRouterStreamTask.scala</div>
+    </div>
+    <div class="anat-badges"><span class="jb pass">PASS-THROUGH</span><span class="jb moderate">2 STREAMS</span></div>
+  </div>
+  <div class="kf">
+    <span class="kf-lbl">IN</span><span class="kf-tp in">telemetry.ingestion</span><span class="kf-arr">→</span>
+    <span class="kf-jb">IngestRouterStreamTask</span><span class="kf-arr">→</span>
+    <span class="kf-tp out">telemetry.ingest</span>
+    <span class="kf-sep">|</span><span class="kf-tp in">raw.input.topic</span><span class="kf-arr">→</span><span class="kf-tp out">raw.success.topic</span>
+  </div>
+  <div class="anat-body">
+    <div class="asteps-col">
+      <div class="asteps-title">Processing Steps — 2 total</div>
+      <div class="asr"><div class="asn">1</div><div class="asb"><div class="ast">Read raw bytes from Kafka, write raw bytes to next topic. No deserialization. No JSON parsing. Events pass through as opaque byte arrays. No flags, no metadata, no transformation.</div><div class="astags"><span class="op kafka">Kafka Read</span><span class="op kafka">Kafka Write</span></div></div></div>
+      <div class="asr"><div class="asn">2</div><div class="asb"><div class="ast">Second stream: raw.input → raw.success. Exactly the same as Step 1 for a separate legacy input topic. Separate parallelism settings for ingest vs raw stream.</div><div class="astags"><span class="op kafka">Kafka Read</span><span class="op kafka">Kafka Write</span></div></div></div>
+    </div>
+    <div class="adeps-col">
+      <div class="adeps-title">External Dependencies</div>
+      <div class="adi"><div class="adi-ic">✅</div><div class="adi-inf"><strong>None</strong><span>No Redis, no DB, no APIs. Pure Kafka connector.</span></div></div>
+      <div class="sbox ok"><div class="sbox-title">Simplification Potential</div><div class="sbox-txt">Only value is the monitoring boundary (separate consumer group). In modern arch, Redpanda built-in lag metrics eliminate this job entirely.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. TELEMETRY EXTRACTOR -->
+<div class="anat-card">
+  <div class="anat-card-header">
+    <div>
+      <div class="anat-job-name">2 · Telemetry Extractor</div>
+      <div style="font-size:10px;color:var(--t2);margin-top:2px">telemetry-extractor · DeduplicationFunction → ExtractionFunction → RedactorFunction</div>
+    </div>
+    <div class="anat-badges"><span class="jb moderate">MODERATE</span><span class="jb warn">2 REDIS DBs</span></div>
+  </div>
+  <div class="kf">
+    <span class="kf-lbl">IN</span><span class="kf-tp in">telemetry.ingest</span><span class="kf-arr">→</span>
+    <span class="kf-jb">TelemetryExtractorStreamTask</span><span class="kf-arr">→</span>
+    <span class="kf-tp out">telemetry.raw</span><span class="kf-tp side">telemetry.assess.raw</span>
+    <span class="kf-tp side">telemetry.log (audit)</span><span class="kf-tp err">extractor.duplicate</span><span class="kf-tp err">extractor.failed</span>
+  </div>
+  <div class="anat-body">
+    <div class="asteps-col">
+      <div class="asteps-title">DeduplicationFunction</div>
+      <div class="asr"><div class="asn">1</div><div class="asb"><div class="ast">Parse incoming JSON string, extract <code>params.msgid</code> as the dedup key. If msgid is null → treat as unique.</div><div class="astags"><span class="op kafka">Kafka Read</span><span class="op compute">JSON Parse</span></div></div></div>
+      <div class="asr"><div class="asn">2</div><div class="asb"><div class="ast">Redis dedup check on batch msgid → <code>SETEX msgid TTL</code>. If key exists → duplicate → route to extractor.duplicate and skip extraction.</div><div class="astags"><span class="op redis">Redis DB0 SETEX</span><span class="op route">Route → Duplicate</span></div></div></div>
+      <div class="asteps-title">ExtractionFunction</div>
+      <div class="asr"><div class="asn">3</div><div class="asb"><div class="ast">Extract individual events from <code>events[]</code> array. One batch = 10–50 events. Read <code>syncts</code> from batch (default to <code>System.currentTimeMillis()</code>).</div><div class="astags"><span class="op compute">Unpack Batch</span></div></div></div>
+      <div class="asr"><div class="asn">4</div><div class="asb"><div class="ast">Stamp <code>syncts</code> and <code>@timestamp</code> (ISO-8601) onto each individual event. These come from the batch wrapper, not the event itself.</div><div class="astags"><span class="op compute">Field Stamp</span></div></div></div>
+      <div class="asr"><div class="asn">5</div><div class="asb"><div class="ast">Check event byte size. If &gt; 1MB → mark <code>ex_processed=false</code>, add error metadata, route to <code>extractor.failed</code>.</div><div class="astags"><span class="op compute">Size Check</span><span class="op route">Route → Failed</span></div></div></div>
+      <div class="asr"><div class="asn">6</div><div class="asb"><div class="ast">Route by event type: ASSESS/RESPONSE → RedactorFunction. LOG → <code>telemetry.log</code>. All others → <code>telemetry.raw</code>. Also generates one audit LOG event per batch.</div><div class="astags"><span class="op route">Route by eid</span><span class="op compute">Generate Audit LOG</span></div></div></div>
+      <div class="asteps-title">RedactorFunction (ASSESS/RESPONSE only)</div>
+      <div class="asr"><div class="asn">7</div><div class="asb"><div class="ast">Extract questionId from event (<code>edata.item.id</code> for ASSESS, <code>edata.target.id</code> for RESPONSE). Null → skip redaction, pass to raw.</div><div class="astags"><span class="op compute">Extract ID</span></div></div></div>
+      <div class="asr"><div class="asn">8</div><div class="asb"><div class="ast">Redis lookup on questionId → <code>HGETALL questionId</code> on <code>metaRedis:contentStore</code>, filtering for <code>questionType</code> field only.</div><div class="astags"><span class="op redis">metaRedis HGETALL (questionType)</span></div></div></div>
+      <div class="asr"><div class="asn">9</div><div class="asb"><div class="ast">If <code>questionType == "Registration"</code>: clear <code>edata.resvalues</code> (ASSESS) or <code>edata.values</code> (RESPONSE) to empty list. Redacted copy → <code>telemetry.assess.raw</code>. Original also → <code>telemetry.raw</code>.</div><div class="astags"><span class="op compute">Redact PII</span><span class="op route">Route → assess.raw + raw</span></div></div></div>
+    </div>
+    <div class="adeps-col">
+      <div class="adeps-title">External Dependencies</div>
+      <div class="adi"><div class="adi-ic">🔴</div><div class="adi-inf"><strong>Redis DB0 — SETEX</strong><span>Batch-level dedup. ~1 call per batch. Prevents double-processing API retries.</span></div></div>
+      <div class="adi"><div class="adi-ic">🟡</div><div class="adi-inf"><strong>metaRedis contentStore — HGETALL</strong><span>Fires only for ASSESS/RESPONSE events (~5–10% of total). Checks questionType for PII redaction decision.</span></div></div>
+      <div class="sbox warn"><div class="sbox-title">Simplification Potential</div><div class="sbox-txt">Merged with Pipeline Preprocessor in P2.5 optimization (TelemetryIntakeStreamTask), eliminating the <code>telemetry.raw</code> Kafka hop. The redaction logic is genuinely needed for PII compliance.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. PIPELINE PREPROCESSOR -->
+<div class="anat-card">
+  <div class="anat-card-header">
+    <div>
+      <div class="anat-job-name">3 · Pipeline Preprocessor</div>
+      <div style="font-size:10px;color:var(--t2);margin-top:2px">pipeline-preprocessor · PipelinePreprocessorFunction.scala (validate + dedup + route + flatten — all-in-one)</div>
+    </div>
+    <div class="anat-badges"><span class="jb heavy">HEAVY</span><span class="jb critical">BUG: DEDUP ALWAYS ON</span><span class="jb warn">7 OUTPUT ROUTES</span></div>
+  </div>
+  <div class="kf">
+    <span class="kf-lbl">IN</span><span class="kf-tp in">telemetry.raw</span><span class="kf-arr">→</span>
+    <span class="kf-jb">PipelinePreprocessorStreamTask</span><span class="kf-arr">→</span>
+    <span class="kf-tp out">telemetry.unique</span><span class="kf-tp out">telemetry.unique.secondary</span>
+    <span class="kf-tp side">telemetry.audit</span><span class="kf-tp side">telemetry.error</span><span class="kf-tp side">telemetry.cb.audit</span>
+    <span class="kf-tp err">telemetry.duplicate</span><span class="kf-tp err">telemetry.failed</span>
+  </div>
+  <div class="anat-body">
+    <div class="asteps-col">
+      <div class="asteps-title">Processing Steps</div>
+      <div class="asr"><div class="asn">1</div><div class="asb"><div class="ast">JSON schema validation. Calls <code>TelemetryValidator.validate(event)</code> — checks against classpath schema files (one per eid). Unknown eids → validation failure → <code>telemetry.failed</code>.</div><div class="astags"><span class="op compute">JSON Schema Validate</span><span class="op route">Route → Failed</span></div></div></div>
+      <div class="asr"><div class="asn">2</div><div class="asb"><div class="ast">Data corrections: (a) strip <code>f:</code> prefix from federated actor IDs. (b) For SEARCH: rename <code>dialCodes</code> → <code>dialcode</code>. (c) Normalize dialcode casing for DialCode/QR objects. (d) Default <code>context.channel</code> if absent.</div><div class="astags"><span class="op compute">Field Correction</span></div></div></div>
+      <div class="asr"><div class="asn">3</div><div class="asb"><div class="ast">LOG events bypass dedup and route directly to <code>telemetry.log</code>. LOG events skip Step 4 entirely and are never sent to the denorm pipeline.</div><div class="astags"><span class="op route">Route → telemetry.log (skip dedup)</span></div></div></div>
+      <div class="asr"><div class="asn">4</div><div class="asb"><div class="ast">Redis dedup check on <code>mid</code>. <strong><code>isDuplicateCheckRequired()</code> returns hardcoded <code>true</code></strong> (line 62 of PipelinePreprocessorFunction.scala) — ALL events get checked including mobile which never duplicates. Calls <code>SETEX mid TTL</code> on Redis DB2 → duplicate → <code>telemetry.duplicate</code>.</div><div class="astags"><span class="op redis">Redis DB2 SETEX (ALL events)</span><span class="op bug">BUG line 62: should skip mobile</span><span class="op route">Route → Duplicate</span></div></div></div>
+      <div class="asr"><div class="asn">5</div><div class="asb"><div class="ast">Add <code>hub</code> field for IMPRESSION/INTERACT/START/END events. Maps <code>context.env</code> → hub name (learn, discuss, network, careers, competency, events). Unknown env → "other".</div><div class="astags"><span class="op compute">Hub Enrichment</span></div></div></div>
+      <div class="asr"><div class="asn">6</div><div class="asb"><div class="ast">Classify into primary vs secondary based on <code>config.secondaryEvents</code> list (ME_* summary types). Secondary → <code>telemetry.unique.secondary</code>. All others → <code>telemetry.unique</code>.</div><div class="astags"><span class="op route">Route → Primary / Secondary</span></div></div></div>
+      <div class="asr"><div class="asn">7</div><div class="asb"><div class="ast">Event-type specific routing: AUDIT → audit topic AND unique. SHARE → ShareEventsFlattener (Step 8) AND unique. ERROR → error topic only. CB_AUDIT → cb.audit only (no denorm). All others → unique.</div><div class="astags"><span class="op route">Route by eid (7 paths)</span></div></div></div>
+      <div class="asr"><div class="asn">8</div><div class="asb"><div class="ast">SHARE event flattening: for each item in <code>edata.items[]</code>, create a SHARE_ITEM event. <code>transfers==0</code> → <code>type="download"</code>, <code>transfers&gt;0</code> → <code>type="import"</code>. New mid = parent.mid + UUID.</div><div class="astags"><span class="op compute">Flatten SHARE → SHARE_ITEM</span><span class="op route">Route → telemetry.unique</span></div></div></div>
+    </div>
+    <div class="adeps-col">
+      <div class="adeps-title">External Dependencies</div>
+      <div class="adi"><div class="adi-ic">🔴</div><div class="adi-inf"><strong>Redis DB2 — SETEX (ALL events)</strong><span>Should only fire for portal/desktop producers. Bug forces it on mobile (~300–500k wasted Redis ops/sec at peak).</span></div></div>
+      <div class="adi"><div class="adi-ic">📋</div><div class="adi-inf"><strong>JSON Schema Files (classpath)</strong><span>In-process — no network call. One .json schema per eid, loaded at startup.</span></div></div>
+      <div class="sbox"><div class="sbox-title">Bug: Line 62</div><div class="sbox-txt"><code>isDuplicateCheckRequired</code> returns hardcoded <code>true</code>. Correct logic (checking <code>config.includedProducersForDedup</code>) is commented out on line 60. <strong>P1.3 fix: restore the config check.</strong></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. DE-NORMALIZATION -->
+<div class="anat-card">
+  <div class="anat-card-header">
+    <div>
+      <div class="anat-job-name">4 · De-normalization</div>
+      <div style="font-size:10px;color:var(--t2);margin-top:2px">de-normalization · DenormalizationWindowFunction → Device + User + Content + DialCode + Location denorm</div>
+    </div>
+    <div class="anat-badges"><span class="jb heavy">HEAVIEST JOB</span><span class="jb critical">4 REDIS DBs × pipeline.sync() BLOCKING</span></div>
+  </div>
+  <div class="kf">
+    <span class="kf-lbl">IN</span><span class="kf-tp in">telemetry.unique</span><span class="kf-tp in">telemetry.unique.secondary</span><span class="kf-arr">→</span>
+    <span class="kf-jb">DenormalizationStreamTask</span><span class="kf-arr">→</span>
+    <span class="kf-tp out">telemetry.denorm</span><span class="kf-tp side">druid.events.summary (ME_WORKFLOW_SUMMARY)</span>
+  </div>
+  <div class="anat-body">
+    <div class="asteps-col">
+      <div class="asteps-title">Processing Steps</div>
+      <div class="asr"><div class="asn">1</div><div class="asb"><div class="ast">Age check. Events older than <code>ignorePeriodInMonths</code> (3 months) → skip entirely, increment <code>eventsExpired</code> counter.</div><div class="astags"><span class="op compute">Age Gate</span></div></div></div>
+      <div class="asr"><div class="asn">2</div><div class="asb"><div class="ast">Event type filter. SUMMARY events (except ME_WORKFLOW_SUMMARY) and LOG events are skipped. ME_WORKFLOW_SUMMARY is explicitly processed.</div><div class="astags"><span class="op compute">Type Filter</span></div></div></div>
+      <div class="asr"><div class="asn">3</div><div class="asb"><div class="ast">Key events by <code>did.hashCode % shards</code> → countWindow(N). Enables batch Redis lookups via Jedis pipeline across a window of events sharing device IDs.</div><div class="astags"><span class="op compute">Windowed Batching (by did hash)</span></div></div></div>
+      <div class="asr"><div class="asn">4</div><div class="asb"><div class="ast">Batch Redis lookups via Jedis pipeline (BLOCKING). <code>DenormCache.getDenormData()</code> queues SELECT + GET/HGETALL commands for all 4 DBs, then calls <code>pipeline.sync()</code> — blocks the operator thread until ALL Redis responses arrive. At 64k TPS the thread is blocked ~95% of the time.</div><div class="astags"><span class="op redis">Redis DB SELECT × 4</span><span class="op redis">pipeline.sync() — BLOCKING</span><span class="op warn">Thread blocks on all 4 DBs</span></div></div></div>
+      <div class="asr"><div class="asn">5</div><div class="asb"><div class="ast">Device denorm. If event has <code>context.did</code>: read deviceStore cache → stamp <code>devicedata</code> (country, state, city, district, country_code, state_code, uaspec, devicespec, user_declared_state/district). Also resets <code>ets</code> to today if it's a future timestamp.</div><div class="astags"><span class="op redis">deviceStore HGETALL(did)</span><span class="op compute">Stamp devicedata</span></div></div></div>
+      <div class="asr"><div class="asn">6</div><div class="asb"><div class="ast">User denorm. If <code>actor.id</code> non-empty, non-"anonymous", <code>actor.type=="User"</code> (or ME_WORKFLOW_SUMMARY): read userStore → stamp <code>userdata</code> (usersignintype, userlogintype, usertype, state, district, block, cluster, school). Defaults to "Anonymous" on miss.</div><div class="astags"><span class="op redis">userStore HGETALL("user:" + actorId)</span><span class="op compute">Stamp userdata</span></div></div></div>
+      <div class="asr"><div class="asn">7</div><div class="asb"><div class="ast">DialCode denorm. If <code>object.type == "dialcode" or "qr"</code>: read dialcodeStore → stamp <code>dialcodedata</code> (name, code, channel, framework, subject, medium, gradeLevel, publishedOn). Converts date strings to epoch ms.</div><div class="astags"><span class="op redis">dialcodeStore GET(objectId.toUpperCase)</span><span class="op compute">Date → epoch</span></div></div></div>
+      <div class="asr"><div class="asn">8</div><div class="asb"><div class="ast">Content denorm. If <code>object.id</code> present (not dialcode/user): contentStore GET → stamp <code>contentdata</code>. If <code>rollup.l1</code> ≠ object.id → second GET → stamp <code>collectiondata</code>. If <code>rollup.l2</code> exists → third GET → <code>l2data</code>. Up to 3 Redis lookups per event.</div><div class="astags"><span class="op redis">contentStore GET(objectId) × 1–3</span><span class="op compute">Stamp contentdata + collectiondata</span></div></div></div>
+      <div class="asr"><div class="asn">9</div><div class="asb"><div class="ast">Location denorm (derived). Priority chain: (1) user profile location from userdata. (2) user-declared location from device cache. (3) IP-resolved from device cache. Stamps <code>derivedlocationdata</code> with state, district, and <code>from</code> source field.</div><div class="astags"><span class="op compute">Derive Location (3-level fallback)</span><span class="op compute">Stamp derivedlocationdata</span></div></div></div>
+      <div class="asr"><div class="asn">10</div><div class="asb"><div class="ast">Route enriched event. ME_WORKFLOW_SUMMARY → <code>druid.events.summary</code>. All others → <code>telemetry.denorm</code>. Adds denorm flags (device_denorm, user_denorm, content_denorm, dialcode_denorm) to event.</div><div class="astags"><span class="op kafka">Kafka Write → telemetry.denorm / druid.events.summary</span></div></div></div>
+    </div>
+    <div class="adeps-col">
+      <div class="adeps-title">External Dependencies</div>
+      <div class="adi"><div class="adi-ic">🔴</div><div class="adi-inf"><strong>Redis deviceStore — HGETALL</strong><span>Fires for ~90% of events (have a did field). Country, state, city, specs.</span></div></div>
+      <div class="adi"><div class="adi-ic">🔴</div><div class="adi-inf"><strong>Redis userStore — HGETALL</strong><span>Fires for events with non-anonymous actor.id. Profile location, signin type.</span></div></div>
+      <div class="adi"><div class="adi-ic">🔴</div><div class="adi-inf"><strong>Redis contentStore — GET × 1–3</strong><span>1 fetch for most events. Up to 3 for events with collection hierarchy.</span></div></div>
+      <div class="adi"><div class="adi-ic">🔴</div><div class="adi-inf"><strong>Redis dialcodeStore — GET</strong><span>Only fires for QR/dialcode scan events (~5–15% of events).</span></div></div>
+      <div class="sbox"><div class="sbox-title">Critical Issues</div><div class="sbox-txt">1. <strong>Blocking pipeline.sync()</strong> (DenormCache.scala line 37) — leaves Flink thread idle ~95% of the time at 64k TPS. Fix: async Lettuce futures (P2.2).<br>2. <strong>All 4 DBs on one connection</strong> — sequential at Redis server even in pipeline mode.<br>3. <strong>LOG/ERROR/AUDIT events waste all 4 lookups</strong> with empty results (P2.4).</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 5. DRUID EVENTS VALIDATOR -->
+<div class="anat-card">
+  <div class="anat-card-header">
+    <div>
+      <div class="anat-job-name">5 · Druid Events Validator</div>
+      <div style="font-size:10px;color:var(--t2);margin-top:2px">druid-events-validator · DruidValidatorFunction.scala — optional dedup → optional schema validate → route</div>
+    </div>
+    <div class="anat-badges"><span class="jb redundant">REDUNDANT JOB</span><span class="jb critical">DOUBLE DEDUP (disabled)</span></div>
+  </div>
+  <div class="kf">
+    <span class="kf-lbl">IN</span><span class="kf-tp in">telemetry.denorm</span><span class="kf-arr">→</span>
+    <span class="kf-jb">DruidValidatorStreamTask</span><span class="kf-arr">→</span>
+    <span class="kf-tp out">druid.events.telemetry</span><span class="kf-tp out">druid.events.summary</span>
+    <span class="kf-tp err">telemetry.duplicate</span><span class="kf-tp err">telemetry.failed</span>
+  </div>
+  <div class="anat-body">
+    <div class="asteps-col">
+      <div class="asteps-title">Processing Steps</div>
+      <div class="asr"><div class="asn">1</div><div class="asb"><div class="ast">Optional dedup (controlled by <code>task.druid.deduplication.enabled</code>). When enabled: <code>SETEX mid TTL</code> on Redis DB8. Events were already deduped in Preprocessor DB2. 100% redundant second dedup on same mid. <em>Fixed in P1.5: disabled.</em></div><div class="astags"><span class="op redis">Redis DB8 SETEX (mid) — REDUNDANT</span><span class="op bug">Double dedup — was enabled</span></div></div></div>
+      <div class="asr"><div class="asn">2</div><div class="asb"><div class="ast">Optional schema validation (<code>task.druid.validation.enabled</code>). Validates against Druid-specific JSON schemas. Events were already schema-validated in Preprocessor. Second validation pass with slightly different schemas.</div><div class="astags"><span class="op compute">JSON Schema Validate (optional)</span><span class="op warn">Second validation pass</span></div></div></div>
+      <div class="asr"><div class="asn">3</div><div class="asb"><div class="ast">Route by event type. <code>isSummaryEvent</code> (eid == ME_WORKFLOW_SUMMARY) → <code>druid.events.summary</code>. Everything else → <code>druid.events.telemetry</code>. This is the only genuinely useful operation — a simple if-else. Moved into de-normalization in P3.1.</div><div class="astags"><span class="op route">Route: summary → druid.summary, else → druid.telemetry</span></div></div></div>
+    </div>
+    <div class="adeps-col">
+      <div class="adeps-title">External Dependencies</div>
+      <div class="adi"><div class="adi-ic">🔴</div><div class="adi-inf"><strong>Redis DB8 — SETEX (disabled)</strong><span>Was enabled, now disabled (P1.5). ~100k wasted Redis ops/sec. Events already deduped in preprocessor DB2.</span></div></div>
+      <div class="adi"><div class="adi-ic">📋</div><div class="adi-inf"><strong>Druid JSON Schemas (classpath)</strong><span>In-process, no network call. Slightly different from preprocessor schemas.</span></div></div>
+      <div class="sbox"><div class="sbox-title">This Job Eliminated (P3.1)</div><div class="sbox-txt">All meaningful work was disabled or duplicated from upstream. The 3-line routing logic was moved as direct filter sinks into de-normalization, eliminating the entire <code>telemetry.denorm</code> Kafka round-trip. <strong>This job can be shut down.</strong></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="anat-section-title">⚙️ Side Path Jobs — Independent from the main telemetry hot path</div>
+
+<!-- 6. ASSESSMENT AGGREGATOR -->
+<div class="anat-card">
+  <div class="anat-card-header">
+    <div>
+      <div class="anat-job-name">6 · Assessment Aggregator</div>
+      <div style="font-size:10px;color:var(--t2);margin-top:2px">assessment-aggregator · AssessmentAggregatorFunction + UserScoreAggregateFunction</div>
+    </div>
+    <div class="anat-badges"><span class="jb moderate">MODERATE</span><span class="jb warn">CASSANDRA R+W</span><span class="jb warn">REST API</span></div>
+  </div>
+  <div class="kf">
+    <span class="kf-lbl">IN</span><span class="kf-tp in">telemetry.assess.raw</span><span class="kf-arr">→</span>
+    <span class="kf-jb">AssessmentAggregatorStreamTask</span><span class="kf-arr">→</span>
+    <span class="kf-tp out">certissue.topic (BE_JOB_REQUEST)</span><span class="kf-tp out">score.aggregate.topic</span><span class="kf-tp err">failed.topic</span>
+  </div>
+  <div class="anat-body">
+    <div class="asteps-col">
+      <div class="asteps-title">Processing Steps</div>
+      <div class="asr"><div class="asn">1</div><div class="asb"><div class="ast">Validate contentId is in course's leaf nodes. Redis <code>SMEMBERS {courseId}:{courseId}:leafnodes</code> on relationCacheNode. On cache miss → call Content Read API to get leaf nodes.</div><div class="astags"><span class="op redis">relationCache SMEMBERS(courseId:leafnodes)</span><span class="op api">Content Read API (on miss)</span></div></div></div>
+      <div class="asr"><div class="asn">2</div><div class="asb"><div class="ast">Deduplicate questions by item ID. Group <code>edata.events[]</code> by <code>edata.item.id</code>, keep only most recent (sort by ets desc, take head). One answer per question per attempt.</div><div class="astags"><span class="op compute">Question Dedup (newest wins)</span></div></div></div>
+      <div class="asr"><div class="asn">3</div><div class="asb"><div class="ast">Optional question count validation (if <code>skipMissingRecords=true</code>). Redis <code>HGETALL contentId</code> → field <code>totalQuestions</code>. If 0 → Content Read API. If question count &gt; totalQuestions → route to failed.</div><div class="astags"><span class="op redis">contentCache HGETALL(contentId)</span><span class="op api">Content Read API (on miss)</span></div></div></div>
+      <div class="asr"><div class="asn">4</div><div class="asb"><div class="ast">Read existing assessment from Cassandra. SELECT <code>last_attempted_on</code>, <code>created_on</code> from <code>assessment_aggregator</code> WHERE attempt_id + batch_id + user_id + content_id + course_id.</div><div class="astags"><span class="op cassandra">Cassandra SELECT assessment_aggregator</span></div></div></div>
+      <div class="asr"><div class="asn">5</div><div class="asb"><div class="ast">Compute score metrics. Sum <code>edata.score</code> → totalScore. Sum <code>edata.item.maxscore</code> → totalMaxScore. Format as <code>"X.X/Y.Y"</code> grand_total string. Build UDT question list.</div><div class="astags"><span class="op compute">Score Aggregation</span></div></div></div>
+      <div class="asr"><div class="asn">6</div><div class="asb"><div class="ast">Upsert result to Cassandra. INSERT INTO assessment_aggregator (course_id, batch_id, user_id, content_id, attempt_id, total_score, total_max_score, question UDT list, grand_total, timestamps).</div><div class="astags"><span class="op cassandra">Cassandra INSERT (upsert)</span></div></div></div>
+      <div class="asr"><div class="asn">7</div><div class="asb"><div class="ast">Emit certificate issue event. Generates <code>BE_JOB_REQUEST</code> Kafka event with action "issue-certificate". One event per successful assessment save → downstream cert service picks it up.</div><div class="astags"><span class="op kafka">Kafka Write → certissue.topic</span></div></div></div>
+      <div class="asr"><div class="asn">8</div><div class="asb"><div class="ast">UserScoreAggregateFunction: reads from score.aggregate topic. Updates <code>user_activity_agg</code> Cassandra table with aggregated scores by activity (content + course).</div><div class="astags"><span class="op cassandra">Cassandra UPDATE user_activity_agg</span></div></div></div>
+    </div>
+    <div class="adeps-col">
+      <div class="adeps-title">External Dependencies</div>
+      <div class="adi"><div class="adi-ic">🔴</div><div class="adi-inf"><strong>Redis relationCache — SMEMBERS</strong><span>Leaf node membership check. 1 call per event.</span></div></div>
+      <div class="adi"><div class="adi-ic">🔴</div><div class="adi-inf"><strong>Redis contentCache — HGETALL</strong><span>Total question count. 1 call per event (if skipMissingRecords=true).</span></div></div>
+      <div class="adi"><div class="adi-ic">🟣</div><div class="adi-inf"><strong>Cassandra — 2 tables</strong><span>assessment_aggregator (R+W), user_activity_agg (W). 1 SELECT + 1 INSERT min per event.</span></div></div>
+      <div class="adi"><div class="adi-ic">🌐</div><div class="adi-inf"><strong>Content Read API (HTTP GET)</strong><span>Falls back to API on Redis miss for leaf nodes or totalQuestions. Can be frequent on cold start.</span></div></div>
+      <div class="sbox warn"><div class="sbox-title">Simplification Potential</div><div class="sbox-txt">Side path only — low volume. The Content Read API call can block the Flink operator thread. Consider async (Flink AsyncFunction) or pre-warming the cache.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 7. CONTENT CACHE UPDATER -->
+<div class="anat-card">
+  <div class="anat-card-header">
+    <div>
+      <div class="anat-job-name">7 · Content Cache Updater</div>
+      <div style="font-size:10px;color:var(--t2);margin-top:2px">content-cache-updater · ContentUpdaterFunction + DialCodeUpdaterFunction</div>
+    </div>
+    <div class="anat-badges"><span class="jb maint">CACHE MAINTENANCE</span><span class="jb pass">LOW VOLUME</span></div>
+  </div>
+  <div class="kf">
+    <span class="kf-lbl">IN</span><span class="kf-tp in">kafka.input.topic (graph-DB events)</span><span class="kf-arr">→</span>
+    <span class="kf-jb">ContentCacheUpdaterStreamTask</span><span class="kf-arr">→</span>
+    <span style="font-size:10px;color:var(--t2)">No Kafka output — writes only to Redis</span>
+  </div>
+  <div class="anat-body">
+    <div class="asteps-col">
+      <div class="asteps-title">Processing Steps — ContentUpdaterFunction</div>
+      <div class="asr"><div class="asn">1</div><div class="asb"><div class="ast">Extract <code>nodeUniqueId</code> from graph-DB change event. If null → skip. These events originate from the content management system's graph database change feed.</div><div class="astags"><span class="op compute">Extract nodeUniqueId</span></div></div></div>
+      <div class="asr"><div class="asn">2</div><div class="asb"><div class="ast">Read existing content data from contentRedis (<code>GET nodeUniqueId</code>). Returns current cached JSON string → parse to Map. Will merge new properties on top.</div><div class="astags"><span class="op redis">contentRedis GET(nodeUniqueId)</span></div></div></div>
+      <div class="asr"><div class="asn">3</div><div class="asb"><div class="ast">Extract changed properties from <code>transactionData</code>. Filter null values. For date fields (lastUpdatedOn etc.): parse "yyyy-MM-dd'T'HH:mm:ss" → epoch ms. For list fields (gradeLevel, subject, medium): wrap single strings in a List.</div><div class="astags"><span class="op compute">Transform Dates + Lists</span></div></div></div>
+      <div class="asr"><div class="asn">4</div><div class="asb"><div class="ast">Merge transformed properties into existing cache map. Serialize full map back to JSON. Write back → <code>SET nodeUniqueId json</code> on contentRedis. This is the cache that de-normalization's contentStore reads from.</div><div class="astags"><span class="op redis">contentRedis SET(nodeUniqueId, json)</span></div></div></div>
+      <div class="asr"><div class="asn">5</div><div class="asb"><div class="ast">If any changed property is in <code>config.dialCodeProperties</code> → route to DialCodeUpdaterFunction.</div><div class="astags"><span class="op route">Route → DialCodeUpdater (if dialcode prop changed)</span></div></div></div>
+      <div class="asteps-title">DialCodeUpdaterFunction</div>
+      <div class="asr"><div class="asn">6</div><div class="asb"><div class="ast">For each dialcode in the updated content's dialcodes list: GET from dialcodeRedis. If miss → call DialCode API (HTTP GET) → write fetched metadata to dialcodeRedis. Keeps the denorm dialcodeStore warm.</div><div class="astags"><span class="op redis">dialcodeRedis GET + SET</span><span class="op api">DialCode API HTTP GET (on miss)</span></div></div></div>
+    </div>
+    <div class="adeps-col">
+      <div class="adeps-title">External Dependencies</div>
+      <div class="adi"><div class="adi-ic">🔴</div><div class="adi-inf"><strong>contentRedis — GET + SET</strong><span>Read existing, write back updated. Feeds denorm contentStore.</span></div></div>
+      <div class="adi"><div class="adi-ic">🔴</div><div class="adi-inf"><strong>dialcodeRedis — GET + SET</strong><span>Only fires when content's dialcode list changes.</span></div></div>
+      <div class="adi"><div class="adi-ic">🌐</div><div class="adi-inf"><strong>DialCode API (HTTP GET)</strong><span>On cache miss only. Low frequency — new/changed dialcodes only.</span></div></div>
+      <div class="sbox ok"><div class="sbox-title">Assessment</div><div class="sbox-txt">Straightforward cache maintenance. Low event volume. No hot-path involvement. Correctly maintains the Redis caches that de-normalization depends on.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 8. USER CACHE UPDATER 2.0 -->
+<div class="anat-card">
+  <div class="anat-card-header">
+    <div>
+      <div class="anat-job-name">8 · User Cache Updater 2.0</div>
+      <div style="font-size:10px;color:var(--t2);margin-top:2px">user-cache-updater-2.0 · UserCacheUpdaterFunctionV2 → UserMetadataUpdater.execute()</div>
+    </div>
+    <div class="anat-badges"><span class="jb maint">CACHE MAINTENANCE</span><span class="jb warn">USER READ API EVERY EVENT</span></div>
+  </div>
+  <div class="kf">
+    <span class="kf-lbl">IN</span><span class="kf-tp in">kafka.input.topic (user-service events)</span><span class="kf-arr">→</span>
+    <span class="kf-jb">UserCacheUpdaterStreamTaskV2</span><span class="kf-arr">→</span>
+    <span style="font-size:10px;color:var(--t2)">No Kafka output — writes only to Redis</span>
+  </div>
+  <div class="anat-body">
+    <div class="asteps-col">
+      <div class="asteps-title">Processing Steps</div>
+      <div class="asr"><div class="asn">1</div><div class="asb"><div class="ast">Route by event state (CREATE / CREATED / UPDATE / UPDATED). All states call UserMetadataUpdater. Only CREATE/CREATED additionally increments registration count (Step 7).</div><div class="astags"><span class="op compute">Route by state</span></div></div></div>
+      <div class="asr"><div class="asn">2</div><div class="asb"><div class="ast">Extract from <code>cdata</code> array: find type=="SignupType" → map to <code>usersignintype</code> ("self-signed-in" or "validated"). Find type=="UserRole" → set as <code>userlogintype</code>. No API call needed for these two fields.</div><div class="astags"><span class="op compute">Extract SignupType + UserRole from event</span></div></div></div>
+      <div class="asr"><div class="asn">3</div><div class="asb"><div class="ast">If registered user producer → call User Read API. HTTP GET to <code>{userReadApiUrl}{userId}?fields=locations</code>. <strong>Blocking call — Flink thread waits for HTTP response.</strong></div><div class="astags"><span class="op api">User Read API HTTP GET — BLOCKING</span></div></div></div>
+      <div class="asr"><div class="asn">4</div><div class="asb"><div class="ast">Extract BGMS framework from API response <code>result.response.framework</code>: board (first element), medium (list), grade (list), subject (list), framework id (first element).</div><div class="astags"><span class="op compute">Extract BGMS Framework</span></div></div></div>
+      <div class="asr"><div class="asn">5</div><div class="asb"><div class="ast">Extract location from <code>userLocations</code> array. "school" type → schoolname + schooludisecode. Other types (state, district, block, cluster) extracted by type name as key.</div><div class="astags"><span class="op compute">Extract Location Hierarchy</span></div></div></div>
+      <div class="asr"><div class="asn">6</div><div class="asb"><div class="ast">Extract profileUserTypes (types + subtypes → comma-separated). Personal info: firstName, lastName, language, orgName, rootOrgId, encPhone, encEmail, userId.</div><div class="astags"><span class="op compute">Extract Profile + Personal Info</span></div></div></div>
+      <div class="asr"><div class="asn">7</div><div class="asb"><div class="ast">On CREATE/CREATED: HINCRBY registration count for rootOrgId on userRegistrationCountPath.</div><div class="astags"><span class="op redis">userRedis HINCRBY (regCount per org)</span></div></div></div>
+      <div class="asr"><div class="asn">8</div><div class="asb"><div class="ast">Remove stale fields. HGETALL current Redis user hash → compute keys in Redis NOT in new update → HDEL those keys. Cleans up stale location/school data when a user removes profile info.</div><div class="astags"><span class="op redis">userRedis HGETALL → HDEL (stale field cleanup)</span></div></div></div>
+      <div class="asr"><div class="asn">9</div><div class="asb"><div class="ast">Write updated user data. HMSET on userId key with all gathered fields (stringified). This is the user cache that de-normalization's user denorm reads from.</div><div class="astags"><span class="op redis">userRedis HMSET(userId, userdata)</span></div></div></div>
+    </div>
+    <div class="adeps-col">
+      <div class="adeps-title">External Dependencies</div>
+      <div class="adi"><div class="adi-ic">🌐</div><div class="adi-inf"><strong>User Read API — BLOCKING</strong><span>Called for every registered user event. Blocking call holds Flink thread. Can be slow if user service is under load.</span></div></div>
+      <div class="adi"><div class="adi-ic">🔴</div><div class="adi-inf"><strong>userRedis — HMSET + HGETALL + HDEL + HINCRBY</strong><span>4 Redis operations per registered user event.</span></div></div>
+      <div class="sbox warn"><div class="sbox-title">Potential Issue</div><div class="sbox-txt">User Read API call is synchronous. If user service is slow, this stalls the pipeline for user events. Consider Flink AsyncFunction or short-TTL response cache.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 9. DEVICE PROFILE UPDATER -->
+<div class="anat-card">
+  <div class="anat-card-header">
+    <div>
+      <div class="anat-job-name">9 · Device Profile Updater</div>
+      <div style="font-size:10px;color:var(--t2);margin-top:2px">device-profile-updater · DeviceProfileUpdaterFunction.scala — Redis HMSET + PostgreSQL upsert</div>
+    </div>
+    <div class="anat-badges"><span class="jb maint">CACHE + DB MAINTENANCE</span><span class="jb moderate">POSTGRES UPSERT</span></div>
+  </div>
+  <div class="kf">
+    <span class="kf-lbl">IN</span><span class="kf-tp in">kafka.input.topic (device profile events)</span><span class="kf-arr">→</span>
+    <span class="kf-jb">DeviceProfileUpdaterStreamTask</span><span class="kf-arr">→</span>
+    <span style="font-size:10px;color:var(--t2)">No Kafka output — writes to Redis + PostgreSQL</span>
+  </div>
+  <div class="anat-body">
+    <div class="asteps-col">
+      <div class="asteps-title">Processing Steps</div>
+      <div class="asr"><div class="asn">1</div><div class="asb"><div class="ast">Extract <code>device_id</code>. Remove empty strings and <code>{}</code> JSON empty objects. Convert event map to <code>DeviceProfile</code> domain object (country_code, country, state_code, state, city, district_custom, state_custom, user_declared_state/district, uaspec, devicespec, first_access).</div><div class="astags"><span class="op compute">Parse DeviceProfile</span></div></div></div>
+      <div class="asr"><div class="asn">2</div><div class="asb"><div class="ast">Check if device exists in Redis (<code>EXISTS deviceId</code>). If exists → HGETALL to preserve <code>first_access</code> (don't overwrite first visit timestamp). Remove empty fields. HMSET.</div><div class="astags"><span class="op redis">deviceRedis EXISTS + HGETALL + HMSET</span></div></div></div>
+      <div class="asr"><div class="asn">3</div><div class="asb"><div class="ast">If new device (not in Redis): HMSET all fields directly. Common path for first-time device registrations — no HGETALL needed.</div><div class="astags"><span class="op redis">deviceRedis HMSET (new device)</span></div></div></div>
+      <div class="asr"><div class="asn">4</div><div class="asb"><div class="ast">PostgreSQL upsert. <code>INSERT INTO device_profile (...) ON CONFLICT(device_id) DO UPDATE SET (...)</code>. Parameterized PreparedStatement. Sets api_last_updated_on and updated_date.</div><div class="astags"><span class="op postgres">PostgreSQL INSERT ON CONFLICT (upsert)</span></div></div></div>
+      <div class="asr"><div class="asn">5</div><div class="asb"><div class="ast">Two conditional PostgreSQL UPDATEs: (a) <code>SET first_access = X WHERE device_id = Y AND first_access IS NULL</code>. (b) If user_declared_state present: <code>SET user_declared_on = X WHERE ... AND user_declared_on IS NULL</code>. Each only sets once.</div><div class="astags"><span class="op postgres">PostgreSQL UPDATE first_access (if NULL)</span><span class="op postgres">PostgreSQL UPDATE user_declared_on (if NULL)</span></div></div></div>
+    </div>
+    <div class="adeps-col">
+      <div class="adeps-title">External Dependencies</div>
+      <div class="adi"><div class="adi-ic">🔴</div><div class="adi-inf"><strong>deviceRedis — EXISTS + HGETALL + HMSET</strong><span>2–3 Redis calls per event. Feeds de-normalization deviceStore cache.</span></div></div>
+      <div class="adi"><div class="adi-ic">⚫</div><div class="adi-inf"><strong>PostgreSQL device_profile table</strong><span>1 INSERT ON CONFLICT + 1–2 UPDATE queries per event. Persistent store; Redis is the hot cache on top.</span></div></div>
+      <div class="sbox ok"><div class="sbox-title">Assessment</div><div class="sbox-txt">Correct dual-write pattern: Redis for hot-path denorm lookups, PostgreSQL for persistent storage. The conditional first_access/user_declared_on UPDATE is non-trivial but correct. No simplification needed.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 10. CB PREPROCESSOR -->
+<div class="anat-card">
+  <div class="anat-card-header">
+    <div>
+      <div class="anat-job-name">10 · CB Preprocessor</div>
+      <div style="font-size:10px;color:var(--t2);margin-top:2px">cb-preprocessor · CBPreprocessorFunction + CBEventsFlattener + UserCacheUtil</div>
+    </div>
+    <div class="anat-badges"><span class="jb moderate">CB-SPECIFIC</span><span class="jb maint">SEPARATE CONCERN</span></div>
+  </div>
+  <div class="kf">
+    <span class="kf-lbl">IN</span><span class="kf-tp in">telemetry.cb.audit</span><span class="kf-arr">→</span>
+    <span class="kf-jb">CBPreprocessorStreamTask</span><span class="kf-arr">→</span>
+    <span class="kf-tp out">cb.audit.topic</span><span class="kf-tp out">cb.work-order.officer.topic</span>
+    <span class="kf-tp out">cb.work-order.row.topic</span><span class="kf-tp err">telemetry.duplicate</span>
+  </div>
+  <div class="anat-body">
+    <div class="asteps-col">
+      <div class="asteps-title">Processing Steps</div>
+      <div class="asr"><div class="asn">1</div><div class="asb"><div class="ast">Dedup on <code>cbUid</code> (composite key: <code>CB:{mid}</code>). DedupEngine → Redis SETEX. On duplicate → route to duplicate topic and skip. CB-specific dedup separate from the main pipeline dedup.</div><div class="astags"><span class="op redis">Redis DB0 SETEX(cbUid)</span><span class="op route">Route → Duplicate</span></div></div></div>
+      <div class="asr"><div class="asn">2</div><div class="asb"><div class="ast">For non-work-order events: fetch org info from user cache. Redis HGETALL on userRedis for actor.id. Extracts orgId and orgName. Enriches non-work-order CB events with organization context.</div><div class="astags"><span class="op redis">userRedis HGETALL(actorId)</span><span class="op compute">Update orgInfo in event</span></div></div></div>
+      <div class="asr"><div class="asn">3</div><div class="asb"><div class="ast">Output all unique events to <code>cb.audit.topic</code>. Every CB event (work order or not) goes here. This is the raw CB audit trail used by Druid analytics.</div><div class="astags"><span class="op kafka">Kafka Write → cb.audit.topic</span></div></div></div>
+      <div class="asr"><div class="asn">4</div><div class="asb"><div class="ast">Work order officer flattening. <code>CBEventsFlattener.flattenedOfficerEvents(event)</code> iterates users in the work order, merges workOrder fields with each user (wa_ prefix). Creates one officer record per user → <code>cb.work-order.officer.topic</code>.</div><div class="astags"><span class="op compute">Flatten Officers (merge workOrder + user)</span><span class="op kafka">Kafka Write → officer topic</span></div></div></div>
+      <div class="asr"><div class="asn">5</div><div class="asb"><div class="ast">Published work order item flattening. <code>CBEventsFlattener.flattenedEvents(event)</code> iterates activities and competencies. For each activity/competency pair: merge all hierarchy levels (wa_, wa_activity_, wa_competency_, wa_role_, wa_rcl_ prefixed fields). Creates one CB_ITEM per combination.</div><div class="astags"><span class="op compute">Flatten CB_ITEM (activity × competency)</span><span class="op kafka">Kafka Write → row topic</span></div></div></div>
+    </div>
+    <div class="adeps-col">
+      <div class="adeps-title">External Dependencies</div>
+      <div class="adi"><div class="adi-ic">🔴</div><div class="adi-inf"><strong>Redis DB0 — SETEX</strong><span>CB-specific dedup by cbUid.</span></div></div>
+      <div class="adi"><div class="adi-ic">🔴</div><div class="adi-inf"><strong>userRedis — HGETALL</strong><span>Org info lookup for non-work-order events. Same user cache maintained by User Cache Updater 2.0.</span></div></div>
+      <div class="sbox ok"><div class="sbox-title">Assessment</div><div class="sbox-txt">Fully separate concern — competency-based learning platform. Reads from its own input topic (cb.audit), writes to three CB-specific output topics. No simplification needed in the main pipeline context.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 11. RATING -->
+<div class="anat-card">
+  <div class="anat-card-header">
+    <div>
+      <div class="anat-job-name">11 · Rating</div>
+      <div style="font-size:10px;color:var(--t2);margin-top:2px">rating · RatingFunction.scala — 4–5 Cassandra ops per event, top-50 review queue maintenance</div>
+    </div>
+    <div class="anat-badges"><span class="jb moderate">CASSANDRA INTENSIVE</span><span class="jb maint">SIDE PATH</span></div>
+  </div>
+  <div class="kf">
+    <span class="kf-lbl">IN</span><span class="kf-tp in">kafka.input.topic (rating events)</span><span class="kf-arr">→</span>
+    <span class="kf-jb">RatingTask</span><span class="kf-arr">→</span>
+    <span style="font-size:10px;color:var(--t2)">No Kafka output — writes only to Cassandra</span>
+    <span class="kf-tp err">failed.event.topic</span>
+  </div>
+  <div class="anat-body">
+    <div class="asteps-col">
+      <div class="asteps-title">Processing Steps</div>
+      <div class="asr"><div class="asn">1</div><div class="asb"><div class="ast">Compute rating delta. <code>delta = updatedValues.rating - prevValues.rating</code>. If prevValues is null (new rating): <code>delta = updatedValues.rating</code>.</div><div class="astags"><span class="op compute">Delta Calculation</span></div></div></div>
+      <div class="asr"><div class="asn">2</div><div class="asb"><div class="ast">Read current aggregate from Cassandra. SELECT all from <code>ratings_summary_table</code> WHERE activityid + activitytype. Returns totalcount1stars through totalcount5stars, sum_of_total_ratings, total_number_of_ratings, latest50reviews.</div><div class="astags"><span class="op cassandra">Cassandra SELECT ratings_summary_table</span></div></div></div>
+      <div class="asr"><div class="asn">3</div><div class="asb"><div class="ast">Update star count buckets. If newRating != oldRating: increment count for new rating bucket (floor to int), decrement count for old rating bucket. Handles both new ratings and rating changes.</div><div class="astags"><span class="op compute">Star Count Update (1–5 buckets)</span></div></div></div>
+      <div class="asr"><div class="asn">4</div><div class="asb"><div class="ast">Maintain top-50 reviews queue. Parse latest50reviews JSON. Remove existing entry for this userId (dedup). If queue ≥ 50 → dequeue oldest. If new review length &gt; 100 chars → enqueue. Serialize back to JSON.</div><div class="astags"><span class="op compute">Top-50 Review Queue (dedup by userId)</span></div></div></div>
+      <div class="asr"><div class="asn">5</div><div class="asb"><div class="ast">Write updated aggregate. If no existing row → INSERT INTO ratings_summary_table. If exists → UPDATE. Both update all star count fields, sum, total count, latest50reviews.</div><div class="astags"><span class="op cassandra">Cassandra INSERT or UPDATE ratings_summary_table</span></div></div></div>
+      <div class="asr"><div class="asn">6</div><div class="asb"><div class="ast">Update ratings_lookup_table. (a) SELECT WHERE activityid + activitytype + old rating. (b) DELETE old entry using time-based UUID from prevValues.updatedOn. (c) INSERT new entry with UUID from updatedValues.updatedOn.</div><div class="astags"><span class="op cassandra">Cassandra SELECT + DELETE + INSERT ratings_lookup_table</span></div></div></div>
+    </div>
+    <div class="adeps-col">
+      <div class="adeps-title">External Dependencies</div>
+      <div class="adi"><div class="adi-ic">🟣</div><div class="adi-inf"><strong>Cassandra — 2 tables, 4–5 ops/event</strong><span>ratings_summary_table (SELECT + INSERT/UPDATE), ratings_lookup_table (SELECT + DELETE + INSERT). No Redis at all.</span></div></div>
+      <div class="sbox ok"><div class="sbox-title">Assessment</div><div class="sbox-txt">Completely independent side-path job. 4–5 Cassandra ops/event is relatively expensive but rating event volume is very low vs telemetry. The top-50 queue logic is non-trivial but correct. No simplification needed relative to the main pipeline bottleneck.</div></div>
+    </div>
+  </div>
+</div>
+
+</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER PIPELINE
+// ═══════════════════════════════════════════════════════════
+function render() {
+  if (viewMode === 'anatomy') { renderAnatomy(); return; }
+  const c = document.getElementById('canvas');
+  c.className = 'canvas' + (editMode ? ' edit' : '');
+
+  const hotPath    = cfg.stages.filter(s => s.category === 'hotpath'     || !s.category);
+  const sideBranch = cfg.stages.filter(s => s.category === 'sidebranch');
+  const support    = cfg.stages.filter(s => s.category === 'cacheupdater');
+
+  let html = `
+    <div style="background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.25);border-radius:8px;padding:9px 14px;font-size:11px;color:var(--t1);margin-bottom:14px;display:flex;align-items:flex-start;gap:8px">
+      <span style="color:var(--blue);font-size:14px;flex-shrink:0">ℹ</span>
+      <span><strong style="color:var(--t0)">Message Broker — Redpanda vs Kafka:</strong>
+      Locally runs <strong>Apache Kafka 3.7 (KRaft)</strong> behind a Kubernetes Service named <em>redpanda</em> — all Flink configs point to <code style="background:var(--bg2);padding:1px 4px;border-radius:3px">redpanda:9092</code>.
+      In production the pod image swaps to <strong>Redpanda 24.x</strong> (C++, ~10× throughput). Zero code changes required.</span>
+    </div>
+    <div class="legend">
+      <span class="lg-item"><span class="lg-dot" style="background:var(--blue)"></span>Hot Path Job</span>
+      <span class="lg-item"><span class="lg-dot" style="background:var(--amber)"></span>Side Branch Job</span>
+      <span class="lg-item"><span class="lg-dot" style="background:var(--green)"></span>Main Kafka Topic</span>
+      <span class="lg-item"><span class="lg-dot" style="background:var(--red)"></span>Error / Failed</span>
+      <span class="lg-item"><span class="lg-dot" style="background:var(--purple)"></span>Source / Sink</span>
+    </div>
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--t2);margin-bottom:6px">
+      🔥 Hot Path — all 5 jobs run sequentially, every telemetry event passes through
+    </div>
+    <div class="flow">
+      <div class="source-box">📱 Telemetry SDK / API<br><span style="font-size:11px;opacity:.7">Mobile · Web · Portal · writes to telemetry.ingestion</span></div>
+  `;
+
+  hotPath.forEach((s, i) => {
+    const isActive = selectedId === s.id;
+
+    html += `
+      <div class="connector"></div>
+      <div class="topic-pill main" title="${s.inputTopic.desc}">
+        <span style="opacity:.6;font-size:10px;margin-right:4px">KAFKA</span>${s.inputTopic.name}
+      </div>
+      <div class="connector"></div>
+    `;
+
+    if (editMode) {
+      html += `<button class="add-btn" onclick="addJobBefore(${i})">＋ Add job here</button>`;
+    }
+
+    html += `
+      <div class="job-card${isActive?' active':''}" data-id="${s.id}" onclick="selectJob('${s.id}')">
+        <div class="edit-btns">
+          <button class="eb" title="Move up"   onclick="event.stopPropagation();moveJob(${i},-1)">↑</button>
+          <button class="eb" title="Move down" onclick="event.stopPropagation();moveJob(${i},1)">↓</button>
+          <button class="eb" title="Edit"      onclick="event.stopPropagation();openEdit('${s.id}')">✏️</button>
+          <button class="eb del" title="Delete" onclick="event.stopPropagation();deleteJob('${s.id}')">🗑</button>
+        </div>
+        <div class="jc-head">
+          <div class="jc-icon">${s.icon}</div>
+          <div>
+            <div class="jc-name">${i+1}. ${s.name}</div>
+            <div class="jc-badges">
+              <span class="badge flink">Apache Flink</span>
+              ${s.redis && s.redis.length ? '<span class="badge redis">Redis</span>' : ''}
+              <span class="badge kafka">Kafka</span>
+            </div>
+          </div>
+        </div>
+        <div class="jc-desc">${s.shortDesc}</div>
+        <div class="jc-meta">
+          <span>⬇ <strong>In:</strong> ${s.inputTopic.name}</span>
+          <span>⬆ <strong>Out:</strong> ${s.outputTopic.name}</span>
+          ${s.sideOutputs && s.sideOutputs.length ? `<span>⚡ <strong>${s.sideOutputs.length}</strong> side outputs</span>` : ''}
+        </div>
+      </div>
+    `;
+
+    // Side branch jobs that fork off this hot path job
+    const forks = sideBranch.filter(sb => sb.parentId === s.id);
+    forks.forEach(sb => {
+      const sbActive = selectedId === sb.id;
+      html += `
+        <div class="branch-callout">
+          <div class="bc-wire"><div class="bc-wire-h"></div><div class="bc-tip"></div></div>
+          <div class="bc-content">
+            <div class="bc-topic-lbl">↳ ${sb.branchTopic}</div>
+            <div class="bc-card${sbActive?' active':''}" data-id="${sb.id}" onclick="selectJob('${sb.id}')">
+              <div class="bc-name">${sb.icon} ${sb.name}</div>
+              <div class="bc-short">${sb.shortDesc}</div>
+              <div class="bc-out">→ ${sb.outputTopic.name}</div>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    // Error / duplicate side outputs for the hot path job
+    const errOuts = (s.sideOutputs || []).filter(so => so.type === 'dup' || so.type === 'fail');
+    if (errOuts.length) {
+      html += `<div class="side-outs">`;
+      errOuts.forEach(so => {
+        const icon = so.type === 'dup' ? '⚡' : '❌';
+        html += `<div class="side-out">
+          <span class="side-label">${so.type === 'dup' ? 'duplicate' : 'failed'}</span>
+          <div class="topic-pill err" title="${so.desc}">${icon} ${so.name}</div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+  });
+
+  if (editMode) {
+    html += `<div class="connector"></div><button class="add-btn" onclick="addJobBefore(${hotPath.length})">＋ Add job at end</button>`;
+  }
+
+  // Final Druid sink
+  const lastHot = hotPath[hotPath.length - 1];
+  html += `
+    <div class="connector"></div>
+    <div class="topic-pill main" title="${lastHot.outputTopic.desc}">
+      <span style="opacity:.6;font-size:10px;margin-right:4px">KAFKA</span>${lastHot.outputTopic.name}
+    </div>
+    <div class="connector"></div>
+    <div class="split-row">
+      <div class="split-col">
+        <span class="split-lbl">Telemetry Events</span>
+        <div class="topic-pill sink">📊 druid.events.telemetry</div>
+        <div class="connector" style="height:20px"></div>
+        <div class="sink-box">🗄 Apache Druid<br><span style="font-size:10px;opacity:.7">Real-time Analytics DB</span></div>
+      </div>
+      <div class="split-col">
+        <span class="split-lbl">Summary Events</span>
+        <div class="topic-pill sink">📈 druid.events.summary</div>
+        <div class="connector" style="height:20px"></div>
+        <div class="sink-box">🗄 Apache Druid<br><span style="font-size:10px;opacity:.7">Workflow Summary DB</span></div>
+      </div>
+    </div>
+    <div style="margin-top:16px;background:rgba(71,85,105,.08);border:1px dashed var(--border);border-radius:8px;padding:10px 14px;font-size:11px;color:var(--t2);max-width:520px;text-align:center">
+      ☁️ <strong style="color:var(--t1)">SECOR (Archival)</strong> — reads separately from:
+      <span style="font-family:monospace">telemetry.raw · telemetry.denorm · telemetry.failed · telemetry.duplicate · telemetry.error</span>
+      → Flat JSON files on S3 (long-term backup). Not part of the hot analytics path.
+    </div>
+  `;
+
+  // Support / cache-updater jobs band
+  if (support.length) {
+    html += `
+      <div class="support-band">
+        <div class="sb-header">⚙️ Support / Maintenance Jobs — 4 jobs</div>
+        <div class="sb-note">
+          These jobs run <strong>independently and continuously</strong>, not as part of the hot path.
+          <strong>Jobs 7, 8, 9</strong> keep the Redis caches warm that <strong>De-normalization (Job 4)</strong> reads for device · user · content enrichment.
+          <strong>Job 11 (Rating)</strong> is completely independent — it writes only to Cassandra.
+        </div>
+        <div class="sb-grid">
+          ${support.map((s,idx) => `
+            <div class="sb-card${selectedId===s.id?' active':''}" data-id="${s.id}" onclick="selectJob('${s.id}')">
+              <div class="sb-icon">${s.icon} <span style="font-size:10px;font-weight:700;color:var(--t2)">Job ${idx+7}</span></div>
+              <div class="sb-name">${s.name}</div>
+              <div class="sb-short">${s.shortDesc.split('.')[0]}.</div>
+              <div class="sb-writes ${s.writesColor||''}">${s.writesTo}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <div style="height:40px"></div>
+    `;
+  }
+
+  html += `</div>`;
+  c.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════
+// DETAIL PANEL
+// ═══════════════════════════════════════════════════════════
+function selectJob(id) {
+  selectedId = id;
+  const s = cfg.stages.find(x => x.id === id);
+  if (!s) return;
+
+  document.querySelectorAll('.job-card,.bc-card,.sb-card').forEach(el => {
+    el.classList.toggle('active', el.dataset.id === id);
+  });
+
+  const panel = document.getElementById('panel');
+  panel.classList.add('open');
+  activeTab = 'overview';
+  renderPanel(s);
+}
+
+function renderPanel(s) {
+  const tabs = ['overview','steps','topics','redis','files','metrics'];
+  const tabLabels = ['Overview','Processing Steps','Topics','Redis DBs','Source Files','Metrics'];
+
+  let html = `
+    <div class="dp-head">
+      <div class="dp-icon">${s.icon}</div>
+      <div>
+        <div class="dp-title">${s.name}</div>
+        <div class="dp-desc">${s.shortDesc}</div>
+      </div>
+      <button class="dp-close" onclick="closePanel()">✕</button>
+    </div>
+    <div class="tabs">
+      ${tabs.map((t,i) => `<div class="tab${t===activeTab?' on':''}" onclick="switchTab('${t}')">${tabLabels[i]}</div>`).join('')}
+    </div>
+  `;
+
+  // Overview
+  html += `<div class="tc${activeTab==='overview'?' on':''}" id="tc-overview">
+    <p style="font-size:13px;color:var(--t1);line-height:1.7;margin-bottom:16px">${s.description}</p>
+    <div class="sec-h">Data Flow</div>
+    <div style="background:var(--bg2);border-radius:8px;padding:12px;font-size:12px;color:var(--t1);font-family:monospace;line-height:2">
+      ⬇ <span style="color:var(--purple)">${s.inputTopic.name}</span><br>
+      &nbsp;&nbsp;&nbsp;↓<br>
+      📦 <span style="color:var(--blue)">${s.name}</span><br>
+      &nbsp;&nbsp;&nbsp;↓<br>
+      ⬆ <span style="color:var(--green)">${s.outputTopic.name}</span>
+      ${s.sideOutputs && s.sideOutputs.length ? '<br>&nbsp;&nbsp;&nbsp;+' + s.sideOutputs.length + ' side outputs' : ''}
+    </div>
+    <div class="sec-h" style="margin-top:16px">How Flink runs this job</div>
+    <p style="font-size:12px;color:var(--t1);line-height:1.7">
+      The <code style="background:var(--bg2);padding:1px 5px;border-radius:3px">${s.name.replace(/ /g,'')}StreamTask.scala</code> file creates a Flink <strong>StreamExecutionEnvironment</strong>, attaches a Kafka consumer to <code style="background:var(--bg2);padding:1px 5px;border-radius:3px">${s.inputTopic.name}</code>, chains the processing functions, and attaches Kafka producers for each output topic. Flink runs this as a continuously executing long-lived process.
+    </p>
+  </div>`;
+
+  // Steps
+  html += `<div class="tc${activeTab==='steps'?' on':''}" id="tc-steps">
+    ${s.steps.map((st,i) => `
+      <div class="step">
+        <div class="step-n">${i+1}</div>
+        <div>
+          <div class="step-t">${st.title}</div>
+          <div class="step-d">${st.desc}</div>
+        </div>
+      </div>
+    `).join('')}
+  </div>`;
+
+  // Topics
+  html += `<div class="tc${activeTab==='topics'?' on':''}" id="tc-topics">
+    <div class="sec-h">Input Topics</div>
+    <div class="t-item in">
+      <div class="t-name">${s.inputTopic.name}</div>
+      <div class="t-desc">${s.inputTopic.desc}</div>
+      <span class="t-tag" style="background:rgba(139,92,246,.2);color:var(--purple)">INPUT</span>
+    </div>
+    <div class="sec-h">Primary Output</div>
+    <div class="t-item out">
+      <div class="t-name">${s.outputTopic.name}</div>
+      <div class="t-desc">${s.outputTopic.desc}</div>
+      <span class="t-tag" style="background:rgba(16,185,129,.2);color:var(--green)">PRIMARY OUTPUT</span>
+    </div>
+    ${s.sideOutputs && s.sideOutputs.length ? `
+    <div class="sec-h">Side Outputs</div>
+    ${s.sideOutputs.map(so => {
+      const cls = so.type==='dup'?'dup':so.type==='fail'?'fail':'rt';
+      const tag = so.type==='dup'?'DUPLICATE':so.type==='fail'?'FAILED':'ROUTE';
+      const col = so.type==='dup'?'var(--amber)':so.type==='fail'?'var(--red)':'var(--cyan)';
+      return `<div class="t-item ${cls}">
+        <div class="t-name">${so.name}</div>
+        <div class="t-desc">${so.desc}</div>
+        <span class="t-tag" style="background:rgba(0,0,0,.2);color:${col}">${tag}</span>
+      </div>`;
+    }).join('')}` : ''}
+  </div>`;
+
+  // Redis
+  html += `<div class="tc${activeTab==='redis'?' on':''}" id="tc-redis">
+    ${s.redis && s.redis.length ? s.redis.map(r => `
+      <div class="r-card">
+        <div class="r-db">Redis ${r.db}</div>
+        <div class="r-info">
+          <strong>Host:</strong> ${r.host}<br>
+          <strong>TTL:</strong> ${r.ttl}<br>
+          <strong>Purpose:</strong> ${r.purpose}
+        </div>
+      </div>
+    `).join('') : '<p style="color:var(--t2);font-size:13px">No Redis usage in this job.</p>'}
+    <div style="margin-top:16px;background:var(--bg2);border-radius:8px;padding:12px;font-size:12px;color:var(--t1)">
+      <strong style="color:var(--t0)">Why Redis?</strong><br>
+      Redis is used because it stores data in memory — lookups complete in microseconds. At the scale of millions of events per day, even a 1ms database lookup would create unacceptable latency. Redis gives sub-millisecond responses for both deduplication checks and metadata lookups.
+    </div>
+  </div>`;
+
+  // Files
+  html += `<div class="tc${activeTab==='files'?' on':''}" id="tc-files">
+    ${s.files.map(f => `
+      <div class="f-item">
+        <div class="f-name">${f.name}</div>
+        <div class="f-path">${f.path}</div>
+        <div class="f-desc">${f.desc}</div>
+      </div>
+    `).join('')}
+    <div style="margin-top:16px;background:var(--bg2);border-radius:8px;padding:12px;font-size:12px;color:var(--t1)">
+      <strong style="color:var(--t0)">Code Pattern</strong><br>
+      Every job follows: <code style="background:var(--bg0);padding:1px 4px;border-radius:3px">StreamTask.scala</code> (entry point) → <code style="background:var(--bg0);padding:1px 4px;border-radius:3px">Config.scala</code> (all constants) → <code style="background:var(--bg0);padding:1px 4px;border-radius:3px">*Function.scala(s)</code> (business logic). The StreamTask wires them together using Flink's DataStream API.
+    </div>
+  </div>`;
+
+  // Metrics
+  html += `<div class="tc${activeTab==='metrics'?' on':''}" id="tc-metrics">
+    <p style="font-size:12px;color:var(--t1);margin-bottom:12px;line-height:1.5">Each job emits counters to Prometheus/InfluxDB for monitoring. These are incremented inside the Flink ProcessFunctions using the metrics reporter from dp-core.</p>
+    ${s.metrics && s.metrics.length ? s.metrics.map(m => `<div class="m-item">${m}</div>`).join('') : '<p style="color:var(--t2);font-size:13px">No metrics defined.</p>'}
+  </div>`;
+
+  document.getElementById('panelInner').innerHTML = html;
+}
+
+function switchTab(t) {
+  activeTab = t;
+  document.querySelectorAll('.tab').forEach(el => el.classList.toggle('on', el.textContent.toLowerCase().replace(/ /g,'') === t || el.onclick?.toString().includes(`'${t}'`)));
+  // Re-render panel for selected job
+  const s = cfg.stages.find(x => x.id === selectedId);
+  if (s) renderPanel(s);
+}
+
+function closePanel() {
+  selectedId = null;
+  document.getElementById('panel').classList.remove('open');
+  document.querySelectorAll('.job-card').forEach(el => el.classList.remove('active'));
+}
+
+// ═══════════════════════════════════════════════════════════
+// EDIT MODE
+// ═══════════════════════════════════════════════════════════
+function toggleEdit() {
+  editMode = !editMode;
+  document.getElementById('modeTag').textContent = editMode ? 'Edit Mode' : 'View Mode';
+  document.getElementById('modeTag').className = 'mode-tag ' + (editMode ? 'edit' : 'view');
+  document.getElementById('editBtn').textContent = editMode ? '👁 View Mode' : '✏️ Edit Mode';
+  document.getElementById('editBtn').className = 'btn ' + (editMode ? 'pri' : 'warn');
+  render();
+}
+
+function openEdit(id) {
+  editingId = id;
+  const s = cfg.stages.find(x => x.id === id);
+  document.getElementById('emt').textContent = 'Edit: ' + s.name;
+  document.getElementById('emBody').innerHTML = `
+    <div class="fg"><label>Job Name</label><input id="e-name" value="${esc(s.name)}"></div>
+    <div class="fg"><label>Icon (emoji)</label><input id="e-icon" value="${esc(s.icon)}" style="font-size:18px;width:80px"></div>
+    <div class="fg"><label>Short Description</label><textarea id="e-sdesc">${esc(s.shortDesc)}</textarea></div>
+    <div class="fg"><label>Full Description (HTML allowed)</label><textarea id="e-desc" style="min-height:90px">${esc(s.description)}</textarea></div>
+    <div class="fg"><label>Input Topic Name</label><input id="e-in-name" value="${esc(s.inputTopic.name)}"><div class="hint">The Kafka topic this job reads from</div></div>
+    <div class="fg"><label>Input Topic Description</label><input id="e-in-desc" value="${esc(s.inputTopic.desc)}"></div>
+    <div class="fg"><label>Primary Output Topic Name</label><input id="e-out-name" value="${esc(s.outputTopic.name)}"></div>
+    <div class="fg"><label>Primary Output Topic Description</label><input id="e-out-desc" value="${esc(s.outputTopic.desc)}"></div>
+    <div class="fg"><label>Side Outputs (one per line: name|desc|type)</label>
+      <textarea id="e-sides" style="min-height:90px;font-family:monospace">${(s.sideOutputs||[]).map(so=>`${so.name}|${so.desc}|${so.type}`).join('\n')}</textarea>
+      <div class="hint">Types: route, dup, fail</div>
+    </div>
+  `;
+  openM('editModal');
+}
+
+function saveEdit() {
+  const s = cfg.stages.find(x => x.id === editingId);
+  if (!s) return;
+  s.name = document.getElementById('e-name').value.trim();
+  s.icon = document.getElementById('e-icon').value.trim();
+  s.shortDesc = document.getElementById('e-sdesc').value.trim();
+  s.description = document.getElementById('e-desc').value.trim();
+  s.inputTopic.name = document.getElementById('e-in-name').value.trim();
+  s.inputTopic.desc = document.getElementById('e-in-desc').value.trim();
+  s.outputTopic.name = document.getElementById('e-out-name').value.trim();
+  s.outputTopic.desc = document.getElementById('e-out-desc').value.trim();
+  s.sideOutputs = document.getElementById('e-sides').value.trim().split('\n').filter(Boolean).map(line => {
+    const [name, desc, type] = line.split('|');
+    return {name: name?.trim()||'', desc: desc?.trim()||'', type: type?.trim()||'route'};
+  });
+  closeM('editModal');
+  render();
+  if (selectedId === editingId) {
+    const updated = cfg.stages.find(x => x.id === editingId);
+    renderPanel(updated);
+  }
+  toast('Changes saved');
+}
+
+function addJobBefore(index) {
+  const id = 'job-' + Date.now();
+  const newJob = {
+    id, name:"New Flink Job", icon:"⚙️",
+    shortDesc:"Describe what this job does.",
+    inputTopic:{name:"input.topic",desc:"Input topic description"},
+    outputTopic:{name:"output.topic",desc:"Output topic description"},
+    sideOutputs:[],
+    description:"Full description of this job.",
+    steps:[{title:"Step 1",desc:"Describe the first processing step."}],
+    redis:[],
+    files:[{name:"JobStreamTask.scala",path:"data-pipeline-flink/job-name/src/main/scala/",desc:"Main entry point"}],
+    metrics:["event-count — Total events processed"]
+  };
+  cfg.stages.splice(index, 0, newJob);
+  render();
+  toast('New job added — click ✏️ to configure it');
+}
+
+function deleteJob(id) {
+  if (!confirm('Delete this job from the pipeline visualization?')) return;
+  cfg.stages = cfg.stages.filter(s => s.id !== id);
+  if (selectedId === id) closePanel();
+  render();
+  toast('Job removed');
+}
+
+function moveJob(index, dir) {
+  const newIndex = index + dir;
+  if (newIndex < 0 || newIndex >= cfg.stages.length) return;
+  [cfg.stages[index], cfg.stages[newIndex]] = [cfg.stages[newIndex], cfg.stages[index]];
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════
+// IMPORT / EXPORT
+// ═══════════════════════════════════════════════════════════
+function openIE() {
+  document.getElementById('jsonArea').value = JSON.stringify(cfg, null, 2);
+  openM('ieModal');
+}
+
+function applyJSON() {
+  try {
+    cfg = JSON.parse(document.getElementById('jsonArea').value);
+    closeM('ieModal');
+    closePanel();
+    render();
+    toast('Pipeline config applied');
+  } catch(e) {
+    alert('Invalid JSON: ' + e.message);
+  }
+}
+
+function downloadJSON() {
+  const blob = new Blob([JSON.stringify(cfg, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'sunbird-pipeline-config.json';
+  a.click();
+  toast('Config downloaded');
+}
+
+// ═══════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════
+function openM(id) { document.getElementById(id).classList.add('on'); }
+function closeM(id) { document.getElementById(id).classList.remove('on'); }
+function openHelp() { openM('helpModal'); }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = '✓ ' + msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('on'); });
+});
+
+// Init
+render();
+</script>
+</body>
+</html>
