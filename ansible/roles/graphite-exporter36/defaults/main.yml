@@ -1,6 +1,6 @@
 ---
 
-graphite_exporter_version: 36.0.0
+graphite_exporter_version: 0.7.1
 
 graphite_exporter_binary_url: 'https://github.com/prometheus/graphite_exporter/releases/download/v{{graphite_exporter_version}}/graphite_exporter-{{graphite_exporter_version}}.linux-amd64.tar.gz'
 
