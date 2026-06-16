@@ -1,0 +1,11 @@
+{
+  "tier/historical/count":["tier"],
+  "segment/unavailable/count": ["dataSource"],
+  "task/success/count":["dataSource"],
+  "task/failed/count":["dataSource"],
+  "ingest/kafka/lag" : ["dataSource"],
+  "ingest/handoff/failed" : ["dataSource"],
+  "query/success/count" : [],
+  "query/failed/count" : [],
+  "segment/usedPercent" : ["dataSource"]
+}

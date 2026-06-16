@@ -41,3 +41,10 @@
                   login_password="{{ postgres.db_admin_password }}" \
                   db="{{ item.db }}"
       with_items: "{{ postgresql_users }}"
+
+-
+  name: Install role druid36
+  hosts: "druid-{{remote}}"
+  become: yes
+  roles:
+    - {role: analytics-druid, when: "'{{ remote }}-coordinator' in group_names and 'coordinator' in deploy", druid_role: 'coordinator', service: 'coordinator' }
