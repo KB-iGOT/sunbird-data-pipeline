@@ -1,16 +1,28 @@
 [Unit]
-Description=ZooKeeper Service
+Description=Apache ZooKeeper Service
 Documentation=http://zookeeper.apache.org
-Requires=network.target
 After=network.target
+Wants=network.target
 
 [Service]
 Type=forking
+
 User=zookeeper
 Group=zookeeper
+
+EnvironmentFile=-{{ zookeeper_dir }}/zookeeper/conf/environment
+
 ExecStart={{ zookeeper_dir }}/zookeeper/bin/zkServer.sh start {{ zookeeper_dir }}/zookeeper/conf/zoo.cfg
 ExecStop={{ zookeeper_dir }}/zookeeper/bin/zkServer.sh stop {{ zookeeper_dir }}/zookeeper/conf/zoo.cfg
 ExecReload={{ zookeeper_dir }}/zookeeper/bin/zkServer.sh restart {{ zookeeper_dir }}/zookeeper/conf/zoo.cfg
 
+Restart=on-failure
+RestartSec=10
+
+LimitNOFILE=32768
+
+TimeoutStartSec=120
+TimeoutStopSec=120
+
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target

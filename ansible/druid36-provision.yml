@@ -5,6 +5,15 @@
   roles:
     - {role: openjdk21, when: "'java' in deploy"}
 
+-
+  name: Install java and zookeeper cluster for druid
+  hosts: "{{ remote }}-zookeeper"
+  become: yes
+  roles:
+    - {role: zookeeper-upgrade, when: "'zookeeper' in deploy"}
+  vars:
+    zookeeper_group: "{{ groups[remote+'-zookeeper'] }}"
+
 # Create postgres databases and users
 
 - hosts: "{{ groups['postgres'][0] }}"
