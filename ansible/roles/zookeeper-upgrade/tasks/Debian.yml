@@ -38,7 +38,7 @@
     - Restart zookeeper
 
 - name: Overwrite env file.
-  template: src=environment.j2 dest={{ zookeeper_dir }}/zookeeper/conf/environment
+  template: src=environment.j2 dest={{ zookeeper_dir }}/zookeeper/conf/java.env
   notify:
     - Restart zookeeper
 

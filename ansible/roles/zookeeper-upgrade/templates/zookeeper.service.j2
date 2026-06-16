@@ -10,7 +10,7 @@ Type=forking
 User=zookeeper
 Group=zookeeper
 
-EnvironmentFile=-{{ zookeeper_dir }}/zookeeper/conf/environment
+EnvironmentFile=-{{ zookeeper_dir }}/zookeeper/conf/java.env
 
 ExecStart={{ zookeeper_dir }}/zookeeper/bin/zkServer.sh start {{ zookeeper_dir }}/zookeeper/conf/zoo.cfg
 ExecStop={{ zookeeper_dir }}/zookeeper/bin/zkServer.sh stop {{ zookeeper_dir }}/zookeeper/conf/zoo.cfg
