@@ -1,0 +1,7 @@
+-
+  name: Install Java
+  hosts: "druid-{{remote}}"
+  become: yes
+  roles:
+    - {role: openjdk21, when: "'java' in deploy"}
+
