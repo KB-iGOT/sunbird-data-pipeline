@@ -47,4 +47,4 @@
   hosts: "druid-{{remote}}"
   become: yes
   roles:
-    - {role: analytics-druid, when: "'{{ remote }}-coordinator' in group_names and 'coordinator' in deploy", druid_role: 'coordinator', service: 'coordinator' }
+    - {role: analytics-druid36, when: "'{{ remote }}-coordinator' in group_names and 'coordinator' in deploy", druid_role: 'coordinator', service: 'coordinator' }
