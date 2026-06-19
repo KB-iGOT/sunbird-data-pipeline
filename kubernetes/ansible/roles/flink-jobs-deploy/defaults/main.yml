@@ -71,6 +71,11 @@ cb_preprocessor_consumer_parallelism: 1
 cb_preprocessor_operators_parallelism: 1
 cb_preprocessor_key_expiry_seconds: 3600
 
+### certificate-deduplication related vars
+certificate-dedup_consumer_parallelism : 1
+certificate-dedup_operators_parallelism : 1
+certificate_dedup_key_expiry_seconds: 3600
+
 ### De-normalization related vars
 denorm_consumer_parallelism: 2
 telemetry_denorm_operators_parallelism: 2
@@ -204,6 +209,21 @@ flink_job_names:
     max_replica: 4
   cb-preprocessor:
     job_class_name: 'org.sunbird.dp.cbpreprocessor.task.CBPreprocessorStreamTask'
+    replica: 1
+    jobmanager_memory: 1024m
+    taskmanager_memory: 1024m
+    taskmanager_process_memory: 1700m
+    jobmanager_process_memory: 1600m
+    taskslots: 1
+    cpu_requests: 1
+    cpu_limits: 2
+    mem_requests: 2Gi
+    scale_enabled: true
+    scale_target_value: 500000
+    min_replica: 1
+    max_replica: 2
+  certificate-deduplication:
+    job_class_name: 'org.sunbird.dp.certificatededuplication.task.CertificateDeduplicationStreamTask'
     replica: 1
     jobmanager_memory: 1024m
     taskmanager_memory: 1024m
