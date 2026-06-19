@@ -18,6 +18,12 @@
     src: cluster.xml.j2
     dest: /etc/clickhouse-server/config.d/cluster.xml
 
+- name: Deploy system logs config
+  template:
+    src: system_logs.xml.j2
+    dest: /etc/clickhouse-server/config.d/system_logs.xml
+  notify: Restart ClickHouse
+
 - name: Create user_files_path for ClickHouse
   file:
     path: /home/analytics/pyspark/warehouse
