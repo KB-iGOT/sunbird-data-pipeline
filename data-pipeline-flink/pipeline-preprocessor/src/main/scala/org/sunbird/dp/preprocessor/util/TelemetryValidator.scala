@@ -30,17 +30,8 @@ class TelemetryValidator(config: PipelinePreprocessorConfig) extends java.io.Ser
     }
   }
 
-  private def dataCorrection(event: Event): Unit = {
-    // Remove prefix from federated userIds
-    val eventActorId = event.actorId()
-    if (eventActorId != null && !eventActorId.isEmpty && eventActorId.startsWith("f:"))
-      event.updateActorId(eventActorId.substring(eventActorId.lastIndexOf(":") + 1))
-    if (event.objectFieldsPresent && (event.objectType().equalsIgnoreCase("DialCode") || event.objectType().equalsIgnoreCase("qr"))) event.correctDialCodeValue()
-  }
-
   def onValidationSuccess(event: Event, metrics: Metrics, context: ProcessFunction[Event, Event]#Context): Unit = {
     logger.debug(s"Telemetry schema validation is success: ${event.mid()}")
-    dataCorrection(event)
     event.markSuccess(config.VALIDATION_FLAG_NAME)
     metrics.incCounter(config.validationSuccessMetricsCount)
     event.updateDefaults(config)

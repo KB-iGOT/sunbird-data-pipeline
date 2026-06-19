@@ -21,23 +21,6 @@ class Event(eventMap: util.Map[String, Any]) extends Events(eventMap) {
     else "envelope.json"
   }
 
-  def updateActorId(actorId: String): Unit = {
-    telemetry.add(EventsPath.ACTOR_ID_PATH, actorId)
-  }
-
-  def correctDialCodeKey(): Unit = {
-    val dialcodes = telemetry.read(s"${EventsPath.EDTA_FILTERS}.dialCodes").getOrElse("")
-    if (!dialcodes.isEmpty) {
-      telemetry.add(s"${EventsPath.EDTA_FILTERS}.dialcodes", dialcodes)
-      telemetry.add(s"${EventsPath.EDTA_FILTERS}.dialCodes", null)
-    }
-  }
-
-  def correctDialCodeValue(): Unit = {
-    val dialcode = telemetry.read[String](EventsPath.OBJECT_ID_PATH).getOrElse(null)
-    if (dialcode != null) telemetry.add(EventsPath.OBJECT_ID_PATH, dialcode.toUpperCase)
-  }
-
   def markValidationFailure(errorMsg: String, flagName: String): Unit = {
     telemetry.addFieldIfAbsent(EventsPath.FLAGS_PATH, new util.HashMap[String, Boolean])
     telemetry.add(s"${EventsPath.FLAGS_PATH}.$flagName", false)
