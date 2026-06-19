@@ -11,7 +11,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
 import org.sunbird.dp.core.job.FlinkKafkaConnector
 import org.sunbird.dp.core.util.FlinkUtil
 import org.sunbird.dp.preprocessor.domain.Event
-import org.sunbird.dp.preprocessor.functions.{PipelinePreprocessorFunction, ShareEventsFlattenerFunction, TelemetryRouterFunction, TelemetryValidationFunction}
+import org.sunbird.dp.preprocessor.functions.{PipelinePreprocessorFunction, TelemetryValidationFunction}
 
 /**
  * Telemetry Pipeline processor stream task does the following pipeline processing in a sequence:
@@ -36,12 +36,7 @@ import org.sunbird.dp.preprocessor.functions.{PipelinePreprocessorFunction, Shar
  *    3.1 All events should pushed to sink topic - incr the primary router count
  *    3.2 Audit event should pushed to sink and audit topic. - incr the audit router success count
  *    3.3 Log event should pushed to only log topic( not sink) - Incr the log events router success count
- *    3.4 Share events should be send to next stream (ShareEventsFlattener)
- *  4.ShareEventsFlattener function checks
- *    4.1 If the SHARE Event Item list object has params.transfers = 0 then edata.type of SHARE_ITEM should be "download"
- *    4.2 If the SHARE Event Item list object has params.transfers = > 0 then edata.type of SHARE_ITEM should be "import"
- *    4.3 If the SHARE event has object then move the object data to rollup l1
- *    4.4 All flattened(SHARE_ITEM and SHARE) events should push to sink topic(denorm) with appropriate flags - incr SHARE and SHRE_ITEM success count
+ *    3.4 Share events are dropped — no longer processed
  *
  */
 
@@ -57,8 +52,7 @@ class PipelinePreprocessorStreamTask(config: PipelinePreprocessorConfig, kafkaCo
     /**
      * Process functions
      * 1. TelemetryValidationFunction & DeduplicationFunction
-     * 3. TelemetryRouterFunction
-     * 4. Share Events Flattener
+     * 2. TelemetryRouterFunction
      */
 
     val eventStream: SingleOutputStreamOperator[Event] =
@@ -87,20 +81,7 @@ class PipelinePreprocessorStreamTask(config: PipelinePreprocessorConfig, kafkaCo
       .setParallelism(config.downstreamOperatorsParallelism)
 
     /**
-     * Pushing "AUDIT" event into both sink and audit topic
-     */
-    eventStream.getSideOutput(config.auditRouteEventsOutputTag)
-      .addSink(kafkaConnector.kafkaEventSink[Event](config.kafkaAuditRouteTopic))
-      .name(config.auditRouterProducer).uid(config.auditRouterProducer)
-      .setParallelism(config.downstreamOperatorsParallelism)
-
-    eventStream.getSideOutput(config.auditRouteEventsOutputTag)
-      .addSink(kafkaConnector.kafkaEventSink[Event](config.kafkaPrimaryRouteTopic))
-      .name(config.auditEventsPrimaryRouteProducer).uid(config.auditEventsPrimaryRouteProducer)
-      .setParallelism(config.downstreamOperatorsParallelism)
-
-    /**
-     * Pushing all the events to unique topic (next stream = denorm) , except LOG, ERROR, AUDIT Events,
+     * Pushing all the events to unique topic (next stream = denorm), except LOG, ERROR, AUDIT, CB_AUDIT, SHARE events.
      */
     eventStream.getSideOutput(config.primaryRouteEventsOutputTag)
       .addSink(kafkaConnector.kafkaEventSink[Event](config.kafkaPrimaryRouteTopic))
@@ -120,20 +101,6 @@ class PipelinePreprocessorStreamTask(config: PipelinePreprocessorConfig, kafkaCo
       .name(config.denormPrimaryEventProducer).uid(config.denormPrimaryEventProducer)
       .setParallelism(config.downstreamOperatorsParallelism)
 
-
-    /**
-     * Pushing "SHARE and SHARE_ITEM" event into out put topic unique topic(next_streaming_process = denorm)
-     */
-    eventStream.getSideOutput(config.shareItemEventOutputTag).addSink(kafkaConnector.kafkaEventSink[Event](config.kafkaPrimaryRouteTopic)).name(config.shareItemsPrimaryRouterProducer).uid(config.shareItemsPrimaryRouterProducer).setParallelism(config.downstreamOperatorsParallelism)
-
-    /**
-    * pushing cbAudit events into cbAudit topic
-    */
-
-    eventStream.getSideOutput(config.cbAuditRouteEventsOutputTag)
-      .addSink(kafkaConnector.kafkaEventSink[Event](config.kafkaCbAuditRouteTopic))
-      .name(config.cbAuditRouterProducer).uid(config.cbAuditRouterProducer)
-      .setParallelism(config.downstreamOperatorsParallelism)
 
     env.execute(config.jobName)
   }

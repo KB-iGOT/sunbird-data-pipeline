@@ -27,8 +27,6 @@ class PipelinePreprocessorConfig(override val config: Config) extends BaseJobCon
   val kafkaPrimaryRouteTopic: String = config.getString("kafka.output.primary.route.topic")
   val kafkaLogRouteTopic: String = config.getString("kafka.output.log.route.topic")
   val kafkaErrorRouteTopic: String = config.getString("kafka.output.error.route.topic")
-  val kafkaAuditRouteTopic: String = config.getString("kafka.output.audit.route.topic")
-  val kafkaCbAuditRouteTopic: String = config.getString("kafka.output.cb.audit.route.topic")
 
   val kafkaFailedTopic: String = config.getString("kafka.output.failed.topic")
   val kafkaDuplicateTopic: String = config.getString("kafka.output.duplicate.topic")
@@ -52,15 +50,9 @@ class PipelinePreprocessorConfig(override val config: Config) extends BaseJobCon
   val denormSecondaryEventsRouteOutputTag: OutputTag[Event] = OutputTag[Event]("denorm-secondary-events")
   val denormPrimaryEventsRouteOutputTag: OutputTag[Event] = OutputTag[Event]("denorm-primary-events")
 
-  // Audit, Log & Error Events output tag
-  val auditRouteEventsOutputTag: OutputTag[Event] = OutputTag[Event]("audit-route-events")
-  val cbAuditRouteEventsOutputTag: OutputTag[Event] = OutputTag[Event]("cb-audit-route-events")
+  // Log & Error Events output tag
   val logEventsOutputTag: OutputTag[Event] = OutputTag[Event]("log-route-events")
   val errorEventOutputTag: OutputTag[Event] = OutputTag[Event]("error-route-events")
-
-  // Share events out put tags
-  val shareRouteEventsOutputTag: OutputTag[Event] = OutputTag[Event]("share-route-events")
-  val shareItemEventOutputTag: OutputTag[Event] = OutputTag[Event]("share-item-events")
 
   override val kafkaConsumerParallelism: Int = config.getInt("task.consumer.parallelism")
   val downstreamOperatorsParallelism: Int = config.getInt("task.downstream.operators.parallelism")
@@ -68,18 +60,12 @@ class PipelinePreprocessorConfig(override val config: Config) extends BaseJobCon
   val VALIDATION_FLAG_NAME = "pp_validation_processed"
   val DEDUP_FLAG_NAME = "pp_duplicate"
   val DEDUP_SKIP_FLAG_NAME = "pp_duplicate_skipped"
-  val SHARE_EVENTS_FLATTEN_FLAG_NAME = "pp_share_event_processed"
-
   // Router job metrics
   val primaryRouterMetricCount = "primary-route-success-count"
-  val auditEventRouterMetricCount = "audit-route-success-count"
-  val shareEventsRouterMetricCount = "share-route-success-count"
   val logEventsRouterMetricsCount = "log-route-success-count"
   val errorEventsRouterMetricsCount = "error-route-success-count"
   val denormSecondaryEventsRouterMetricsCount = "denorm-secondary-route-success-count"
   val denormPrimaryEventsRouterMetricsCount = "denorm-primary-route-success-count"
-  val cbAuditEventRouterMetricCount = "cb-audit-route-success-count"
-
   // Validation job metrics
   val validationSuccessMetricsCount = "validation-success-event-count"
   val validationFailureMetricsCount = "validation-failed-event-count"
@@ -88,26 +74,17 @@ class PipelinePreprocessorConfig(override val config: Config) extends BaseJobCon
   val uniqueEventsMetricsCount = "unique-event-count"
   val validationSkipMetricsCount = "validation-skipped-event-count"
 
-  // ShareEventsFlatten count
-  val shareItemEventsMetircsCount = "share-item-event-success-count"
-
   // Consumers
   val pipelinePreprocessorConsumer = "pipeline-preprocessor-consumer"
 
   // Functions
   val telemetryValidationFunction = "TelemetryValidationFunction"
   val telemetryRouterFunction = "TelemetryRouterFunction"
-  val shareEventsFlattenerFunction = "ShareEventsFlattenerFunction"
 
   // Producers
   val primaryRouterProducer = "primary-route-sink"
-  val auditEventsPrimaryRouteProducer = "audit-events-primary-route-sink"
-  val shareEventsPrimaryRouteProducer = "share-events-primary-route-sink"
-  val shareItemsPrimaryRouterProducer = "share-items-primary-route-sink"
   val logRouterProducer = "log-route-sink"
   val errorRouterProducer = "error-route-sink"
-  val auditRouterProducer = "audit-route-sink"
-  val cbAuditRouterProducer = "cb-audit-route-sink"
   val invalidEventProducer = "invalid-events-sink"
   val duplicateEventProducer = "duplicate-events-sink"
   val denormSecondaryEventProducer = "denorm-secondary-events-sink"
