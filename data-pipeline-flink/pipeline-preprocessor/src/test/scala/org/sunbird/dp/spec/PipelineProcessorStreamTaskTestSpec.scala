@@ -49,7 +49,6 @@ class PipelineProcessorStreamTaskTestSpec extends BaseTestSpec {
 
     when(mockKafkaUtil.kafkaEventSink[Event](ppConfig.kafkaDuplicateTopic)).thenReturn(new DupEventsSink)
     when(mockKafkaUtil.kafkaEventSink[Event](ppConfig.kafkaPrimaryRouteTopic)).thenReturn(new TelemetryPrimaryEventSink)
-    when(mockKafkaUtil.kafkaEventSink[Event](ppConfig.kafkaLogRouteTopic)).thenReturn(new TelemetryLogEventSink)
     when(mockKafkaUtil.kafkaEventSink[Event](ppConfig.kafkaErrorRouteTopic)).thenReturn(new TelemetryErrorEventSink)
     when(mockKafkaUtil.kafkaEventSink[Event](ppConfig.kafkaFailedTopic)).thenReturn(new TelemetryFailedEventsSink)
 
@@ -71,14 +70,14 @@ class PipelineProcessorStreamTaskTestSpec extends BaseTestSpec {
     TelemetryPrimaryEventSink.values.size() should be(5)
     TelemetryFailedEventsSink.values.size() should be(7)
     DupEventsSink.values.size() should be(1)
-    TelemetryLogEventSink.values.size() should be(1)
+    TelemetryLogEventSink.values.size() should be(0) // log.events.skip = true
     TelemetryErrorEventSink.values.size() should be(1)
 
     TelemetryDenormSecondaryEventSink.values.size() should be(0) // denorm disabled
     TelemetryDenormPrimaryEventSink.values.size() should be(0)
 
     BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.${ppConfig.primaryRouterMetricCount}").getValue() should be(5)
-    BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.${ppConfig.logEventsRouterMetricsCount}").getValue() should be(1)
+    BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.${ppConfig.logEventsRouterMetricsCount}").getValue() should be(0)
     BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.${ppConfig.errorEventsRouterMetricsCount}").getValue() should be(1)
 
     BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.${ppConfig.validationSuccessMetricsCount}").getValue() should be(10)

@@ -69,11 +69,14 @@ class PipelinePreprocessorStreamTask(config: PipelinePreprocessorConfig, kafkaCo
 
     /**
      * Routing LOG & ERROR Events to "event.log" & "events.error" topic respectively.
+     * LOG sink only wired when log.events.skip = false.
      */
-    eventStream.getSideOutput(config.logEventsOutputTag)
-      .addSink(kafkaConnector.kafkaEventSink[Event](config.kafkaLogRouteTopic))
-      .name(config.logRouterProducer).uid(config.logRouterProducer)
-      .setParallelism(config.downstreamOperatorsParallelism)
+    if (!config.skipLogEvents) {
+      eventStream.getSideOutput(config.logEventsOutputTag)
+        .addSink(kafkaConnector.kafkaEventSink[Event](config.kafkaLogRouteTopic))
+        .name(config.logRouterProducer).uid(config.logRouterProducer)
+        .setParallelism(config.downstreamOperatorsParallelism)
+    }
 
     eventStream.getSideOutput(config.errorEventOutputTag)
       .addSink(kafkaConnector.kafkaEventSink[Event](config.kafkaErrorRouteTopic))

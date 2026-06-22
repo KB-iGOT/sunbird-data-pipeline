@@ -95,5 +95,6 @@ class PipelinePreprocessorConfig(override val config: Config) extends BaseJobCon
   val secondaryEvents: List[String] = config.getStringList("secondary.events").asScala.toList
 
   val isDenormEnabled: Boolean = config.getBoolean("denorm.enabled")
+  val skipLogEvents: Boolean = config.getBoolean("log.events.skip")
 
 }

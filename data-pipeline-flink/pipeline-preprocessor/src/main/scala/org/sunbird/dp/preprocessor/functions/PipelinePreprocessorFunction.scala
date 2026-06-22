@@ -70,8 +70,10 @@ class PipelinePreprocessorFunction(config: PipelinePreprocessorConfig,
 
     if (isValid) {
       if (event.eid().equalsIgnoreCase("LOG")) {
-        context.output(config.logEventsOutputTag, event)
-        metrics.incCounter(metric = config.logEventsRouterMetricsCount)
+        if (!config.skipLogEvents) {
+          context.output(config.logEventsOutputTag, event)
+          metrics.incCounter(metric = config.logEventsRouterMetricsCount)
+        }
       } else if (event.eid().equalsIgnoreCase("AUDIT") || event.eid().equalsIgnoreCase("CB_AUDIT") || event.eid().equalsIgnoreCase("SHARE")) {
         // drop — no longer processed
       }

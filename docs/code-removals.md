@@ -239,6 +239,47 @@ Redeploy both jobs. The de-normalization job must also be running and consuming 
 
 ---
 
+---
+
+## pipeline-preprocessor
+
+### Change: Skip LOG events via `log.events.skip` flag
+
+**Date:** 2026-06-19  
+**Branch:** cbrelease-4.8.38
+
+#### What changed
+
+A boolean flag `log.events.skip` (default: `true`) was added to the preprocessor. When `true`, LOG events (`eid = "LOG"`) are silently dropped immediately after validation — no side-output is written, no metric is incremented, and the `druid.events.log` Kafka sink is not registered. When `false`, LOG events are processed and routed exactly as before.
+
+#### Why changed
+
+The `{env}.druid.events.log` topic is not consumed by any downstream Flink job in this pipeline. The routing logic is kept in place so it can be re-enabled with a single flag flip if an external consumer or a new downstream job needs LOG events again.
+
+#### Files affected
+
+| File | Change |
+|------|--------|
+| `pipeline-preprocessor/src/main/scala/.../task/PipelinePreprocessorConfig.scala` | Added `skipLogEvents: Boolean` field |
+| `pipeline-preprocessor/src/main/scala/.../functions/PipelinePreprocessorFunction.scala` | LOG routing wrapped in `if (!config.skipLogEvents)` guard |
+| `pipeline-preprocessor/src/main/scala/.../task/PipelinePreprocessorStreamTask.scala` | LOG sink registration wrapped in `if (!config.skipLogEvents)` guard |
+| `pipeline-preprocessor/src/main/resources/pipeline-preprocessor.conf` | Added `log.events.skip = true` |
+
+#### Downstream impact
+
+- `{env}.druid.events.log` will receive no new messages from the preprocessor
+- No other Flink job is affected — LOG events never entered the dedup or primary-route flow
+
+#### How to re-enable
+
+Set `log.events.skip = false` in `pipeline-preprocessor.conf` and redeploy.
+
+#### Tests
+
+- `PipelineProcessorStreamTaskTestSpec`: `TelemetryLogEventSink` now asserts 0 events; `logEventsRouterMetricsCount` metric asserts 0; removed mock setup for the log sink. All other sink counts and metrics are unchanged.
+
+---
+
 <!-- To add a new job section, copy the template below and fill it in:
 
 ## <job-name>
