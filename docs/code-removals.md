@@ -58,6 +58,48 @@ These corrections were compensating for upstream client-side inconsistencies tha
 
 ---
 
+## ingest-router (retired)
+
+### Removal: ingest-router retired from pipeline flow
+
+**Date:** 2026-06-19  
+**Branch:** cbrelease-4.8.38
+
+#### What was removed
+
+The `ingest-router` Flink job was a simple pass-through that read raw bytes from `{env}.telemetry.ingestion` and forwarded them unchanged to `{env}.telemetry.ingest`. No transformation, validation, or enrichment was applied. The module is removed from the parent `pom.xml`.
+
+#### Why removed
+
+The `telemetry-extractor` job already reads directly from `{env}.telemetry.ingestion` — it never consumed from `{env}.telemetry.ingest`. This means ingest-router's output was going to an unconsumed topic, making the job a redundant consumer that added lag and resource cost with zero effect on the pipeline. The flow is:
+
+```
+Before: telemetry.ingestion → [ingest-router] → telemetry.ingest (unread)
+                           ↘ [telemetry-extractor]
+
+After:  telemetry.ingestion → [telemetry-extractor]
+```
+
+#### Modules retired (removed from parent pom)
+
+| Module | Was consuming |
+|--------|--------------|
+| `ingest-router` | `{env}.telemetry.ingestion` → wrote to `{env}.telemetry.ingest` (unread by any job) |
+
+#### Files affected
+
+| File | Change |
+|------|--------|
+| `data-pipeline-flink/pom.xml` | Removed `ingest-router` module entry |
+
+#### Downstream impact
+
+- `{env}.telemetry.ingest` topic will receive no new messages
+- `{env}.telemetry.ingestion` consumer group `{env}-ingest-router-group` is gone; no lag accumulation
+- Pipeline flow is unchanged — telemetry-extractor continues to read from `{env}.telemetry.ingestion` directly
+
+---
+
 ## pipeline-preprocessor + telemetry-extractor + retired modules
 
 ### Removal: AUDIT, CB_AUDIT, and ASSESS/RESPONSE event processing
