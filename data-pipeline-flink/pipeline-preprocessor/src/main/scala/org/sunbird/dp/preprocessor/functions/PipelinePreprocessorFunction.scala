@@ -8,11 +8,10 @@ import org.sunbird.dp.core.cache.{DedupEngine, RedisConnect}
 import org.sunbird.dp.core.job.{BaseProcessFunction, Metrics}
 import org.sunbird.dp.preprocessor.domain.Event
 import org.sunbird.dp.preprocessor.task.PipelinePreprocessorConfig
-import org.sunbird.dp.preprocessor.util.{ShareEventsFlattener, TelemetryValidator}
+import org.sunbird.dp.preprocessor.util.TelemetryValidator
 
 class PipelinePreprocessorFunction(config: PipelinePreprocessorConfig,
                                    @transient var telemetryValidator: TelemetryValidator = null,
-                                  @transient var shareEventsFlattener: ShareEventsFlattener = null,
                                    @transient var dedupEngine: DedupEngine = null)
                                    (implicit val eventTypeInfo: TypeInformation[Event])
   extends BaseProcessFunction[Event, Event](config) {
@@ -26,12 +25,8 @@ class PipelinePreprocessorFunction(config: PipelinePreprocessorConfig,
       config.primaryRouterMetricCount,
       config.logEventsRouterMetricsCount,
       config.errorEventsRouterMetricsCount,
-      config.auditEventRouterMetricCount,
-      config.shareEventsRouterMetricCount,
-      config.shareItemEventsMetircsCount,
       config.denormSecondaryEventsRouterMetricsCount,
-      config.denormPrimaryEventsRouterMetricsCount,
-      config.cbAuditEventRouterMetricCount
+      config.denormPrimaryEventsRouterMetricsCount
     ) ::: deduplicationMetrics
   }
 
@@ -44,10 +39,6 @@ class PipelinePreprocessorFunction(config: PipelinePreprocessorConfig,
 
     if (telemetryValidator == null) {
       telemetryValidator = new TelemetryValidator(config)
-    }
-
-    if(shareEventsFlattener == null) {
-      shareEventsFlattener = new ShareEventsFlattener(config)
     }
   }
 
@@ -79,8 +70,12 @@ class PipelinePreprocessorFunction(config: PipelinePreprocessorConfig,
 
     if (isValid) {
       if (event.eid().equalsIgnoreCase("LOG")) {
-        context.output(config.logEventsOutputTag, event)
-        metrics.incCounter(metric = config.logEventsRouterMetricsCount)
+        if (!config.skipLogEvents) {
+          context.output(config.logEventsOutputTag, event)
+          metrics.incCounter(metric = config.logEventsRouterMetricsCount)
+        }
+      } else if (event.eid().equalsIgnoreCase("AUDIT") || event.eid().equalsIgnoreCase("CB_AUDIT") || event.eid().equalsIgnoreCase("SHARE")) {
+        // drop — no longer processed
       }
       else {
         val isUnique = if (isDuplicateCheckRequired(event.producerId())) {
@@ -99,28 +94,16 @@ class PipelinePreprocessorFunction(config: PipelinePreprocessorConfig,
 
           if("ERROR".equalsIgnoreCase(event.eid())) {
             metrics.incCounter(metric = config.errorEventsRouterMetricsCount)
-          } else if (config.secondaryEvents.contains(event.eid())) {
+          } else if (config.isDenormEnabled && config.secondaryEvents.contains(event.eid())) {
             context.output(config.denormSecondaryEventsRouteOutputTag, event)
             metrics.incCounter(metric = config.denormSecondaryEventsRouterMetricsCount)
-          }
-          else {
+          } else if (config.isDenormEnabled) {
             context.output(config.denormPrimaryEventsRouteOutputTag, event)
             metrics.incCounter(metric = config.denormPrimaryEventsRouterMetricsCount)
           }
           event.eid() match {
-            case "AUDIT" =>
-              context.output(config.auditRouteEventsOutputTag, event)
-              metrics.incCounter(metric = config.auditEventRouterMetricCount)
-              metrics.incCounter(metric = config.primaryRouterMetricCount) // Since we are are sinking the AUDIT Event into primary router topic
-            case "SHARE" =>
-              shareEventsFlattener.flatten(event, context, metrics)
-              metrics.incCounter(metric = config.shareEventsRouterMetricCount)
-              metrics.incCounter(metric = config.primaryRouterMetricCount) // // Since we are are sinking the SHARE Event into primary router topic
             case "ERROR" =>
               context.output(config.errorEventOutputTag, event)
-            case "CB_AUDIT" =>
-              context.output(config.cbAuditRouteEventsOutputTag, event)  // cbAudit event are not routed to denorm topic
-              metrics.incCounter(metric = config.cbAuditEventRouterMetricCount) // //   metric for cb_audit events
             case _ => context.output(config.primaryRouteEventsOutputTag, event)
               metrics.incCounter(metric = config.primaryRouterMetricCount)
           }

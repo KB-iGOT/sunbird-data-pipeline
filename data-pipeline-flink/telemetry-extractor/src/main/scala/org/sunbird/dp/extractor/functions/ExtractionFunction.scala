@@ -46,11 +46,11 @@ class ExtractionFunction(config: TelemetryExtractorConfig)(implicit val stringTy
       if (eventSize > config.eventMaxSize) {
         metrics.incCounter(config.failedEventCount)
         context.output(config.failedEventsOutputTag, markFailed(eventData))
+      } else if ("ASSESS".equalsIgnoreCase(eventId) || "RESPONSE".equalsIgnoreCase(eventId)) {
+        // drop — no longer processed
       } else {
         metrics.incCounter(config.successEventCount)
-        if (config.redactEventsList.contains(eventId)) {
-          context.output(config.assessRedactEventsOutputTag, markSuccess(eventData))
-        } else if ("LOG".equalsIgnoreCase(eventId)) {
+        if ("LOG".equalsIgnoreCase(eventId)) {
           context.output(config.logEventsOutputTag, markSuccess(eventData))
         } else {
           context.output(config.rawEventsOutputTag, markSuccess(eventData))

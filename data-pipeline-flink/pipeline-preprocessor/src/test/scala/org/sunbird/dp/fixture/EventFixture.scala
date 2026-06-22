@@ -12,7 +12,7 @@ object EventFixtures {
    *
    * Event - 4 - > Valid AUDIT Event, DeDup not required, Route to AUDIT Topic -
    *
-   * Event - 5 -> Valid SHARE Event, DeDup Not required, Generates the 3 SHARE_ITEM_EVENT -
+   * Event - 5 -> Valid SHARE Event — now dropped before dedup; no longer generates SHARE_ITEM events -
    *
    * EVENT - 6 -> 3.1 Version ASSESS Event, Dedup not required, route to primary topic -
    *
