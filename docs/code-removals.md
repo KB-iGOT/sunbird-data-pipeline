@@ -174,6 +174,71 @@ There are no active producers emitting SHARE events. The flattening logic, confi
 
 ---
 
+---
+
+## de-normalization + pipeline-preprocessor + druid-events-validator
+
+### Change: Bypass de-normalization job via `denorm.enabled` flag
+
+**Date:** 2026-06-19  
+**Branch:** cbrelease-4.8.38
+
+#### What changed
+
+**1. `denorm.enabled` flag added to both jobs**
+
+A boolean flag `denorm.enabled` (default: `false`) was added to the configs of `pipeline-preprocessor` and `druid-events-validator`. Flipping it to `true` in both jobs restores the original enrichment pipeline.
+
+**2. `pipeline-preprocessor` — denorm priority-split sinks disabled**
+
+When `denorm.enabled = false`, the preprocessor no longer writes events to `{env}.telemetry.unique.primary` (all non-INTERACT/IMPRESSION events) or `{env}.telemetry.unique.secondary` (INTERACT/IMPRESSION events). All events continue to flow as normal to `{env}.telemetry.unique` (the primary route topic). The `denorm.enabled` guard was added to both the routing logic in `PipelinePreprocessorFunction` and the sink registration in `PipelinePreprocessorStreamTask`.
+
+**3. `druid-events-validator` — input topic switched to `telemetry.unique`**
+
+When `denorm.enabled = false`, the validator reads from `{env}.telemetry.unique` (bypassing the de-normalization job entirely). When `denorm.enabled = true`, it reads from `{env}.telemetry.denorm` as before. The config retains both topic keys (`kafka.input.topic` and `kafka.input.denorm.topic`) for easy switching.
+
+#### Why changed
+
+The de-normalization job (device/user/content/dialcode/location enrichment via Redis) was deactivated after review. Its output is no longer required downstream. Keeping it as a configurable bypass (rather than outright removal) preserves the ability to re-enable enrichment with a single flag change per job.
+
+#### Files affected
+
+| File | Change |
+|------|--------|
+| `pipeline-preprocessor/src/main/scala/.../task/PipelinePreprocessorConfig.scala` | Added `isDenormEnabled: Boolean` field |
+| `pipeline-preprocessor/src/main/scala/.../functions/PipelinePreprocessorFunction.scala` | Denorm routing branches gated on `config.isDenormEnabled` |
+| `pipeline-preprocessor/src/main/scala/.../task/PipelinePreprocessorStreamTask.scala` | Denorm sink registration wrapped in `if (config.isDenormEnabled)` |
+| `pipeline-preprocessor/src/main/resources/pipeline-preprocessor.conf` | Added `denorm.enabled = false` |
+| `druid-events-validator/src/main/resources/druid-events-validator.conf` | Added `denorm.enabled = false`; changed `kafka.input.topic` to `telemetry.unique`; added `kafka.input.denorm.topic = telemetry.denorm` |
+| `druid-events-validator/src/main/scala/.../task/DruidValidatorConfig.scala` | Added `isDenormEnabled`; `kafkaInputTopic` now selects between `kafka.input.topic` and `kafka.input.denorm.topic` based on the flag |
+
+#### Downstream impact
+
+- `{env}.telemetry.unique.primary` and `{env}.telemetry.unique.secondary` will receive no new messages (de-normalization job can be shut down and decommissioned)
+- Events entering `druid-events-validator` are un-enriched — no `devicedata`, `userdata`, `contentdata`, `dialcodedata`, or `locationdata` fields
+- `{env}.telemetry.denorm` will receive no new messages
+
+#### How to re-enable
+
+Set `denorm.enabled = true` in both job configs:
+
+```
+# pipeline-preprocessor.conf
+denorm.enabled = true
+
+# druid-events-validator.conf
+denorm.enabled = true
+```
+
+Redeploy both jobs. The de-normalization job must also be running and consuming from `{env}.telemetry.unique`.
+
+#### Tests
+
+- `PipelineProcessorStreamTaskTestSpec`: `TelemetryDenormSecondaryEventSink` and `TelemetryDenormPrimaryEventSink` now assert 0 events; `denormSecondaryEventsRouterMetricsCount` and `denormPrimaryEventsRouterMetricsCount` metrics assert 0; removed mock setups for denorm sinks
+- `DruidValidatorStreamTaskTestSpec`: no assertion changes — same test events flow through, only the source topic resolves differently via `kafkaInputTopic`
+
+---
+
 <!-- To add a new job section, copy the template below and fill it in:
 
 ## <job-name>

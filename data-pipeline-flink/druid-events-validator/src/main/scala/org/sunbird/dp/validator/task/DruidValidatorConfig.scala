@@ -27,8 +27,13 @@ class DruidValidatorConfig(override val config: Config) extends BaseJobConfig(co
   val searchSchemaFile: String = config.getString("schema.file.search")
   val summarySchemaFile: String = config.getString("schema.file.summary")
 
+  val isDenormEnabled: Boolean = config.getBoolean("denorm.enabled")
+
   // Kafka Topics Configuration
-  val kafkaInputTopic: String = config.getString("kafka.input.topic")
+  val kafkaInputTopic: String = if (isDenormEnabled)
+    config.getString("kafka.input.denorm.topic")
+  else
+    config.getString("kafka.input.topic")
   val kafkaTelemetryRouteTopic: String = config.getString("kafka.output.telemetry.route.topic")
   val kafkaSummaryRouteTopic: String = config.getString("kafka.output.summary.route.topic")
   val kafkaFailedTopic: String = config.getString("kafka.output.failed.topic")

@@ -53,9 +53,6 @@ class PipelineProcessorStreamTaskTestSpec extends BaseTestSpec {
     when(mockKafkaUtil.kafkaEventSink[Event](ppConfig.kafkaErrorRouteTopic)).thenReturn(new TelemetryErrorEventSink)
     when(mockKafkaUtil.kafkaEventSink[Event](ppConfig.kafkaFailedTopic)).thenReturn(new TelemetryFailedEventsSink)
 
-    when(mockKafkaUtil.kafkaEventSink[Event](ppConfig.kafkaDenormSecondaryRouteTopic)).thenReturn(new TelemetryDenormSecondaryEventSink)
-    when(mockKafkaUtil.kafkaEventSink[Event](ppConfig.kafkaDenormPrimaryRouteTopic)).thenReturn(new TelemetryDenormPrimaryEventSink)
-
     flinkCluster.before()
   }
 
@@ -77,8 +74,8 @@ class PipelineProcessorStreamTaskTestSpec extends BaseTestSpec {
     TelemetryLogEventSink.values.size() should be(1)
     TelemetryErrorEventSink.values.size() should be(1)
 
-    TelemetryDenormSecondaryEventSink.values.size() should be(1) // 1 INTERACT
-    TelemetryDenormPrimaryEventSink.values.size() should be(4)
+    TelemetryDenormSecondaryEventSink.values.size() should be(0) // denorm disabled
+    TelemetryDenormPrimaryEventSink.values.size() should be(0)
 
     BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.${ppConfig.primaryRouterMetricCount}").getValue() should be(5)
     BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.${ppConfig.logEventsRouterMetricsCount}").getValue() should be(1)
@@ -90,8 +87,8 @@ class PipelineProcessorStreamTaskTestSpec extends BaseTestSpec {
     BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.unique-event-count").getValue() should be(6) // LOG, AUDIT, CB_AUDIT, SHARE events are dropped before dedup
     BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.duplicate-event-count").getValue() should be(1)
 
-    BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.${ppConfig.denormSecondaryEventsRouterMetricsCount}").getValue() should be(1)
-    BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.${ppConfig.denormPrimaryEventsRouterMetricsCount}").getValue() should be(4)
+    BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.${ppConfig.denormSecondaryEventsRouterMetricsCount}").getValue() should be(0)
+    BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.${ppConfig.denormPrimaryEventsRouterMetricsCount}").getValue() should be(0)
 
   }
   }

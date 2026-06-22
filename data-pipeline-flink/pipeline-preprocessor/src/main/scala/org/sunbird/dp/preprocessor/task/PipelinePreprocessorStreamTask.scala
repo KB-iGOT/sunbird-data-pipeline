@@ -89,17 +89,20 @@ class PipelinePreprocessorStreamTask(config: PipelinePreprocessorConfig, kafkaCo
       .setParallelism(config.downstreamOperatorsParallelism)
 
     /**
-      * Splitting events based on priority and route to different topics (next stream = denorm)
+      * Splitting events based on priority and route to different topics (next stream = denorm).
+      * Only wired when denorm.enabled = true.
       */
-    eventStream.getSideOutput(config.denormSecondaryEventsRouteOutputTag)
-      .addSink(kafkaConnector.kafkaEventSink[Event](config.kafkaDenormSecondaryRouteTopic))
-      .name(config.denormSecondaryEventProducer).uid(config.denormSecondaryEventProducer)
-      .setParallelism(config.downstreamOperatorsParallelism)
+    if (config.isDenormEnabled) {
+      eventStream.getSideOutput(config.denormSecondaryEventsRouteOutputTag)
+        .addSink(kafkaConnector.kafkaEventSink[Event](config.kafkaDenormSecondaryRouteTopic))
+        .name(config.denormSecondaryEventProducer).uid(config.denormSecondaryEventProducer)
+        .setParallelism(config.downstreamOperatorsParallelism)
 
-    eventStream.getSideOutput(config.denormPrimaryEventsRouteOutputTag)
-      .addSink(kafkaConnector.kafkaEventSink[Event](config.kafkaDenormPrimaryRouteTopic))
-      .name(config.denormPrimaryEventProducer).uid(config.denormPrimaryEventProducer)
-      .setParallelism(config.downstreamOperatorsParallelism)
+      eventStream.getSideOutput(config.denormPrimaryEventsRouteOutputTag)
+        .addSink(kafkaConnector.kafkaEventSink[Event](config.kafkaDenormPrimaryRouteTopic))
+        .name(config.denormPrimaryEventProducer).uid(config.denormPrimaryEventProducer)
+        .setParallelism(config.downstreamOperatorsParallelism)
+    }
 
 
     env.execute(config.jobName)

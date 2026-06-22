@@ -92,11 +92,10 @@ class PipelinePreprocessorFunction(config: PipelinePreprocessorConfig,
 
           if("ERROR".equalsIgnoreCase(event.eid())) {
             metrics.incCounter(metric = config.errorEventsRouterMetricsCount)
-          } else if (config.secondaryEvents.contains(event.eid())) {
+          } else if (config.isDenormEnabled && config.secondaryEvents.contains(event.eid())) {
             context.output(config.denormSecondaryEventsRouteOutputTag, event)
             metrics.incCounter(metric = config.denormSecondaryEventsRouterMetricsCount)
-          }
-          else {
+          } else if (config.isDenormEnabled) {
             context.output(config.denormPrimaryEventsRouteOutputTag, event)
             metrics.incCounter(metric = config.denormPrimaryEventsRouterMetricsCount)
           }
