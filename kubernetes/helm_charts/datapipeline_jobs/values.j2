@@ -299,11 +299,9 @@ pipeline-preprocessor:
       output.primary.route.topic = {{ env_name }}.telemetry.unique
       output.log.route.topic = {{ env_name }}.druid.events.log
       output.error.route.topic = {{ env_name }}.telemetry.error
-      output.audit.route.topic = {{ env_name }}.telemetry.audit
       output.duplicate.topic = {{ env_name }}.telemetry.duplicate
       output.denorm.secondary.route.topic = {{ env_name }}.telemetry.unique.secondary
       output.denorm.primary.route.topic = {{ env_name }}.telemetry.unique.primary
-      output.cb.audit.route.topic = {{ env_name }}.telemetry.cb.audit
       groupId = {{ env_name }}-pipeline-preprocessor-group
     }
     task {
@@ -313,7 +311,9 @@ pipeline-preprocessor:
     telemetry.schema.path="schemas/telemetry/3.0"
     default.channel="{{ telemetry_default_org_id }}"
     dedup.producer.included.ids = ["{{ portal_id }}", "{{ desktop_id }}", "{{ frac_id }}", "{{ mdo_id }}"]
-    secondary.events = ["INTERACT", "IMPRESSION", "SHARE_ITEM"]
+    secondary.events = ["INTERACT", "IMPRESSION"]
+    denorm.enabled = false
+    log.events.skip = true
     redis {
       database {
         duplicationstore.id = 7
@@ -634,8 +634,10 @@ rating:
 druid-validator:
   druid-validator: |+
     include file("/data/flink/conf/base-config.conf")
+    denorm.enabled = false
     kafka {
-      input.topic = {{ env_name }}.telemetry.denorm
+      input.topic = {{ env_name }}.telemetry.unique
+      input.denorm.topic = {{ env_name }}.telemetry.denorm
       output.telemetry.route.topic = {{ env_name }}.druid.events.telemetry
       output.summary.route.topic = {{ env_name }}.druid.events.summary
       output.failed.topic = {{ env_name }}.telemetry.failed
