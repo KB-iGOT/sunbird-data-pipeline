@@ -46,6 +46,21 @@ class BaseJobConfig(val config: Config, val jobName: String) extends Serializabl
   val enableDistributedCheckpointing: Option[Boolean] = if (config.hasPath("job")) Option(config.getBoolean("job.enable.distributed.checkpointing")) else None
   val checkpointingBaseUrl: Option[String] = if (config.hasPath("job")) Option(config.getString("job.statebackend.base.url")) else None
 
+  // Clickhouse config
+  val clickHouseUrl: String =
+    if (config.hasPath("clickhouse.url")) config.getString("clickhouse.url")
+    else "jdbc:clickhouse://localhost:8123/default"
+  val clickHouseUsername: String =
+    if (config.hasPath("clickhouse.username")) config.getString("clickhouse.username") else ""
+  val clickHousePassword: String =
+    if (config.hasPath("clickhouse.password")) config.getString("clickhouse.password") else ""
+  val clickhouseCertificateTable: String =
+    if (config.hasPath("clickhouse.table.certificates")) config.getString("clickhouse.table.certificates") else "certificates"
+  val clickHouseBatchSize: Int =
+    if (config.hasPath("clickhouse.batch.size")) config.getInt("clickhouse.batch.size") else 1000
+
+
+
   def kafkaConsumerProperties: Properties = {
     val properties = new Properties()
     properties.setProperty("bootstrap.servers", kafkaConsumerBrokerServers)
