@@ -1,81 +1,81 @@
 namespace: {{ flink_namespace }}
 imagepullsecrets: {{ imagepullsecrets }}
 dockerhub: {{ dockerhub }}
-repository: {{flink_repository|default('sunbird-datapipeline')}}
+repository: {{ flink_repository|default('sunbird-datapipeline') }}
 image_tag: {{ image_tag }}
 
 serviceMonitor:
-  enabled: {{ service_monitor_enabled | lower}}
-replicaCount: {{taskmanager_replicacount|default(1)}}
+  enabled: {{ service_monitor_enabled | lower }}
+replicaCount: {{ taskmanager_replicacount|default(1) }}
 
 scale_properties:
   telemetry-extractor:
-    enabled: {{ flink_job_names['telemetry-extractor'].scale_enabled | lower}}
+    enabled: {{ flink_job_names['telemetry-extractor'].scale_enabled | lower }}
     scale_target_value: {{ flink_job_names['telemetry-extractor'].scale_target_value }}
     min_replica: {{ flink_job_names['telemetry-extractor'].min_replica | default(1) }}
     max_replica: {{ flink_job_names['telemetry-extractor'].max_replica | default(2) }}
   pipeline-preprocessor:
-    enabled: {{ flink_job_names['pipeline-preprocessor'].scale_enabled | lower}}
+    enabled: {{ flink_job_names['pipeline-preprocessor'].scale_enabled | lower }}
     scale_target_value: {{ flink_job_names['pipeline-preprocessor'].scale_target_value }}
     min_replica: {{ flink_job_names['pipeline-preprocessor'].min_replica | default(1) }}
     max_replica: {{ flink_job_names['pipeline-preprocessor'].max_replica | default(2) }}
   cb-preprocessor:
-    enabled: {{ flink_job_names['cb-preprocessor'].scale_enabled | lower}}
+    enabled: {{ flink_job_names['cb-preprocessor'].scale_enabled | lower }}
     scale_target_value: {{ flink_job_names['cb-preprocessor'].scale_target_value }}
     min_replica: {{ flink_job_names['cb-preprocessor'].min_replica | default(1) }}
     max_replica: {{ flink_job_names['cb-preprocessor'].max_replica | default(2) }}
   de-normalization-secondary:
-    enabled: {{ flink_job_names['de-normalization-secondary'].scale_enabled | lower}}
-    scale_target_value: {{ flink_job_names['de-normalization-secondary'].scale_target_value }} 
+    enabled: {{ flink_job_names['de-normalization-secondary'].scale_enabled | lower }}
+    scale_target_value: {{ flink_job_names['de-normalization-secondary'].scale_target_value }}
     min_replica: {{ flink_job_names['de-normalization-secondary'].min_replica | default(1) }}
     max_replica: {{ flink_job_names['de-normalization-secondary'].max_replica | default(2) }}
   de-normalization-primary:
-    enabled: {{ flink_job_names['de-normalization-primary'].scale_enabled | lower}}
+    enabled: {{ flink_job_names['de-normalization-primary'].scale_enabled | lower }}
     scale_target_value: {{ flink_job_names['de-normalization-primary'].scale_target_value }}
     min_replica: {{ flink_job_names['de-normalization-primary'].min_replica | default(1) }}
-    max_replica: {{ flink_job_names['de-normalization-primary'].max_replica | default(2) }}      
+    max_replica: {{ flink_job_names['de-normalization-primary'].max_replica | default(2) }}
   druid-validator:
-    enabled: {{ flink_job_names['druid-validator'].scale_enabled | lower}}
+    enabled: {{ flink_job_names['druid-validator'].scale_enabled | lower }}
     scale_target_value: {{ flink_job_names['druid-validator'].scale_target_value }}
     min_replica: {{ flink_job_names['druid-validator'].min_replica | default(1) }}
     max_replica: {{ flink_job_names['druid-validator'].max_replica | default(2) }}
   assessment-aggregator:
-    enabled: {{ flink_job_names['assessment-aggregator'].scale_enabled | lower}}
+    enabled: {{ flink_job_names['assessment-aggregator'].scale_enabled | lower }}
     scale_target_value: {{ flink_job_names['assessment-aggregator'].scale_target_value | default(0) }}
     min_replica: {{ flink_job_names['assessment-aggregator'].min_replica | default(1) }}
     max_replica: {{ flink_job_names['assessment-aggregator'].max_replica | default(2) }}
   content-cache-updater:
-    enabled: {{ flink_job_names['content-cache-updater'].scale_enabled | lower}}
+    enabled: {{ flink_job_names['content-cache-updater'].scale_enabled | lower }}
     scale_target_value: {{ flink_job_names['content-cache-updater'].scale_target_value | default(0) }}
     min_replica: {{ flink_job_names['content-cache-updater'].min_replica | default(1) }}
     max_replica: {{ flink_job_names['content-cache-updater'].max_replica | default(2) }}
   user-cache-updater-v2:
-    enabled: {{ flink_job_names['user-cache-updater-v2'].scale_enabled | lower}}
+    enabled: {{ flink_job_names['user-cache-updater-v2'].scale_enabled | lower }}
     scale_target_value: {{ flink_job_names['user-cache-updater-v2'].scale_target_value | default(0) }}
     min_replica: {{ flink_job_names['user-cache-updater-v2'].min_replica | default(1) }}
     max_replica: {{ flink_job_names['user-cache-updater-v2'].max_replica | default(2) }}
   summary-denormalization:
-    enabled: {{ flink_job_names['summary-denormalization'].scale_enabled | lower}}
+    enabled: {{ flink_job_names['summary-denormalization'].scale_enabled | lower }}
     scale_target_value: {{ flink_job_names['summary-denormalization'].scale_target_value | default(0) }}
     min_replica: {{ flink_job_names['summary-denormalization'].min_replica | default(1) }}
     max_replica: {{ flink_job_names['summary-denormalization'].max_replica | default(2) }}
   device-profile-updater:
-    enabled: {{ flink_job_names['device-profile-updater'].scale_enabled | lower}}
+    enabled: {{ flink_job_names['device-profile-updater'].scale_enabled | lower }}
     scale_target_value: {{ flink_job_names['device-profile-updater'].scale_target_value | default(0) }}
     min_replica: {{ flink_job_names['device-profile-updater'].min_replica | default(1) }}
     max_replica: {{ flink_job_names['device-profile-updater'].max_replica | default(2) }}
   rating:
-    enabled: {{ flink_job_names['rating'].scale_enabled | lower}}
+    enabled: {{ flink_job_names['rating'].scale_enabled | lower }}
     scale_target_value: {{ flink_job_names['rating'].scale_target_value | default(0) }}
     min_replica: {{ flink_job_names['rating'].min_replica | default(1) }}
     max_replica: {{ flink_job_names['rating'].max_replica | default(2) }}
   ingest-router:
-    enabled: {{ flink_job_names['ingest-router'].scale_enabled | lower}}
+    enabled: {{ flink_job_names['ingest-router'].scale_enabled | lower }}
     scale_target_value: {{ flink_job_names['ingest-router'].scale_target_value }}
     min_replica: {{ flink_job_names['ingest-router'].min_replica | default(1) }}
     max_replica: {{ flink_job_names['ingest-router'].max_replica | default(2) }}
   error-denormalization:
-    enabled: {{ flink_job_names['error-denormalization'].scale_enabled | lower}}
+    enabled: {{ flink_job_names['error-denormalization'].scale_enabled | lower }}
     scale_target_value: {{ flink_job_names['error-denormalization'].scale_target_value | default(0) }}
     min_replica: {{ flink_job_names['error-denormalization'].min_replica | default(1) }}
     max_replica: {{ flink_job_names['error-denormalization'].max_replica | default(2) }}
@@ -97,10 +97,10 @@ taskmanager:
   prom_port: {{ taskmanager_prom_port }}
   rpc_port: {{ taskmanager_rpc_port }}
   heap_memory: {{ taskmanager_heap_memory }}
-  replicas: {{taskmanager_replicacount|default(1)}}
-  cpu_requests: {{ cpu_requests|default(1)}}
-  mem_requests: {{ mem_requests|default(2)}}
-  cpu_limits: {{ cpu_limits|default(2)}}
+  replicas: {{ taskmanager_replicacount|default(1) }}
+  cpu_requests: {{ cpu_requests|default(1) }}
+  mem_requests: {{ mem_requests|default(2) }}
+  cpu_limits: {{ cpu_limits|default(2) }}
 
 job_classname: {{ job_classname }}
 {{ taskmanager_liveness | to_nice_yaml }}
@@ -237,7 +237,6 @@ ingest-router:
     taskmanager.memory.process.size: {{ flink_job_names['ingest-router'].taskmanager_process_memory }}
     jobmanager.memory.process.size: {{ flink_job_names['ingest-router'].jobmanager_process_memory }}
 
-
 telemetry-extractor:
   telemetry-extractor: |+
     include file("/data/flink/conf/base-config.conf")
@@ -264,7 +263,7 @@ telemetry-extractor:
     redis {
       database {
         duplicationstore.id = 1
-        key.expiry.seconds = {{ telemetry_extractor_key_expiry_seconds }} 
+        key.expiry.seconds = {{ telemetry_extractor_key_expiry_seconds }}
         contentstore.id = 5
       }
     }
@@ -378,6 +377,49 @@ cb-preprocessor:
     taskmanager.memory.process.size: {{ flink_job_names['cb-preprocessor'].taskmanager_process_memory }}
     jobmanager.memory.process.size: {{ flink_job_names['cb-preprocessor'].jobmanager_process_memory }}
 
+certificate-deduplication:
+  certificate-deduplication: |+
+    include file("/data/flink/conf/base-config.conf")
+    kafka {
+        input.topic = {{ env_name }}.generate.certificate.request
+        output.failed.topic = {{ env_name }}.generate.certificate.failed
+        output.duplicate.topic = {{ env_name }}.generate.certificate.duplicate
+        output.unique.topic = {{ env_name }}.generate.certificate.unique
+        groupId = {{ env_name }}-certificate-dedup-group
+        }
+    task {
+        consumer.parallelism = {{ certificate-dedup_consumer_parallelism }}
+        downstream.operators.parallelism = {{ certificate-dedup_operators_parallelism }}
+        checkpoint.interval = 60000
+        }
+    clickhouse {
+        url = {{ clickhouse_url }}
+        username = {{ clickhouse_username }}
+        password = {{ clickhouse_password }}
+        batch.size = 500
+        table {
+            certificate = "certificates"
+        }
+        }
+    redis {
+        database {
+            duplicationstore.id = 2
+            key.expiry.seconds = {{ certificate_dedup_key_expiry_seconds }}
+        }
+    }
+    redis-meta {
+        database {
+            userstore.id = 12
+        }
+    }
+    flink-conf: |+
+       jobmanager.memory.flink.size: {{ flink_job_names['certificate-deduplication'].jobmanager_memory }}
+       taskmanager.memory.flink.size: {{ flink_job_names['certificate-deduplication'].taskmanager_memory }}
+       taskmanager.numberOfTaskSlots: {{ flink_job_names['certificate-deduplication'].taskslots }}
+       parallelism.default: 1
+       jobmanager.execution.failover-strategy: region
+       taskmanager.memory.network.fraction: 0.1
+
 de-normalization-secondary:
   de-normalization-secondary: |+
     include file("/data/flink/conf/base-config.conf")
@@ -398,12 +440,12 @@ de-normalization-secondary:
       window.shards = {{ denorm_secondary_window_shards }}
       consumer.parallelism = {{ denorm_secondary_consumer_parallelism }}
       telemetry.downstream.operators.parallelism = {{ telemetry_denorm_secondary_operators_parallelism }}
-      summary.downstream.operators.parallelism = {{ summary_denorm_operators_parallelism  }}
+      summary.downstream.operators.parallelism = {{ summary_denorm_operators_parallelism }}
     }
     redis {
       database {
         duplicationstore.id = 9
-        key.expiry.seconds = {{ de_normalization_duplicationstore_key_expiry_seconds }} 
+        key.expiry.seconds = {{ de_normalization_duplicationstore_key_expiry_seconds }}
       }
     }
     # redis-metadata
@@ -460,12 +502,12 @@ de-normalization-primary:
       window.shards = {{ denorm_primary_window_shards }}
       consumer.parallelism = {{ denorm_primary_consumer_parallelism }}
       telemetry.downstream.operators.parallelism = {{ telemetry_denorm_primary_operators_parallelism }}
-      summary.downstream.operators.parallelism = {{ summary_denorm_operators_parallelism  }}
+      summary.downstream.operators.parallelism = {{ summary_denorm_operators_parallelism }}
     }
     redis {
       database {
         duplicationstore.id = 9
-        key.expiry.seconds = {{ de_normalization_duplicationstore_key_expiry_seconds }} 
+        key.expiry.seconds = {{ de_normalization_duplicationstore_key_expiry_seconds }}
       }
     }
     # redis-metadata
@@ -522,7 +564,7 @@ summary-denormalization:
       window.shards = {{ denorm_summary_window_shards }}
       consumer.parallelism = {{ summary_denorm_consumer_parallelism }}
       telemetry.downstream.operators.parallelism = {{ telemetry_denorm_operators_parallelism }}
-      summary.downstream.operators.parallelism = {{ summary_denorm_operators_parallelism  }}
+      summary.downstream.operators.parallelism = {{ summary_denorm_operators_parallelism }}
     }
     redis {
       database {
@@ -773,7 +815,7 @@ user-cache-updater-v2:
     }
     user-read {
      api {
-       url = "{{ user_read_api_url  }}"
+       url = "{{ user_read_api_url }}"
      }
     }
     regd.user.producer.pid = "learner-service"
@@ -793,7 +835,7 @@ user-cache-updater-v2:
     jobmanager.execution.failover-strategy: region
     taskmanager.memory.network.fraction: 0.1
 
-assessment-aggregator: 
+assessment-aggregator:
   assessment-aggregator: |+
     include file("/data/flink/conf/base-config.conf")
     kafka {
@@ -858,12 +900,12 @@ error-denormalization:
       window.shards = {{ denorm_primary_window_shards }}
       consumer.parallelism = {{ error_denorm_consumer_parallelism }}
       telemetry.downstream.operators.parallelism = {{ error_denorm_operators_parallelism }}
-      summary.downstream.operators.parallelism = {{ summary_denorm_operators_parallelism  }}
+      summary.downstream.operators.parallelism = {{ summary_denorm_operators_parallelism }}
     }
     redis {
       database {
         duplicationstore.id = 9
-        key.expiry.seconds = {{ de_normalization_duplicationstore_key_expiry_seconds }} 
+        key.expiry.seconds = {{ de_normalization_duplicationstore_key_expiry_seconds }}
       }
     }
     # redis-metadata
