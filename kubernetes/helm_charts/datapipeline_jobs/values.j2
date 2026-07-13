@@ -412,7 +412,7 @@ certificate-deduplication:
             userstore.id = 12
         }
     }
-    flink-conf: |+
+  flink-conf: |+
        jobmanager.memory.flink.size: {{ flink_job_names['certificate-deduplication'].jobmanager_memory }}
        taskmanager.memory.flink.size: {{ flink_job_names['certificate-deduplication'].taskmanager_memory }}
        taskmanager.numberOfTaskSlots: {{ flink_job_names['certificate-deduplication'].taskslots }}
