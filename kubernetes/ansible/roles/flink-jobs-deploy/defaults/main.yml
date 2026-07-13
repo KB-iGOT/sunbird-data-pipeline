@@ -223,7 +223,7 @@ flink_job_names:
     min_replica: 1
     max_replica: 2
   certificate-deduplication:
-    job_class_name: 'org.sunbird.dp.certificatededuplication.task.CertificateDedupStreamTask'
+    job_class_name: 'org.sunbird.dp.certificatededuplication.task.CertificateDedupJob'
     replica: 1
     jobmanager_memory: 1024m
     taskmanager_memory: 1024m
