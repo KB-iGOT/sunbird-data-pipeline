@@ -388,8 +388,8 @@ certificate-deduplication:
         groupId = {{ env_name }}-certificate-dedup-group
         }
     task {
-        consumer.parallelism = {{ certificate-dedup_consumer_parallelism }}
-        downstream.operators.parallelism = {{ certificate-dedup_operators_parallelism }}
+        consumer.parallelism = {{ certificate_dedup_consumer_parallelism }}
+        downstream.operators.parallelism = {{ certificate_dedup_operators_parallelism }}
         checkpoint.interval = 60000
         }
     clickhouse {
