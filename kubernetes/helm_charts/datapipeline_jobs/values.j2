@@ -393,9 +393,13 @@ certificate-deduplication:
         checkpoint.interval = 60000
         }
     clickhouse {
-        url = {{ clickhouse_url }}
-        username = {{ clickhouse_username }}
-        password = {{ clickhouse_password }}
+        host = "{{ clickhouse_host }}"
+        port = "{{ clickhouse_port }}"
+        database = "warehouse"
+        url = "jdbc:clickhouse://${host}:${port}/${database}?compress=0&decompress=0"
+        username = "{{ clickhouse_username }}"
+        password = "{{ clickhouse_password }}"
+        batch.size = 100
         batch.size = 500
         table {
             certificate = "certificates"
