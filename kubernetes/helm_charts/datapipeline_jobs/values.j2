@@ -396,7 +396,7 @@ certificate-deduplication:
         host = "{{ clickhouse_host }}"
         port = "{{ clickhouse_port }}"
         database = "warehouse"
-        url = "jdbc:clickhouse://${host}:${port}/${database}?compress=0&decompress=0"
+        url = "jdbc:clickhouse://{{ clickhouse_host }}:{{ clickhouse_port }}/warehouse?compress=0&decompress=0"
         username = "{{ clickhouse_username }}"
         password = "{{ clickhouse_password }}"
         batch.size = 100
