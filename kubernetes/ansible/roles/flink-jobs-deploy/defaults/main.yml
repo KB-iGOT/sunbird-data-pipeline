@@ -75,6 +75,7 @@ cb_preprocessor_key_expiry_seconds: 3600
 certificate_dedup_consumer_parallelism : 1
 certificate_dedup_operators_parallelism : 1
 certificate_dedup_key_expiry_seconds: 3600
+certificate_dedup_clickhouse_batch_size: 1
 
 ### De-normalization related vars
 denorm_consumer_parallelism: 2
