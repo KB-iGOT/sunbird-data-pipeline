@@ -102,6 +102,63 @@ After:  telemetry.ingestion → [telemetry-extractor]
 
 ## pipeline-preprocessor + telemetry-extractor + retired modules
 
+### Restoration: AUDIT event routing re-enabled (CB_AUDIT remains dropped)
+
+**Date:** 2026-08-10  
+**Branch:** cbrelease-4.8.38
+
+#### What changed
+
+AUDIT event routing in `pipeline-preprocessor` is restored to exactly how it worked before the removal below — AUDIT events are no longer dropped. CB_AUDIT and SHARE remain dropped; ASSESS/RESPONSE remain dropped at `telemetry-extractor`. None of that is affected by this change.
+
+**1. AUDIT event routing (`eid = "AUDIT"`) — pipeline-preprocessor**
+
+AUDIT events now flow through dedup like any other event, then are routed to **both** `{env}.telemetry.audit` and the primary route topic (`{env}.telemetry.unique`) — same as pre-removal behavior. The `primary-route-success-count` and `audit-route-success-count` metrics both increment for AUDIT events (as they did originally).
+
+**2. `user-cache-updater-2.0` revived**
+
+The topic `{env}.telemetry.audit` has exactly one consumer: `user-cache-updater-2.0`. It was retired (removed from the parent pom, code left on disk) in the same commit that dropped AUDIT. It's added back to `data-pipeline-flink/pom.xml` so the topic is actually consumed again instead of accumulating unread lag.
+
+#### Why changed
+
+AUDIT events are needed again; CB_AUDIT (work-order) and ASSESS/RESPONSE (aggregation/certificates) are still not needed and stay dropped as before.
+
+#### Files affected
+
+| File | Change |
+|------|--------|
+| `pipeline-preprocessor/src/main/scala/.../functions/PipelinePreprocessorFunction.scala` | Removed `"AUDIT"` from the drop-branch condition (CB_AUDIT/SHARE still drop); restored `case "AUDIT"` in the eid match (routes to `auditRouteEventsOutputTag`, increments `auditEventRouterMetricCount` + `primaryRouterMetricCount`); restored `auditEventRouterMetricCount` in `metricsList()` |
+| `pipeline-preprocessor/src/main/scala/.../task/PipelinePreprocessorConfig.scala` | Restored `kafkaAuditRouteTopic`, `auditRouteEventsOutputTag`, `auditEventRouterMetricCount`, `auditRouterProducer`, `auditEventsPrimaryRouteProducer` |
+| `pipeline-preprocessor/src/main/scala/.../task/PipelinePreprocessorStreamTask.scala` | Restored the two AUDIT sinks (`{env}.telemetry.audit` and `{env}.telemetry.unique`) reading from `auditRouteEventsOutputTag` |
+| `pipeline-preprocessor/src/main/resources/pipeline-preprocessor.conf` | Restored `output.audit.route.topic = ${job.env}".telemetry.audit"` |
+| `pipeline-preprocessor/src/test/resources/test.conf` | Restored `output.audit.route.topic` |
+| `pipeline-preprocessor/src/test/scala/.../spec/PipelineProcessorStreamTaskTestSpec.scala` | Restored `TelemetryAuditEventSink`, its mock wiring, and assertions; sink/metric counts updated (primary +1, audit +1, unique-event +1) |
+| `data-pipeline-flink/pom.xml` | Restored `<module>user-cache-updater-2.0</module>` (assessment-aggregator and cb-preprocessor remain retired) |
+
+#### Downstream impact
+
+- AUDIT events flow to `{env}.telemetry.audit` (consumed again by `user-cache-updater-2.0`) and to `{env}.telemetry.unique` (same path as every other non-LOG/ERROR/CB_AUDIT/SHARE event — currently `druid-events-validator` reads this directly since `denorm.enabled = false`; see the denorm-bypass entry below)
+- CB_AUDIT and SHARE events are still silently dropped after validation — unaffected by this change
+- ASSESS/RESPONSE events are still dropped at `telemetry-extractor` — unaffected by this change
+- Cassandra `user` cache updates driven by `user-cache-updater-2.0` resume
+
+#### Ansible / Helm variables
+
+None needed. `kubernetes/ansible/roles/flink-jobs-deploy/defaults/main.yml` already carries a `user-cache-updater-v2` entry under `flink_job_names` (`job_class_name: org.sunbird.dp.usercache.task.UserCacheUpdaterStreamTaskV2`) — it was never removed even though the module was dropped from the pom. Just include `user-cache-updater-v2` in the `job_names_to_deploy` list passed to the `flink-jobs-deploy` role/playbook when deploying.
+
+#### Deployment order
+
+1. Build and deploy `pipeline-preprocessor` (starts producing to `telemetry.audit` again)
+2. Build and deploy `user-cache-updater-2.0` (`job_class_name: org.sunbird.dp.usercache.task.UserCacheUpdaterStreamTaskV2`, ansible catalog key `user-cache-updater-v2`) so the topic doesn't accumulate lag between steps 1 and 2
+3. No changes needed to `druid-events-validator`, `telemetry-extractor`, or any other job
+
+#### Tests
+
+- `PipelineProcessorStreamTaskTestSpec`: restored `TelemetryAuditEventSink` sink/mock and its assertion; `TelemetryPrimaryEventSink` 5→6, `primaryRouterMetricCount` 5→6, `unique-event-count` 6→7, `auditEventRouterMetricCount` asserts 1. CB_AUDIT/SHARE-related counts (already 0/unchanged since that removal) are untouched.
+- Not run locally in this session — no JDK 11 available in this sandbox (project targets Java 11 per `data-pipeline-flink/pom.xml`'s `java.target.runtime`, only JDK 17/25 installed here). Run `mvn test` in the normal CI/build environment before merging.
+
+---
+
 ### Removal: AUDIT, CB_AUDIT, and ASSESS/RESPONSE event processing
 
 **Date:** 2026-06-19  

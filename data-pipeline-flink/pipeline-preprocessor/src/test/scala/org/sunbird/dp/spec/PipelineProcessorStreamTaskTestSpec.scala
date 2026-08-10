@@ -51,6 +51,7 @@ class PipelineProcessorStreamTaskTestSpec extends BaseTestSpec {
     when(mockKafkaUtil.kafkaEventSink[Event](ppConfig.kafkaPrimaryRouteTopic)).thenReturn(new TelemetryPrimaryEventSink)
     when(mockKafkaUtil.kafkaEventSink[Event](ppConfig.kafkaErrorRouteTopic)).thenReturn(new TelemetryErrorEventSink)
     when(mockKafkaUtil.kafkaEventSink[Event](ppConfig.kafkaFailedTopic)).thenReturn(new TelemetryFailedEventsSink)
+    when(mockKafkaUtil.kafkaEventSink[Event](ppConfig.kafkaAuditRouteTopic)).thenReturn(new TelemetryAuditEventSink)
 
     flinkCluster.before()
   }
@@ -66,24 +67,26 @@ class PipelineProcessorStreamTaskTestSpec extends BaseTestSpec {
     val task = new PipelinePreprocessorStreamTask(ppConfig, mockKafkaUtil)
     task.process()
 
-    // 5 telemetry (AUDIT and SHARE events are now dropped)
-    TelemetryPrimaryEventSink.values.size() should be(5)
+    // 5 telemetry + 1 AUDIT (AUDIT is also sinked to the primary route topic; SHARE is still dropped)
+    TelemetryPrimaryEventSink.values.size() should be(6)
     TelemetryFailedEventsSink.values.size() should be(7)
     DupEventsSink.values.size() should be(1)
+    TelemetryAuditEventSink.values.size() should be(1)
     TelemetryLogEventSink.values.size() should be(0) // log.events.skip = true
     TelemetryErrorEventSink.values.size() should be(1)
 
     TelemetryDenormSecondaryEventSink.values.size() should be(0) // denorm disabled
     TelemetryDenormPrimaryEventSink.values.size() should be(0)
 
-    BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.${ppConfig.primaryRouterMetricCount}").getValue() should be(5)
+    BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.${ppConfig.primaryRouterMetricCount}").getValue() should be(6)
+    BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.${ppConfig.auditEventRouterMetricCount}").getValue() should be(1)
     BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.${ppConfig.logEventsRouterMetricsCount}").getValue() should be(0)
     BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.${ppConfig.errorEventsRouterMetricsCount}").getValue() should be(1)
 
     BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.${ppConfig.validationSuccessMetricsCount}").getValue() should be(10)
     BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.${ppConfig.validationFailureMetricsCount}").getValue() should be(7)
 
-    BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.unique-event-count").getValue() should be(6) // LOG, AUDIT, CB_AUDIT, SHARE events are dropped before dedup
+    BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.unique-event-count").getValue() should be(7) // LOG, CB_AUDIT, SHARE events are dropped before dedup
     BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.duplicate-event-count").getValue() should be(1)
 
     BaseMetricsReporter.gaugeMetrics(s"${ppConfig.jobName}.${ppConfig.denormSecondaryEventsRouterMetricsCount}").getValue() should be(0)
@@ -190,6 +193,19 @@ object TelemetryErrorEventSink {
   val values: util.List[Event] = new util.ArrayList()
 }
 
+
+class TelemetryAuditEventSink extends SinkFunction[Event] {
+
+  override def invoke(value: Event): Unit = {
+    synchronized {
+      TelemetryAuditEventSink.values.add(value)
+    }
+  }
+}
+
+object TelemetryAuditEventSink {
+  val values: util.List[Event] = new util.ArrayList()
+}
 
 class DupEventsSink extends SinkFunction[Event] {
 

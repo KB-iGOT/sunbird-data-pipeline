@@ -25,6 +25,7 @@ class PipelinePreprocessorFunction(config: PipelinePreprocessorConfig,
       config.primaryRouterMetricCount,
       config.logEventsRouterMetricsCount,
       config.errorEventsRouterMetricsCount,
+      config.auditEventRouterMetricCount,
       config.denormSecondaryEventsRouterMetricsCount,
       config.denormPrimaryEventsRouterMetricsCount
     ) ::: deduplicationMetrics
@@ -74,7 +75,7 @@ class PipelinePreprocessorFunction(config: PipelinePreprocessorConfig,
           context.output(config.logEventsOutputTag, event)
           metrics.incCounter(metric = config.logEventsRouterMetricsCount)
         }
-      } else if (event.eid().equalsIgnoreCase("AUDIT") || event.eid().equalsIgnoreCase("CB_AUDIT") || event.eid().equalsIgnoreCase("SHARE")) {
+      } else if (event.eid().equalsIgnoreCase("CB_AUDIT") || event.eid().equalsIgnoreCase("SHARE")) {
         // drop — no longer processed
       }
       else {
@@ -102,6 +103,10 @@ class PipelinePreprocessorFunction(config: PipelinePreprocessorConfig,
             metrics.incCounter(metric = config.denormPrimaryEventsRouterMetricsCount)
           }
           event.eid() match {
+            case "AUDIT" =>
+              context.output(config.auditRouteEventsOutputTag, event)
+              metrics.incCounter(metric = config.auditEventRouterMetricCount)
+              metrics.incCounter(metric = config.primaryRouterMetricCount) // Since we are are sinking the AUDIT Event into primary router topic
             case "ERROR" =>
               context.output(config.errorEventOutputTag, event)
             case _ => context.output(config.primaryRouteEventsOutputTag, event)
