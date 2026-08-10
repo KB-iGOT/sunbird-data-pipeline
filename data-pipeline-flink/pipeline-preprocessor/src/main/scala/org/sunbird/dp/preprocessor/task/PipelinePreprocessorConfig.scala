@@ -27,6 +27,7 @@ class PipelinePreprocessorConfig(override val config: Config) extends BaseJobCon
   val kafkaPrimaryRouteTopic: String = config.getString("kafka.output.primary.route.topic")
   val kafkaLogRouteTopic: String = config.getString("kafka.output.log.route.topic")
   val kafkaErrorRouteTopic: String = config.getString("kafka.output.error.route.topic")
+  val kafkaAuditRouteTopic: String = config.getString("kafka.output.audit.route.topic")
 
   val kafkaFailedTopic: String = config.getString("kafka.output.failed.topic")
   val kafkaDuplicateTopic: String = config.getString("kafka.output.duplicate.topic")
@@ -50,7 +51,8 @@ class PipelinePreprocessorConfig(override val config: Config) extends BaseJobCon
   val denormSecondaryEventsRouteOutputTag: OutputTag[Event] = OutputTag[Event]("denorm-secondary-events")
   val denormPrimaryEventsRouteOutputTag: OutputTag[Event] = OutputTag[Event]("denorm-primary-events")
 
-  // Log & Error Events output tag
+  // Audit, Log & Error Events output tag
+  val auditRouteEventsOutputTag: OutputTag[Event] = OutputTag[Event]("audit-route-events")
   val logEventsOutputTag: OutputTag[Event] = OutputTag[Event]("log-route-events")
   val errorEventOutputTag: OutputTag[Event] = OutputTag[Event]("error-route-events")
 
@@ -62,6 +64,7 @@ class PipelinePreprocessorConfig(override val config: Config) extends BaseJobCon
   val DEDUP_SKIP_FLAG_NAME = "pp_duplicate_skipped"
   // Router job metrics
   val primaryRouterMetricCount = "primary-route-success-count"
+  val auditEventRouterMetricCount = "audit-route-success-count"
   val logEventsRouterMetricsCount = "log-route-success-count"
   val errorEventsRouterMetricsCount = "error-route-success-count"
   val denormSecondaryEventsRouterMetricsCount = "denorm-secondary-route-success-count"
@@ -83,8 +86,10 @@ class PipelinePreprocessorConfig(override val config: Config) extends BaseJobCon
 
   // Producers
   val primaryRouterProducer = "primary-route-sink"
+  val auditEventsPrimaryRouteProducer = "audit-events-primary-route-sink"
   val logRouterProducer = "log-route-sink"
   val errorRouterProducer = "error-route-sink"
+  val auditRouterProducer = "audit-route-sink"
   val invalidEventProducer = "invalid-events-sink"
   val duplicateEventProducer = "duplicate-events-sink"
   val denormSecondaryEventProducer = "denorm-secondary-events-sink"

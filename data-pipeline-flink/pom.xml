@@ -28,6 +28,7 @@
 		<module>druid-events-validator</module>
 		<module>device-profile-updater</module>
 		<module>content-cache-updater</module>
+		<module>user-cache-updater-2.0</module>
 		<module>rating</module>
 		<module>certificate-deduplication</module>
 	</modules>

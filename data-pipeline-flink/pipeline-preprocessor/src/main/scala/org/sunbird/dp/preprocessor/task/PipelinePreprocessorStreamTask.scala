@@ -36,7 +36,7 @@ import org.sunbird.dp.preprocessor.functions.{PipelinePreprocessorFunction, Tele
  *    3.1 All events should pushed to sink topic - incr the primary router count
  *    3.2 Audit event should pushed to sink and audit topic. - incr the audit router success count
  *    3.3 Log event should pushed to only log topic( not sink) - Incr the log events router success count
- *    3.4 Share events are dropped — no longer processed
+ *    3.4 CB_AUDIT and Share events are dropped — no longer processed
  *
  */
 
@@ -81,6 +81,19 @@ class PipelinePreprocessorStreamTask(config: PipelinePreprocessorConfig, kafkaCo
     eventStream.getSideOutput(config.errorEventOutputTag)
       .addSink(kafkaConnector.kafkaEventSink[Event](config.kafkaErrorRouteTopic))
       .name(config.errorRouterProducer).uid(config.errorRouterProducer)
+      .setParallelism(config.downstreamOperatorsParallelism)
+
+    /**
+     * Pushing "AUDIT" event into both sink and audit topic
+     */
+    eventStream.getSideOutput(config.auditRouteEventsOutputTag)
+      .addSink(kafkaConnector.kafkaEventSink[Event](config.kafkaAuditRouteTopic))
+      .name(config.auditRouterProducer).uid(config.auditRouterProducer)
+      .setParallelism(config.downstreamOperatorsParallelism)
+
+    eventStream.getSideOutput(config.auditRouteEventsOutputTag)
+      .addSink(kafkaConnector.kafkaEventSink[Event](config.kafkaPrimaryRouteTopic))
+      .name(config.auditEventsPrimaryRouteProducer).uid(config.auditEventsPrimaryRouteProducer)
       .setParallelism(config.downstreamOperatorsParallelism)
 
     /**
