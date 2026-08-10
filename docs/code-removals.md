@@ -134,6 +134,7 @@ AUDIT events are needed again; CB_AUDIT (work-order) and ASSESS/RESPONSE (aggreg
 | `pipeline-preprocessor/src/test/resources/test.conf` | Restored `output.audit.route.topic` |
 | `pipeline-preprocessor/src/test/scala/.../spec/PipelineProcessorStreamTaskTestSpec.scala` | Restored `TelemetryAuditEventSink`, its mock wiring, and assertions; sink/metric counts updated (primary +1, audit +1, unique-event +1) |
 | `data-pipeline-flink/pom.xml` | Restored `<module>user-cache-updater-2.0</module>` (assessment-aggregator and cb-preprocessor remain retired) |
+| `kubernetes/helm_charts/datapipeline_jobs/values.j2` | Restored `output.audit.route.topic = {{ env_name }}.telemetry.audit` in the `pipeline-preprocessor:` conf block — **this is the config that's actually mounted into the running job** (see note below), separate from the jar's bundled `pipeline-preprocessor.conf` |
 
 #### Downstream impact
 
@@ -144,11 +145,13 @@ AUDIT events are needed again; CB_AUDIT (work-order) and ASSESS/RESPONSE (aggreg
 
 #### Ansible / Helm variables
 
-None needed. `kubernetes/ansible/roles/flink-jobs-deploy/defaults/main.yml` already carries a `user-cache-updater-v2` entry under `flink_job_names` (`job_class_name: org.sunbird.dp.usercache.task.UserCacheUpdaterStreamTaskV2`) — it was never removed even though the module was dropped from the pom. Just include `user-cache-updater-v2` in the `job_names_to_deploy` list passed to the `flink-jobs-deploy` role/playbook when deploying.
+**There are two separate copies of `pipeline-preprocessor.conf` in this repo, and both need the new key.** `pipeline-preprocessor/src/main/resources/pipeline-preprocessor.conf` is only the fallback used when the job runs without `--config.file.path`. The actual deployed job is started with `--config.file.path /data/flink/conf/pipeline-preprocessor.conf` ([flink_job_deployment.yaml](../kubernetes/helm_charts/datapipeline_jobs/templates/flink_job_deployment.yaml)), which is mounted from a ConfigMap ([flink_job_configmap.yaml](../kubernetes/helm_charts/datapipeline_jobs/templates/flink_job_configmap.yaml)) rendered from `{{ index .Values $name }}` — i.e. from `values.yaml`, which Ansible templates from **`kubernetes/helm_charts/datapipeline_jobs/values.j2`**, not from the source resource file. Missing this the first time around caused `ConfigException$Missing: No configuration setting found for key 'kafka.output.audit'` at job startup. Both copies are now updated.
+
+Beyond that: `kubernetes/ansible/roles/flink-jobs-deploy/defaults/main.yml` already carries a `user-cache-updater-v2` entry under `flink_job_names` (`job_class_name: org.sunbird.dp.usercache.task.UserCacheUpdaterStreamTaskV2`) and `values.j2` already has a matching `user-cache-updater-v2:` conf block pointing at `telemetry.audit` — neither was removed when the module was dropped from the pom, so no changes were needed there. Just include `user-cache-updater-v2` in the `job_names_to_deploy` list passed to the `flink-jobs-deploy` role/playbook when deploying.
 
 #### Deployment order
 
-1. Build and deploy `pipeline-preprocessor` (starts producing to `telemetry.audit` again)
+1. Re-run the ansible/helm deploy for `pipeline-preprocessor` — this re-templates `values.yaml` from `values.j2` (picking up the `output.audit.route.topic` fix), regenerates the ConfigMap, and rolls the job. Rebuilding the jar alone is **not** sufficient — the old ConfigMap will still be missing the key until the deploy step re-templates it.
 2. Build and deploy `user-cache-updater-2.0` (`job_class_name: org.sunbird.dp.usercache.task.UserCacheUpdaterStreamTaskV2`, ansible catalog key `user-cache-updater-v2`) so the topic doesn't accumulate lag between steps 1 and 2
 3. No changes needed to `druid-events-validator`, `telemetry-extractor`, or any other job
 
