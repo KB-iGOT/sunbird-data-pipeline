@@ -2,6 +2,7 @@
   <remote_servers>
     <{{ env }}_cluster>
       <shard>
+      <internal_replication>true</internal_replication>
 {% for host in groups['clickhouse'] %}
         <replica>
           <host>{{ host }}</host>
