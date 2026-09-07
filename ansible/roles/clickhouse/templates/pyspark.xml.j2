@@ -11,11 +11,9 @@
             <profile>pyspark</profile>
             <quota>pyspark</quota>
 
-            <allow_databases>
-                <database>warehouse</database>
-            </allow_databases>
 
             <grants>
+                <query>GRANT SELECT, INSERT, ALTER, CREATE TABLE, DROP TABLE, TRUNCATE, OPTIMIZE ON warehouse.*</query>
                 <query>GRANT SELECT ON system.parts</query>
                 <query>GRANT SELECT ON system.columns</query>
                 <query>GRANT SELECT ON system.tables</query>
