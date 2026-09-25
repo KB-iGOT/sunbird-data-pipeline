@@ -42,3 +42,12 @@
     group: clickhouse
     mode: "0640"
   notify: Restart ClickHouse
+
+- name: Deploy Dashboard ClickHouse user
+  template:
+    src: users-dashboard.xml.j2
+    dest: /etc/clickhouse-server/users.d/dashboard.xml
+    owner: clickhouse
+    group: clickhouse
+    mode: "0640"
+  notify: Restart ClickHouse
