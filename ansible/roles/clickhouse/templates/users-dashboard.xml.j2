@@ -1,0 +1,138 @@
+<clickhouse>
+    <users>
+        <dashboard>
+            <password_sha256_hex>{{ clickhouse_dashboard_password_sha }}</password_sha256_hex>
+
+            <networks>
+                <ip>0.0.0.0/0</ip>
+                <ip>::/0</ip>
+            </networks>
+
+            <profile>dashboard</profile>
+            <quota>dashboard</quota>
+
+
+            <grants>
+                <query>GRANT SELECT, OPTIMIZE ON warehouse.*</query>
+            </grants>
+        </dashboard>
+    </users>
+
+    <profiles>
+        <dashboard>
+
+            <!-- readonly = 2
+                Allows SELECT and changing session settings; blocks writes and DDL.
+                Looker/JDBC needs 2 (not 1) because the driver sets session settings.
+                Because 2 lets clients change settings, <constraints> at the bottom
+                prevents them from raising the limits in this profile.
+                Change: keep at 2. -->
+            <readonly>2</readonly>
+
+            <!-- max_memory_usage = 25 GB (per query, per node)
+                Node has 64 GB; server-wide cap is ~90% of RAM (~57 GB).
+                25 GB leaves room for concurrent tiles, merges and refreshable MVs.
+                Exceeding it fails the tile with MEMORY_LIMIT_EXCEEDED (code 241).
+                Before deploying, check the real peak for this user (query below);
+                if legitimate queries exceed ~8 GB, fix the SQL or raise this
+                together with the constraint max.
+                Monitor: memory_usage p95/max in system.query_log, code 241. -->
+            <max_memory_usage>25000000000</max_memory_usage>
+
+            <!-- max_memory_usage_for_user = 40 GB (all queries of this user, per node)
+                Caps the total of all concurrent dashboard queries on one node,
+                so a burst of tiles can't starve background work.
+                Monitor: code 241 with "for user" in the message = raise this or reduce concurrency. -->
+            <max_memory_usage_for_user>40000000000</max_memory_usage_for_user>
+
+            <!-- max_bytes_before_external_sort = 8 GB (~50% of max_memory_usage)
+                ORDER BY state above this spills to NVMe instead of failing: slower, not broken.
+                Keep at ~50% of max_memory_usage whenever that changes.
+                Monitor: ProfileEvents['ExternalSortWritePart'] in query_log.
+                Frequent spills = tile sorting too much raw data; pre-aggregate. -->
+            <max_bytes_before_external_sort>8000000000</max_bytes_before_external_sort>
+
+            <!-- max_bytes_before_external_group_by = 8 GB (~50% of max_memory_usage)
+                GROUP BY state above this spills to disk instead of failing.
+                Does NOT cover JOINs; see join settings below.
+                Monitor: ProfileEvents['ExternalAggregationWritePart']. -->
+            <max_bytes_before_external_group_by>8000000000</max_bytes_before_external_group_by>
+
+            <!-- join_algorithm = auto + max_bytes_in_join = 3 GB
+                Starts with an in-memory hash join; if the join state passes 3 GB,
+                switches to a slower disk-friendly merge join instead of failing.
+                This protects tiles from the JOIN fan-out issue (slower, not broken).
+                Monitor: queries with high memory_usage and many JOINs in query_log;
+                these are candidates for pre-aggregation via refreshable MVs. -->
+            <join_algorithm>auto</join_algorithm>
+            <max_bytes_in_join>5000000000</max_bytes_in_join>
+
+            <!-- max_threads = 4 (per query)
+                Default would be 16 (all cores). With 15-20 tiles per node at once,
+                4 threads each keeps CPU oversubscription manageable.
+                Tuning: CPU pegged → lower to 2-3; CPU idle but tiles slow → raise to 6-8. -->
+            <max_threads>4</max_threads>
+
+            <!-- max_concurrent_queries_for_user = 40 (per node, not cluster-wide)
+                Kept ABOVE Looker's per-node share so Looker's connection pool does the
+                throttling (tiles queue as spinners) and this limit only trips if something
+                other than Looker floods the node.
+                Exceeding it fails immediately with TOO_MANY_SIMULTANEOUS_QUERIES (code 202);
+                it does not queue. Any code 202 = Looker max connections too high or
+                uneven HAProxy distribution.
+                Distributed queries also take a slot on each shard they touch.
+                Monitor: code 202, peak concurrent queries per node (system.processes). -->
+            <max_concurrent_queries_for_user>40</max_concurrent_queries_for_user>
+
+            <!-- queue_max_wait_ms = 60 s
+                Wait time for a slot when the SERVER-wide max_concurrent_queries
+                (config.xml) is full. Should rarely apply if Looker throttles.
+                Frequent waits = server-wide limit too low or cluster overloaded. -->
+            <queue_max_wait_ms>60000</queue_max_wait_ms>
+
+            <!-- max_execution_time = 600 s, timeout_overflow_mode = throw
+                Guards against runaway queries only; normal slow loads must never reach it.
+                throw = clear error (code 159). Never use "break": it returns partial,
+                silently wrong numbers.
+                Timeout chain must increase outward:
+                max_execution_time (600) <= http timeouts (600)
+                <= HAProxy timeout server/client (>= 600) <= Looker query + pool timeout (>= 600)
+                Monitor: alert on query_duration_ms > 60000; slow tiles usually mean
+                fan-out or missing pre-aggregation. -->
+            <max_execution_time>600</max_execution_time>
+            <timeout_overflow_mode>throw</timeout_overflow_mode>
+
+            <!-- http_send_timeout / http_receive_timeout = 600 s
+                Socket-level timeouts for the HTTP interface. Must be >= max_execution_time;
+                if omitted they fall back to server defaults (~30 s) and long tiles break here.
+                Monitor: "Timeout exceeded while reading/writing" in clickhouse-server.err.log. -->
+            <http_send_timeout>600</http_send_timeout>
+            <http_receive_timeout>600</http_receive_timeout>
+
+            <!-- cancel_http_readonly_queries_on_client_close = 1
+                If the user closes the tab or Looker gives up, ClickHouse stops the query
+                instead of running it to the 600 s limit and holding memory/threads. -->
+            <cancel_http_readonly_queries_on_client_close>1</cancel_http_readonly_queries_on_client_close>
+
+            <!-- constraints: stop readonly=2 clients from raising the limits above.
+                Keep each max equal to the value set above; if you raise a setting,
+                raise its max too, or clients sending that setting will get an error. -->
+            <!-- <constraints>
+                <max_memory_usage><max>10000000000</max></max_memory_usage>
+                <max_execution_time><max>600</max></max_execution_time>
+                <max_threads><max>8</max></max_threads>
+            </constraints> -->
+
+        </dashboard>
+    </profiles>
+
+    <quotas>
+        <dashboard>
+            <interval>
+                <duration>3600</duration>
+                <queries>0</queries>
+                <errors>1000</errors>
+            </interval>
+        </dashboard>
+    </quotas>
+</clickhouse>
