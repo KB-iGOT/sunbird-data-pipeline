@@ -129,6 +129,9 @@ body{background:var(--bg0);color:var(--t0);font-family:'Segoe UI',system-ui,sans
 /* ANATOMY TAB */
 .view-tab.anatomy-tab.on{color:#f472b6;border-bottom-color:#f472b6}
 
+/* PRODUCTION TAB */
+.view-tab.prod-tab.on{color:var(--cyan);border-bottom-color:var(--cyan)}
+
 /* JOB ANATOMY VIEW */
 .anatomy-section-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--t2);padding:18px 0 10px;border-top:1px solid var(--border);margin-top:6px}
 .anatomy-section-title:first-child{border-top:none;padding-top:8px}
@@ -247,6 +250,22 @@ body{background:var(--bg0);color:var(--t0);font-family:'Segoe UI',system-ui,sans
 .afm-badge.gone{background:rgba(239,68,68,.2);color:var(--red)}
 .afm-badge.same{background:rgba(71,85,105,.2);color:var(--t2)}
 
+/* PRODUCTION CLUSTER VIEW */
+.cluster-box{background:var(--bg1);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.cluster-hdr{padding:11px 16px;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.cluster-hdr.kp{background:rgba(59,130,246,.1);border-bottom:2px solid var(--blue)}
+.cluster-hdr.dp{background:rgba(16,185,129,.1);border-bottom:2px solid var(--green)}
+.cluster-tag{font-size:10px;font-weight:700;padding:2px 9px;border-radius:8px;background:rgba(255,255,255,.06);color:var(--t1);white-space:nowrap}
+.cluster-body{padding:16px}
+.cluster-connector{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;color:var(--t2);font-size:11px;font-weight:700;text-align:center}
+.cluster-connector-line{width:2px;height:20px;background:var(--border)}
+.fn-job.bypassed{border-color:var(--t2);background:rgba(71,85,105,.06);color:var(--t2);border-style:dashed}
+.fn-topic.rawmerge{position:relative}
+.prod-toggle{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}
+.prod-toggle-tab{padding:6px 16px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--t2);cursor:pointer;font-size:11px;font-weight:700;transition:.15s}
+.prod-toggle-tab:hover{border-color:var(--blue);color:var(--blue)}
+.prod-toggle-tab.on{background:rgba(59,130,246,.15);border-color:var(--blue);color:var(--blue)}
+
 /* Full compare table */
 .full-compare-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:14px}
 .full-compare-table th{background:var(--bg2);padding:8px 12px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--t2);font-weight:700}
@@ -343,6 +362,7 @@ body{background:var(--bg0);color:var(--t0);font-family:'Segoe UI',system-ui,sans
     <div class="view-tab after-tab" onclick="switchView('after',this)">✅ After (Optimized — 2 active jobs, 3 hops)</div>
     <div class="view-tab modern-tab" onclick="switchView('modern',this)">🚀 Modern Architecture (target — 1M+ TPS)</div>
     <div class="view-tab anatomy-tab" onclick="switchView('anatomy',this)">🔬 Job Anatomy (Code-Level)</div>
+    <div class="view-tab prod-tab" onclick="switchView('prod',this)">🏭 Production (KP + DP Clusters)</div>
   </div>
 
   <!-- ══════ BEFORE VIEW ══════ -->
@@ -1612,6 +1632,211 @@ body{background:var(--bg0);color:var(--t0);font-family:'Segoe UI',system-ui,sans
 
   </div><!-- /anatomyView -->
 
+  <!-- ══════ PRODUCTION (KP + DP CLUSTERS) VIEW ══════ -->
+  <div id="prodView" class="view-content">
+    <div class="annotation" style="margin-bottom:8px">
+      <div class="ann-tag" style="background:rgba(6,182,212,.15);color:var(--cyan)">Real Topology</div>
+      Production runs on <strong>two physically separate Kafka clusters</strong> — <strong>KP</strong> (ingestion) and <strong>DP</strong> (data pipeline). <code>ingest-router</code> is the only job on KP and is the sole bridge between them — it is <strong>not retired</strong> (see the corrected entry in <code>docs/code-removals.md</code>). This view is a separate axis from the TPS optimization tabs above — nothing here reflects the P1/P2/P3 changes; it toggles the DP-side event routing between how it looked before vs. after the entries in <code>docs/code-removals.md</code>.
+    </div>
+    <div class="annotation" style="margin-bottom:16px">
+      <div class="ann-tag" style="background:rgba(16,185,129,.15);color:var(--green)">Invariant</div>
+      <strong>Every job downstream of ingest-router — extractor, preprocessor, de-normalization, druid-validator, all side-path jobs — reads and writes DP-cluster topics only.</strong> Nothing else ever touches KP. <code>ingest-router</code> consumes on KP (<code>ingestion_kafka_brokers</code>) and produces on DP (<code>kafka_brokers</code>) for both of its streams — that hand-off is the entire KP↔DP boundary.
+    </div>
+
+    <!-- KP CLUSTER (unchanged by code-removals — same in both toggle states) -->
+    <div class="cluster-box">
+      <div class="cluster-hdr kp">
+        <span>🟦 KP Cluster — Ingestion Kafka</span>
+        <span class="cluster-tag">1 job · ingest-router · unchanged either way</span>
+      </div>
+      <div class="cluster-body">
+        <div class="flow-col" style="max-width:100%;width:100%">
+          <div class="fn-source">📱 Telemetry SDK/API &nbsp;+&nbsp; 🖥 Other Backend Services<br><span style="font-size:10px;opacity:.7">Mobile · Web · Portal &nbsp;|&nbsp; server-to-server, pre-extracted events</span></div>
+          <div class="fn-conn"></div>
+          <div class="kafka-flow" style="border-radius:8px;border:1px solid var(--border);justify-content:center">
+            <span class="kf-label">KP IN</span>
+            <span class="kf-topic in">telemetry.ingestion</span>
+            <span class="kf-arr">→</span>
+            <span class="kf-job">🔀 Ingest Router</span>
+            <span class="kf-arr">→</span>
+            <span class="kf-topic out">telemetry.ingest</span>
+            <span class="kf-sep">|</span>
+            <span class="kf-topic in">telemetry.raw</span>
+            <span class="kf-arr">→</span>
+            <span class="kf-topic out">telemetry.raw</span>
+          </div>
+          <div class="fn-secor" style="margin-top:2px">
+            Pure byte relay — no transform, no validation, no Redis. <code>consumer.broker-servers = ingestion_kafka_brokers</code> (KP) → <code>producer.broker-servers = kafka_brokers</code> (DP). Two independent streams in one job (<code>ingestStream</code> + <code>rawStream</code>).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cluster-connector">
+      <div class="cluster-connector-line"></div>
+      <div>⇣ cross-cluster network hop — KP brokers → DP brokers (two different physical Kafka clusters)</div>
+      <div class="cluster-connector-line"></div>
+    </div>
+
+    <!-- DP CLUSTER (toggles before/after code-removals) -->
+    <div class="cluster-box">
+      <div class="cluster-hdr dp">
+        <span>🟩 DP Cluster — Data Pipeline Kafka</span>
+        <span class="cluster-tag" id="dpClusterTag">Before code removals — full original routing</span>
+      </div>
+      <div class="cluster-body">
+        <div class="prod-toggle">
+          <div class="prod-toggle-tab on" onclick="switchProd('before',this)">📋 Before Code Removals</div>
+          <div class="prod-toggle-tab" onclick="switchProd('after',this)">✅ After Code Removals — Current Production</div>
+        </div>
+
+        <!-- BEFORE code-removals -->
+        <div id="prodBeforeDP" class="view-content on">
+          <div class="flow-wrap">
+            <div class="flow-col" style="max-width:400px">
+              <div class="fn-topic main">telemetry.ingest <span style="font-size:9px;opacity:.7">(from KP, via Ingest Router)</span></div>
+              <div class="fn-conn"></div>
+              <div class="fn-job unchanged">📦 Telemetry Extractor</div>
+              <div class="fn-side">
+                <span class="fn-side-item route">↗ telemetry.assess.raw</span>
+                <span class="fn-side-item fail">❌ telemetry.extractor.duplicate</span>
+                <span class="fn-side-item fail">❌ telemetry.extractor.failed</span>
+              </div>
+              <div class="fn-conn"></div>
+              <div class="fn-topic main">telemetry.raw <span style="font-size:9px;opacity:.7">also fed directly from KP's telemetry.raw (bypasses extractor)</span></div>
+              <div class="fn-conn"></div>
+              <div class="fn-job unchanged">🔍 Pipeline Preprocessor</div>
+              <div class="fn-side">
+                <span class="fn-side-item route">↗ telemetry.unique.secondary</span>
+                <span class="fn-side-item route">↗ telemetry.audit</span>
+                <span class="fn-side-item route">↗ telemetry.error</span>
+                <span class="fn-side-item route">↗ telemetry.cb.audit</span>
+                <span class="fn-side-item route">↗ druid.events.log</span>
+                <span class="fn-side-item fail">❌ telemetry.duplicate · failed</span>
+              </div>
+              <div class="fn-conn"></div>
+              <div class="fn-topic main">telemetry.unique</div>
+              <div class="fn-conn"></div>
+              <div class="fn-job unchanged">🔗 De-normalization</div>
+              <div class="fn-side">
+                <span class="fn-side-item route">↗ druid.events.summary (ME_WORKFLOW_SUMMARY)</span>
+              </div>
+              <div class="fn-conn"></div>
+              <div class="fn-topic main">telemetry.denorm</div>
+              <div class="fn-conn"></div>
+              <div class="fn-job unchanged">✅ Druid Events Validator</div>
+              <div class="fn-conn"></div>
+              <div class="fn-sinks">
+                <div class="fn-sink-col">
+                  <div class="fn-topic main" style="border-color:var(--cyan);color:var(--cyan)">druid.events.telemetry</div>
+                  <div class="fn-conn" style="height:12px"></div>
+                  <div class="fn-sink">🗄 Apache Druid</div>
+                </div>
+                <div class="fn-sink-col" style="margin-top:20px">
+                  <div class="fn-topic main" style="border-color:var(--cyan);color:var(--cyan)">druid.events.summary</div>
+                  <div class="fn-conn" style="height:12px"></div>
+                  <div class="fn-sink">🗄 Apache Druid</div>
+                </div>
+              </div>
+            </div>
+            <div class="flow-legend">
+              <div style="font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Side-Path Consumers (Before)</div>
+              <div class="annotation"><strong>telemetry.audit</strong> → user-cache-updater-2.0</div>
+              <div class="annotation"><strong>telemetry.cb.audit</strong> → cb-preprocessor → work-order + druid.cb.* topics</div>
+              <div class="annotation"><strong>telemetry.assess.raw</strong> → assessment-aggregator → Cassandra + certificate issue events</div>
+              <div class="annotation">All event types (AUDIT, CB_AUDIT, SHARE, ASSESS/RESPONSE, LOG) flow all the way through; de-normalization always runs.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AFTER code-removals (current production) -->
+        <div id="prodAfterDP" class="view-content">
+          <div class="flow-wrap">
+            <div class="flow-col" style="max-width:400px">
+              <div class="fn-topic main">telemetry.ingest <span style="font-size:9px;opacity:.7">(from KP, via Ingest Router)</span></div>
+              <div class="fn-conn"></div>
+              <div class="fn-job unchanged">📦 Telemetry Extractor</div>
+              <div class="fn-side">
+                <span class="fn-side-item fail">❌ ASSESS/RESPONSE redaction removed — RedactorFunction.scala deleted</span>
+                <span class="fn-side-item fail">❌ telemetry.extractor.duplicate</span>
+                <span class="fn-side-item fail">❌ telemetry.extractor.failed</span>
+              </div>
+              <div class="fn-conn"></div>
+              <div class="fn-topic main">telemetry.raw <span style="font-size:9px;opacity:.7">also fed directly from KP's telemetry.raw (bypasses extractor)</span></div>
+              <div class="fn-conn"></div>
+              <div class="fn-job unchanged">🔍 Pipeline Preprocessor</div>
+              <div class="fn-side">
+                <span class="fn-side-item route">↗ telemetry.audit <span style="opacity:.7">(restored 2026-08-10)</span></span>
+                <span class="fn-side-item route">↗ telemetry.error</span>
+                <span class="fn-side-item fail">❌ telemetry.cb.audit — CB_AUDIT dropped</span>
+                <span class="fn-side-item fail">❌ SHARE → SHARE_ITEM — dropped</span>
+                <span class="fn-side-item fail">❌ druid.events.log — LOG dropped (log.events.skip=true)</span>
+                <span class="fn-side-item fail">❌ telemetry.duplicate · failed</span>
+              </div>
+              <div class="fn-conn"></div>
+              <div class="fn-topic main">telemetry.unique <span style="font-size:9px;opacity:.7">(no more .primary/.secondary split — denorm.enabled=false)</span></div>
+              <div class="fn-conn"></div>
+              <div class="fn-job bypassed">🔗 De-normalization <span class="fn-tag">bypassed — denorm.enabled=false</span></div>
+              <div class="fn-conn" style="opacity:.35"></div>
+              <div class="fn-topic shadow">telemetry.denorm <span style="font-size:9px">(no writes while bypassed)</span></div>
+              <div class="fn-conn"></div>
+              <div class="fn-job unchanged">✅ Druid Events Validator <span class="fn-tag">reads telemetry.unique directly</span></div>
+              <div class="fn-conn"></div>
+              <div class="fn-sinks">
+                <div class="fn-sink-col">
+                  <div class="fn-topic main" style="border-color:var(--cyan);color:var(--cyan)">druid.events.telemetry</div>
+                  <div class="fn-conn" style="height:12px"></div>
+                  <div class="fn-sink">🗄 Apache Druid</div>
+                </div>
+                <div class="fn-sink-col" style="margin-top:20px">
+                  <div class="fn-topic main" style="border-color:var(--cyan);color:var(--cyan)">druid.events.summary</div>
+                  <div class="fn-conn" style="height:12px"></div>
+                  <div class="fn-sink">🗄 Apache Druid</div>
+                </div>
+              </div>
+            </div>
+            <div class="flow-legend">
+              <div style="font-size:11px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">What Changed — docs/code-removals.md</div>
+              <div class="annotation">
+                <div class="ann-tag" style="background:rgba(239,68,68,.15);color:var(--red)">2026-06-19</div>
+                <strong>CB_AUDIT dropped</strong><br>Silently dropped after validation. <code>cb-preprocessor</code> retired from parent pom (code left on disk).
+              </div>
+              <div class="annotation">
+                <div class="ann-tag" style="background:rgba(239,68,68,.15);color:var(--red)">2026-06-19</div>
+                <strong>SHARE / SHARE_ITEM dropped</strong><br>SHARE events dropped immediately after validation; flattening code deleted.
+              </div>
+              <div class="annotation">
+                <div class="ann-tag" style="background:rgba(239,68,68,.15);color:var(--red)">2026-06-19</div>
+                <strong>ASSESS/RESPONSE dropped</strong><br>Dropped at extraction stage. <code>assessment-aggregator</code> retired from parent pom.
+              </div>
+              <div class="annotation">
+                <div class="ann-tag" style="background:rgba(245,158,11,.15);color:var(--amber)">2026-06-19</div>
+                <strong>De-normalization bypassed</strong><br><code>denorm.enabled=false</code> (default) — druid-events-validator reads <code>telemetry.unique</code> directly instead of <code>telemetry.denorm</code>. Flag-controlled, not deleted.
+              </div>
+              <div class="annotation">
+                <div class="ann-tag" style="background:rgba(245,158,11,.15);color:var(--amber)">2026-06-19</div>
+                <strong>LOG events dropped</strong><br><code>log.events.skip=true</code> (default) — no <code>druid.events.log</code> sink registered.
+              </div>
+              <div class="annotation">
+                <div class="ann-tag" style="background:rgba(16,185,129,.15);color:var(--green)">2026-08-10</div>
+                <strong>AUDIT restored</strong><br>Routes to <code>telemetry.audit</code> AND <code>telemetry.unique</code> again, same as before. <code>user-cache-updater-2.0</code> revived (back in parent pom).
+              </div>
+              <div class="annotation">
+                <div class="ann-tag" style="background:rgba(6,182,212,.15);color:var(--cyan)">2026-09-01</div>
+                <strong>ingest-router correction</strong><br>Was never actually removed — a prior log entry claiming its retirement was wrong. See KP cluster above.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="annotation" style="margin-top:16px">
+      <div class="ann-tag" style="background:rgba(71,85,105,.25);color:var(--t1)">Lower Envs</div>
+      <strong>QA/UAT run a single shared Kafka cluster — no KP/DP split.</strong> <code>ingest-router</code> is not active there (deploy default is <code>replica: 0</code> / <code>scale_enabled: false</code> in <code>flink-jobs-deploy/defaults/main.yml</code>, overridden to run only in prod). The SDK/API and backend services publish directly to <code>{env}.telemetry.ingest</code> — the same topic name <code>telemetry-extractor</code> always reads, in every environment — so there's no <code>telemetry.ingestion</code> topic or relay hop in QA/UAT at all. Everything downstream of that topic is identical code/config to production; only the broker endpoints and which jobs get deployed differ per environment.
+    </div>
+  </div><!-- /prodView -->
+
   <!-- ══════ OPTIMIZATION PHASES ══════ -->
   <div class="section-title">Optimization Details by Phase</div>
   <div class="phase-tabs">
@@ -2071,11 +2296,22 @@ body{background:var(--bg0);color:var(--t0);font-family:'Segoe UI',system-ui,sans
 function switchView(v, el) {
   document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('on'));
   el.classList.add('on');
-  ['beforeView','afterView','modernView','anatomyView'].forEach(id => {
+  ['beforeView','afterView','modernView','anatomyView','prodView'].forEach(id => {
     document.getElementById(id).classList.remove('on');
   });
-  const map = {before:'beforeView', after:'afterView', modern:'modernView', anatomy:'anatomyView'};
+  const map = {before:'beforeView', after:'afterView', modern:'modernView', anatomy:'anatomyView', prod:'prodView'};
   document.getElementById(map[v]).classList.add('on');
+}
+
+function switchProd(v, el) {
+  document.querySelectorAll('.prod-toggle-tab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('prodBeforeDP').classList.remove('on');
+  document.getElementById('prodAfterDP').classList.remove('on');
+  document.getElementById(v === 'before' ? 'prodBeforeDP' : 'prodAfterDP').classList.add('on');
+  document.getElementById('dpClusterTag').textContent = v === 'before'
+    ? 'Before code removals — full original routing'
+    : 'After code removals — current production';
 }
 
 function switchPhase(p, el) {
