@@ -18,6 +18,15 @@
     src: cluster.xml.j2
     dest: /etc/clickhouse-server/config.d/cluster.xml
 
+- name: Deploy Prometheus exporter config
+  template:
+    src: prometheus.xml.j2
+    dest: /etc/clickhouse-server/config.d/prometheus.xml
+    owner: clickhouse
+    group: clickhouse
+    mode: '0644'
+  notify: Restart ClickHouse
+
 - name: Create user_files_path for ClickHouse
   file:
     path: /home/analytics/pyspark/warehouse
