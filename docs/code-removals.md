@@ -28,7 +28,7 @@ For SEARCH events (`eid = "SEARCH"`), if `edata.filters.dialCodes` was present i
 **3. dialCode value uppercasing for DialCode/QR object types**
 
 For events where `object.type` was `DialCode` or `qr`, the `object.id` value was converted to uppercase.
-
+ 
 - Input `object.id`: `gwni38`
 - Old output: `GWNI38`
 - New output: value passed through unchanged
@@ -58,45 +58,62 @@ These corrections were compensating for upstream client-side inconsistencies tha
 
 ---
 
-## ingest-router (retired)
+## ingest-router
 
-### Removal: ingest-router retired from pipeline flow
+### Clarification: DP-only downstream invariant + lower-environment (QA/UAT) behavior
 
-**Date:** 2026-06-19  
-**Branch:** cbrelease-4.8.38
+**Date:** 2026-09-28  
+**Branch:** cbrelease-4.8.39
 
-#### What was removed
+#### The invariant
 
-The `ingest-router` Flink job was a simple pass-through that read raw bytes from `{env}.telemetry.ingestion` and forwarded them unchanged to `{env}.telemetry.ingest`. No transformation, validation, or enrichment was applied. The module is removed from the parent `pom.xml`.
+Every Flink job downstream of `ingest-router` — `telemetry-extractor`, `pipeline-preprocessor`, `de-normalization`, `druid-events-validator`, and every side-path job (`assessment-aggregator`, `cb-preprocessor`, `content-cache-updater`, `user-cache-updater-2.0`, `device-profile-updater`, `rating`) — consumes and produces **DP-cluster topics exclusively**. None of them ever connect to the KP cluster. `ingest-router` is the only job with a foot in both clusters (consumer on KP, producer on DP), for both of its streams:
 
-#### Why removed
+- `{env}.telemetry.ingestion` (KP) → `{env}.telemetry.ingest` (DP) → `telemetry-extractor`
+- `{env}.telemetry.raw` (KP, pushed by other backend services, not batched) → `{env}.telemetry.raw` (DP) → `pipeline-preprocessor` directly, bypassing `telemetry-extractor` (extractor's job is unpacking batches; these events aren't batched, so there's nothing to unpack)
 
-The `telemetry-extractor` job already reads directly from `{env}.telemetry.ingestion` — it never consumed from `{env}.telemetry.ingest`. This means ingest-router's output was going to an unconsumed topic, making the job a redundant consumer that added lag and resource cost with zero effect on the pipeline. The flow is:
+This confirms the architecture already documented below — restated here as an explicit rule because it's easy to misstate which cluster a given job runs on when talking through the flow verbally.
 
-```
-Before: telemetry.ingestion → [ingest-router] → telemetry.ingest (unread)
-                           ↘ [telemetry-extractor]
+#### QA / UAT: single shared cluster, ingest-router inactive
 
-After:  telemetry.ingestion → [telemetry-extractor]
-```
+Lower environments do not have a KP/DP split — there is one Kafka cluster. In that setup:
 
-#### Modules retired (removed from parent pom)
+- `ingest-router` is not active. `kubernetes/ansible/roles/flink-jobs-deploy/defaults/main.yml` defines its default deploy profile as `replica: 0`, `min_replica: 0`, `max_replica: 0`, `scale_enabled: false` — zero-replica unless a production-specific override raises it (that override lives outside this repo, in the per-environment deploy vars).
+- The Telemetry SDK/API and backend services publish directly to `{env}.telemetry.ingest` — the same topic name `telemetry-extractor` always reads from (`kafka.input.topic = {{ env_name }}.telemetry.ingest` in the `telemetry-extractor:` block of `values.j2`, unchanged across environments). There's no `telemetry.ingestion` topic or relay hop involved in QA/UAT; producers skip straight to the topic extractor already reads in every environment.
+- No job code or config differs between environments here — `telemetry-extractor` doesn't know or care whether its `telemetry.ingest` input was populated by `ingest-router` (prod) or written to directly (QA/UAT). Only the per-environment `job_names_to_deploy` list (whether `ingest-router` is included) and broker endpoints change.
 
-| Module | Was consuming |
-|--------|--------------|
-| `ingest-router` | `{env}.telemetry.ingestion` → wrote to `{env}.telemetry.ingest` (unread by any job) |
+### Correction: ingest-router was never removed — it is active in production and not retired
 
-#### Files affected
+**Date:** 2026-09-01  
+**Branch:** cbrelease-4.8.39
 
-| File | Change |
-|------|--------|
-| `data-pipeline-flink/pom.xml` | Removed `ingest-router` module entry |
+#### What happened
 
-#### Downstream impact
+A previous entry in this log (dated 2026-06-19, titled "ingest-router (retired)") incorrectly claimed that `ingest-router` was retired and removed from the parent `pom.xml`. **That was wrong.** `<module>ingest-router</module>` has remained in `data-pipeline-flink/pom.xml` the entire time — nothing was ever removed, no code was deleted, and no deployment change followed from that entry. This section corrects the record; the incorrect entry has been replaced by this one.
 
-- `{env}.telemetry.ingest` topic will receive no new messages
-- `{env}.telemetry.ingestion` consumer group `{env}-ingest-router-group` is gone; no lag accumulation
-- Pipeline flow is unchanged — telemetry-extractor continues to read from `{env}.telemetry.ingestion` directly
+#### Why the previous entry was wrong
+
+The previous entry reasoned that `telemetry-extractor` "already reads directly from `{env}.telemetry.ingestion`," making `ingest-router` a redundant consumer writing to an unread topic. That premise doesn't hold: `telemetry-extractor` is configured with `kafka.consumer.broker-servers = kafka_brokers` (the DP cluster) and has no connectivity to the separate Kafka cluster `telemetry.ingestion` actually lives on. It consumes `{env}.telemetry.ingest`, not `{env}.telemetry.ingestion` — and `ingest-router` is exactly what populates `{env}.telemetry.ingest`.
+
+#### What ingest-router actually does
+
+`ingest-router` is a pass-through job, but it is not redundant — it is the bridge between **two physically separate Kafka clusters** used in production:
+
+- **KP cluster** (`ingestion_kafka_brokers`) — the ingestion Kafka cluster. The *only* job running here is `ingest-router`. It receives:
+  - `{env}.telemetry.ingestion` — events from the Telemetry SDK/API (mobile, web, portal)
+  - `{env}.telemetry.raw` — raw events sent directly by other backend services (not via the SDK)
+- **DP cluster** (`kafka_brokers`) — the data-pipeline Kafka cluster. Runs the rest of the pipeline: `telemetry-extractor`, `pipeline-preprocessor`, `de-normalization`, `druid-events-validator`, and the side-path jobs.
+
+`ingest-router` consumes both topics on the KP cluster and republishes them, unchanged, to the DP cluster — two independent streams in the same job (`IngestRouterStreamTask`: `ingestStream` and `rawStream`):
+
+- `{env}.telemetry.ingestion` (KP) → `{env}.telemetry.ingest` (DP), consumed by `telemetry-extractor`
+- `{env}.telemetry.raw` (KP) → `{env}.telemetry.raw` (DP), consumed directly by `pipeline-preprocessor` — this path **bypasses `telemetry-extractor` entirely**, since backend-service events arrive pre-extracted
+
+Source: `data-pipeline-flink/ingest-router/src/main/scala/org/sunbird/dp/ingestrouter/task/IngestRouterStreamTask.scala`. Config confirming the two-cluster split: `kubernetes/helm_charts/datapipeline_jobs/values.j2`, `ingest-router:` block — `kafka.consumer.broker-servers = {{ ingestion_kafka_brokers }}` vs `kafka.producer.broker-servers = {{ kafka_brokers }}`.
+
+#### Downstream impact of this correction
+
+None — no code or config changed. This is a documentation-only fix. `ingest-router` remains deployed and required; do not decommission it.
 
 ---
 

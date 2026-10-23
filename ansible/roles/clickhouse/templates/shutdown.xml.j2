@@ -1,0 +1,5 @@
+<!-- templates/config.d/shutdown.xml.j2 -->
+<clickhouse>
+  <shutdown_wait_unfinished_queries>{{ ch_shutdown_wait_unfinished_queries | default(1) }}</shutdown_wait_unfinished_queries>
+  <shutdown_wait_unfinished>{{ ch_shutdown_wait_unfinished | default(120) }}</shutdown_wait_unfinished>
+</clickhouse>

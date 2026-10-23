@@ -44,3 +44,11 @@
     group: clickhouse
     mode: '0644'
   notify: Restart ClickHouse
+
+- name: Render shutdown config
+  template:
+    src: shutdown.xml.j2
+    dest: /etc/clickhouse-server/config.d/shutdown.xml
+    owner: clickhouse
+    group: clickhouse
+    mode: "0640"
