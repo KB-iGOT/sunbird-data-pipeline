@@ -121,7 +121,6 @@
                 If the user closes the tab or Looker gives up, ClickHouse stops the query
                 instead of running it to the 600 s limit and holding memory/threads. -->
             <cancel_http_readonly_queries_on_client_close>1</cancel_http_readonly_queries_on_client_close>
-            <wait_end_of_query>1</wait_end_of_query>
 
             <!-- constraints: stop readonly=2 clients from raising the limits above.
                 Keep each max equal to the value set above; if you raise a setting,
