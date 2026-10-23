@@ -1,6 +1,7 @@
 <clickhouse>
   <remote_servers>
     <{{ env }}_cluster>
+      <secret>{{clickhouse_cluster_secret}}</secret>
       <shard>
       <internal_replication>true</internal_replication>
 {% for host in groups['clickhouse'] %}
