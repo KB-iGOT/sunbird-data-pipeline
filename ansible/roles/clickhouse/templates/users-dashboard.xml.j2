@@ -11,9 +11,13 @@
             <profile>dashboard</profile>
             <quota>dashboard</quota>
 
-
             <grants>
-                <query>GRANT SELECT, OPTIMIZE ON warehouse.*</query>
+                <query>GRANT SELECT ON warehouse.*</query>
+                <query>GRANT SELECT ON system.processes</query>
+                <query>GRANT KILL QUERY ON *.*</query>
+                <query>GRANT SELECT ON system.parts</query>
+                <query>GRANT SELECT ON system.tables</query>
+                <query>GRANT SELECT ON system.query_log</query>
             </grants>
         </dashboard>
     </users>
@@ -89,6 +93,10 @@
                 (config.xml) is full. Should rarely apply if Looker throttles.
                 Frequent waits = server-wide limit too low or cluster overloaded. -->
             <queue_max_wait_ms>60000</queue_max_wait_ms>
+            <use_query_cache>1</use_query_cache>
+            <query_cache_ttl>86400</query_cache_ttl>
+            <query_cache_nondeterministic_function_handling>ignore</query_cache_nondeterministic_function_handling>
+            <query_cache_system_table_handling>ignore</query_cache_system_table_handling>
 
             <!-- max_execution_time = 600 s, timeout_overflow_mode = throw
                 Guards against runaway queries only; normal slow loads must never reach it.
@@ -131,7 +139,7 @@
             <interval>
                 <duration>3600</duration>
                 <queries>0</queries>
-                <errors>1000</errors>
+                <errors>10000</errors>
             </interval>
         </dashboard>
     </quotas>
