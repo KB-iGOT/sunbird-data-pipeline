@@ -13,10 +13,13 @@
 
 
             <grants>
+                <query>GRANT CREATE DATABASE ON *.*</query>
+                <query>GRANT SET DEFINER ON default</query>
                 <query>GRANT SELECT, INSERT, ALTER, CREATE TABLE, DROP TABLE, TRUNCATE, OPTIMIZE ON warehouse.*</query>
                 <query>GRANT SELECT ON system.parts</query>
                 <query>GRANT SELECT ON system.columns</query>
                 <query>GRANT SELECT ON system.tables</query>
+                <query>GRANT SYSTEM DROP QUERY CACHE ON *.*</query>
             </grants>
         </pyspark>
     </users>
